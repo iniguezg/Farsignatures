@@ -1,0 +1,2 @@
+slurmstepd: error: execve(): script_getData.py: Permission denied
+srun: error: borro-06: task 0: Exited with exit code 13
