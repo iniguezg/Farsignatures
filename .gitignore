@@ -6,6 +6,7 @@
 !.gitignore
 !*.py
 !*.sh
+!*.slurm
 !files/data/*.pkl
 
 #specific things to ignore
