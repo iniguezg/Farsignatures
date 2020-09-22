@@ -23,7 +23,7 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
-	datasets = [ ('greedy_walk_nets', 'forum.evt') ]
+	datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
 
 
 	# ## analysis 1: format data (Bluetooth, Call, SMS) from Copenhagen Networks Study ##
