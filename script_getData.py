@@ -3,6 +3,7 @@
 ### SCRIPT FOR GETTING DATA PROPERTIES IN FARSIGNATURES PROJECT ###
 
 #import modules
+import sys
 import pandas as pd
 from os.path import expanduser
 
@@ -22,8 +23,7 @@ if __name__ == "__main__":
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
-	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
-	datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
+	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
 
 
 	# ## analysis 1: format data (Bluetooth, Call, SMS) from Copenhagen Networks Study ##
@@ -65,12 +65,13 @@ if __name__ == "__main__":
 
 	## analysis 5: fit activity model to ego networks in all datasets ##
 
+	dataname = sys.argv[1] #considered dataset
+	eventname = sys.argv[2]
+	print( 'dataset name: ' + eventname[:-4] ) #print output
+
 	bounds = (0, 1000) #bounds for alpha MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
-	for dataname, eventname in datasets: #loop through considered datasets
-		print( 'dataset name: ' + eventname[:-4] ) #print output
-
-		#fit activity model to all ego networks in dataset
-		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=bounds, nsims=nsims, amax=amax )
+	#fit activity model to all ego networks in dataset
+	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=bounds, nsims=nsims, amax=amax )
