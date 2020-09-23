@@ -120,7 +120,7 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=(0, 1
 
 		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
 			if pos % 10 == 0: #to know where we stand
-				print( 'ego {} out of {}'.format( pos, num_egos ) )
+				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
 
 			#parameters in data
 			k = degrees[nodei] #degree
@@ -137,7 +137,8 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=(0, 1
 				alpha, KSstat = mm.alpha_KSstat( activity, bounds=bounds )
 
 				#theo activity dist in range a=[0, amax] (i.e. inclusive)
-				act_dist_theo = [ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ]
+				act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
+				act_dist_theo = act_dist_theo / act_dist_theo.sum() #normalise if needed
 
 				#simulations of alter activity from data fit
 				activity_sims = rng.choice( amax+1, (nsims, k), p=act_dist_theo )

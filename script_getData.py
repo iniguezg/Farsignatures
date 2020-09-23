@@ -67,7 +67,7 @@ if __name__ == "__main__":
 
 	dataname = sys.argv[1] #considered dataset
 	eventname = sys.argv[2]
-	print( 'dataset name: ' + eventname[:-4] ) #print output
+	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
 
 	bounds = (0, 1000) #bounds for alpha MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
