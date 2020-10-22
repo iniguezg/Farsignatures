@@ -13,7 +13,7 @@ def plot_compcum_dist( yplot_data ):
 	"""Plot complementary cumulative distribution P[X >= x]"""
 
 	defaultreallimits = ( yplot_data.min() - 1.5, yplot_data.max() + 0.5 ) #dist limits, counting 0
-	numbins = int( yplot_data.max() + 1 ) #number of bins
+	numbins = int( yplot_data.max() - yplot_data.min() + 2 ) #number of bins
 	#cumulative frequency histogram
 	cumfreq = ss.cumfreq( yplot_data, defaultreallimits=defaultreallimits, numbins=numbins )
 

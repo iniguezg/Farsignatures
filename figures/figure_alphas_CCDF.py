@@ -28,7 +28,7 @@ if __name__ == "__main__":
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
-	pval_thres = 0.05 #threshold above which alphas are considered
+	pval_thres = 0.1 #threshold above which alphas are considered
 	alpha_min, alpha_max = 1e-4, 1e2 #extreme values for alpha (to avoid num errors)
 
 	#locations
@@ -37,7 +37,18 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: dataname, eventname, textname
-	datasets = [ ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
+	datasets = [ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
+				 ('SMS_net', 'MPC_Wu_SD01.evt', 'Mobile (Wu 1)'),
+				 ('SMS_net', 'MPC_Wu_SD02.evt', 'Mobile (Wu 2)'),
+				 ('SMS_net', 'MPC_Wu_SD03.evt', 'Mobile (Wu 3)'),
+				 ('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
+				 ('greedy_walk_nets', 'email.evt', 'Email 1'),
+				 ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
+				 ('greedy_walk_nets', 'fb.evt', 'Facebook'),
+				 ('greedy_walk_nets', 'messages.evt', 'Messages'),
+				 ('greedy_walk_nets', 'forum.evt', 'Forum'),
+				 ('greedy_walk_nets', 'pok.evt', 'Dating'),
+				 ('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
 				 ('Copenhagen_nets', 'CNS_calls.evt', 'CNS (call)'),
 				 ('Copenhagen_nets', 'CNS_sms.evt', 'CNS (sms)') ]
 
@@ -45,8 +56,8 @@ if __name__ == "__main__":
 	plot_props = { 'xylabel' : 15,
 	'figlabel' : 26,
 	'ticklabel' : 15,
-	'text_size' : 15,
-	'marker_size' : 8,
+	'text_size' : 11,
+	'marker_size' : 5,
 	'linewidth' : 1.5,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
@@ -57,9 +68,9 @@ if __name__ == "__main__":
 
 	#plot variables
 	fig_props = { 'fig_num' : 1,
-	'fig_size' : (10, 4),
-	'aspect_ratio' : (1, 3),
-	'grid_params' : dict( left=0.08, bottom=0.16, right=0.98, top=0.91, wspace=0.2, hspace=0.4 ),
+	'fig_size' : (10, 8),
+	'aspect_ratio' : (4, 4),
+	'grid_params' : dict( left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.3, hspace=0.5 ),
 	'dpi' : 300,
 	'savename' : 'figure_alphas_CCDF' }
 
@@ -88,6 +99,8 @@ if __name__ == "__main__":
 		#filtering process
 		#step 1: egos with t > a_0
 		egonet_fits_filter = egonet_fits[ degrees * amins < num_events ]
+#		#step 1 (alternative): egos with tau > 10
+#		egonet_fits_filter = egonet_fits[ num_events > 10 ]
 		#step 2: egos with pvalue > threshold
 		egonet_fits_filter = egonet_fits_filter[ egonet_fits_filter.pvalue > pval_thres ]
 		#step 3: alphas between extreme values (numerical errors)
@@ -102,8 +115,9 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		plt.xlabel( r'parameter $\alpha$', size=plot_props['xylabel'] )
-		if grid_pos in [0]:
+		if grid_pos in [10, 11, 12, 13]:
+			plt.xlabel( r'parameter $\alpha$', size=plot_props['xylabel'] )
+		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"CCDF $P[ \alpha' \geq \alpha ]$", size=plot_props['xylabel'] )
 
 		#loop through considered properties
@@ -117,23 +131,23 @@ if __name__ == "__main__":
 			plt.loglog( xplot, yplot, 'o', label=prop_label, mec=colors[prop_pos], mfc='w', mew=plot_props['linewidth'], ms=plot_props['marker_size'] )
 
 		#lines
-		plt.vlines( x=1, ymin = 5e-3, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
+		plt.vlines( x=1, ymin = 1e-4, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
 		plt.hlines( y=frac_egos_random, xmin = 1e-4, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
 
 		#texts
 
-		plt.text( 1, 1.1, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+		plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 		txt_str = '$N_{\mathrm{filtered}} =$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{\mathrm{random}} =$'+'{:.2f}'.format(frac_egos_random)
 		plt.text( 0.05, 0.05, txt_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 		#finalise subplot
-		plt.axis([ 1e-4, 1e2, 5e-3, 1.2e0 ])
+		plt.axis([ 1e-4, 2e2, 1e-4, 2e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=6 )
-		# if grid_pos not in [10, 11, 12, 13]:
-		# 	ax.tick_params(labelbottom=False)
-		if grid_pos not in [0]:
+		if grid_pos not in [10, 11, 12, 13]:
+			ax.tick_params(labelbottom=False)
+		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)
 
 	#finalise plot
