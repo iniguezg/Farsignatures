@@ -116,7 +116,7 @@ def model_activity( params, loadflag='n', saveloc='files/' ):
 
 
 #function to compute MLE optimal alpha from activity array
-def alpha_MLE_fit( activity, bounds=(0, 1000) ):
+def alpha_MLE_fit( activity, bounds ):
 	"""Compute MLE optimal alpha from activity array"""
 
 	a0 = min( activity ) #minimum alter activity
@@ -143,7 +143,7 @@ def alpha_MLE_fit( activity, bounds=(0, 1000) ):
 
 
 #function to get MLE optimal alpha and KS statistic from activity array
-def alpha_KSstat( activity, bounds=(0, 1000) ):
+def alpha_KSstat( activity, alphamax=1000 ):
 	"""Get MLE optimal alpha and KS statistic from activity array"""
 
 	k = len(activity) #degree
@@ -154,7 +154,10 @@ def alpha_KSstat( activity, bounds=(0, 1000) ):
 	#cumulative dist of alter activity in range a=[0, amax] (i.e. inclusive)
 	act_cumdist = ss.cumfreq( activity, defaultreallimits=( -0.5, amax+0.5 ), numbins=amax+1 ).cumcount / k
 
-	alpha = alpha_MLE_fit( activity, bounds=bounds ) #alpha fit
+	#bounds for alpha search
+	bounds = ( -a0, alphamax )
+
+	alpha = alpha_MLE_fit( activity, bounds ) #alpha fit
 
 	#only consider alphas in non-trivial case t > a_0
 	if np.isnan( alpha ) == False:

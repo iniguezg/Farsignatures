@@ -98,7 +98,7 @@ def data_params( datasets, root_data, loadflag, saveloc ):
 
 
 #function to fit activity model to all ego networks in dataset
-def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=(0, 1000), nsims=2500, amax=10000 ):
+def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
 	"""Fit activity model to all ego networks in dataset"""
 
 	savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
@@ -134,7 +134,7 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=(0, 1
 				activity = egonet_acts[nodei]
 
 				#alpha fit and KS statistic for data
-				alpha, KSstat = mm.alpha_KSstat( activity, bounds=bounds )
+				alpha, KSstat = mm.alpha_KSstat( activity, alphamax=alphamax )
 
 				#theo activity dist in range a=[0, amax] (i.e. inclusive)
 				act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
@@ -144,7 +144,7 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, bounds=(0, 1
 				activity_sims = rng.choice( amax+1, (nsims, k), p=act_dist_theo )
 
 				#KS statistics of alpha fit for simulated activity (get alpha but leave out!)
-				KSstat_sims = np.array([ mm.alpha_KSstat( act, bounds=bounds )[1] for act in activity_sims ])
+				KSstat_sims = np.array([ mm.alpha_KSstat( act, alphamax=alphamax )[1] for act in activity_sims ])
 
 				#get p-values as fraction of sim KS stats LARGER than data KS stat
 				pvalue = ( KSstat_sims > KSstat ).sum() / nsims
