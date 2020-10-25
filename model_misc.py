@@ -37,6 +37,16 @@ def activity_dist( a, t, alpha, a0 ):
 
 	return pa
 
+#function to compute activity distribution (gamma approx)
+def activity_dist_gamma( a, t, alpha, a0 ):
+	"""Compute activity distribution (gamma approx)"""
+
+	gamma = alpha + a0 #shape parameter
+	beta = ( t - a0 ) / ( alpha + a0 ) #scale parameter
+
+	pa = ss.gamma.pdf( a, gamma, a0, beta ) #rescaled gamma distribution
+
+	return pa
 
 #function to run model of alter activity, according to parameters
 def model_activity( params, loadflag='n', saveloc='files/' ):
