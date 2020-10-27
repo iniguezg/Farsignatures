@@ -11,7 +11,7 @@
 
 #specific things to ignore
 *.out
-__pycache__
+__pycache__/
 _old/
 figures/_old/
 figures/old/
