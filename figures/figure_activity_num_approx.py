@@ -14,6 +14,7 @@ from os.path import expanduser
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import model_misc as mm
+import plot_misc as pm
 
 
 ## RUNNING FIGURE SCRIPT ##
@@ -28,11 +29,10 @@ if __name__ == "__main__":
 	ntimes = 10000 #number of realizations for averages
 
 	#parameter arrays
-	# alpha_vals = [ -0.7, 0., 9. ] #PA parameter
+	alpha_vals = [ -0.7, 0., 9. ] #PA parameter
 	# t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
-	alpha_vals = [ -0.7 ]
-	t_vals = [ 2., 10., 100. ]
-	a_vals = np.unique( np.logspace( np.log10( a0 ), np.log10(max( t_vals ))+1, num=100, dtype=int ) ) #alter activities
+	t_vals = [ 2., 10. ]
+	a_vals = np.unique( np.logspace( 0, 3, num=100, dtype=int ) ) #alter activities
 
 	#parameter dict
 	params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
@@ -103,9 +103,9 @@ if __name__ == "__main__":
 			#load model of alter activity, according to parameters
 			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
 
-			bins = np.logspace( 0, np.log10( activity.max().max() ), num=50 )
-			yplot, bin_edges = np.histogram( activity, bins=bins, density=True )
-			xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]
+			#plot arrays for unbinned distribution
+			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
+			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
 
 			plt.loglog( xplot, yplot, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
 
@@ -142,7 +142,7 @@ if __name__ == "__main__":
 			leg = plt.legend( loc='upper right', bbox_to_anchor=(1, 0.95), title=r'$t=$', prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=1 )
 
 		#finalise subplot
-		plt.axis([ 1e0, max(a_vals), 1e-4, 1e0 ])
+		plt.axis([ 8e-1, 1e3, 5e-7, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		if alphapos > 0:
 			plt.yticks([])
@@ -151,6 +151,7 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
+
 
 #DEBUGGIN'
 
@@ -182,3 +183,7 @@ if __name__ == "__main__":
 		# 	xplot = np.arange( ss.poisson.ppf( ppf, mu ), ss.poisson.ppf( 1 - ppf, mu ) )
 		# 	yplot = ss.poisson.pmf( xplot, mu )
 		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S10)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
+
+			# bins = np.logspace( 0, np.log10( activity.max() ), num=25 )
+			# yplot, bin_edges = np.histogram( activity, bins=bins, density=True )
+			# xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]

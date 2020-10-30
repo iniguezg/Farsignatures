@@ -36,7 +36,8 @@ def plot_CCDF_cont( yplot_data ):
 def plot_logbinned_dist( yplot_data, num=30 ):
 	"""Plot logbinned distribution"""
 
-	bins = np.concatenate(( np.linspace( 1, 9, num=9 ), np.logspace( 1, np.log10( yplot_data.max() ), num=num ) )) #linear bins and log bins
+	#linear bins and log bins
+	bins = np.concatenate(( np.linspace( 1, 9, num=9 ), np.logspace( 1, np.log10( yplot_data.max() ), num=num ) ))
 
 	yplot, bin_edges = np.histogram( yplot_data, bins=bins, density=True )
 	xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]
