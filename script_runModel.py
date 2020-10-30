@@ -16,8 +16,8 @@ if __name__ == "__main__":
 
 	#parameters
 	a0 = 1 #minimum alter activity
-	k = 10 #number of alters (ego's degree)
-	ntimes = 10000 #number of realizations for averages
+	k = 1000 #number of alters (ego's degree)
+	ntimes = 1000 #number of realizations for averages
 
 	#parameter arrays
 	# alpha_vals = [ -0.7, 0., 9. ] #PA parameter
