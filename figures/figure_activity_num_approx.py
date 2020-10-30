@@ -31,8 +31,8 @@ if __name__ == "__main__":
 	#parameter arrays
 	alpha_vals = [ -0.7, 0., 9. ] #PA parameter
 	# t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
-	t_vals = [ 2., 10. ]
-	a_vals = np.unique( np.logspace( 0, 3, num=100, dtype=int ) ) #alter activities
+	t_vals = [ 2., 10., 100. ]
+	a_vals = np.unique( np.logspace( 0, 4, num=100, dtype=int ) ) #alter activities
 
 	#parameter dict
 	params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
@@ -48,7 +48,7 @@ if __name__ == "__main__":
 	'figlabel' : 26,
 	'ticklabel' : 13,
 	'text_size' : 8,
-	'marker_size' : 4,
+	'marker_size' : 3,
 	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
@@ -142,7 +142,7 @@ if __name__ == "__main__":
 			leg = plt.legend( loc='upper right', bbox_to_anchor=(1, 0.95), title=r'$t=$', prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=1 )
 
 		#finalise subplot
-		plt.axis([ 8e-1, 1e3, 5e-7, 1e0 ])
+		plt.axis([ 8e-1, 1e4, 5e-7, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		if alphapos > 0:
 			plt.yticks([])
