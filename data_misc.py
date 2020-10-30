@@ -157,6 +157,38 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=100
 	return egonet_fits
 
 
+#function to filter egos according to fitting results
+def egonet_filter( egonet_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
+	"""Filter egos according to fitting results"""
+
+	#join (ego) properties and fits
+	props_fits = pd.concat( [ egonet_props, egonet_fits ], axis=1 )
+
+	#egos with well-fitted parameters (alpha, gamma, beta)
+
+	#step 1: egos with t > a_0
+	egonet_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
+	#step 2: egos with pvalue > threshold
+	egonet_filter = egonet_filter[ egonet_filter.pvalue > pval_thres ]
+	#step 3 egos with alpha < alphamax (within tolerance threshold)
+	egonet_filter = egonet_filter[ egonet_filter.alpha < alphamax - alph_thres ]
+
+	#gamma distribution quantities
+	gammas = pd.Series( egonet_filter.alpha + egonet_filter.act_min, name='gamma' )
+	betas = pd.Series( ( egonet_filter.act_avg - egonet_filter.act_min ) / ( egonet_filter.alpha + egonet_filter.act_min ), name='beta' )
+
+	#add gamma quantities to [filtered] properties and fits
+	egonet_filter = pd.concat( [ egonet_filter, gammas, betas ], axis=1 )
+
+	#egos without paremeters or with alpha -> inf
+
+	egonet_rest = props_fits.drop( egonet_filter.index )
+	egonet_inf = egonet_rest[ egonet_rest.alpha > alphamax - alph_thres ]
+	egonet_null = egonet_rest.drop( egonet_inf.index )
+
+	return egonet_filter, egonet_inf, egonet_null
+
+
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study
 def format_data_CNS( root_data, loadflag ):
 	"""Format data (Bluetooth, Call, SMS) from Copenhagen Networks Study"""

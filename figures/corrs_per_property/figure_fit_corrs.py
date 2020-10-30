@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR PLOTTING FIGURE (ALPHA CORRS) IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR PLOTTING FIGURE (FIT CORRS) IN FARSIGNATURES PROJECT ###
 
 #import modules
 import os, sys
@@ -21,12 +21,12 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#properties to correlate
-	properties_x = [ ('alpha', r'\alpha'),
-	 				 ('alpha', r'\alpha'),
-					 ('alpha', r'\alpha'),
-					 ('alpha', r'\alpha'),
-					 ('alpha', r'\alpha'),
+	#fit/data properties to correlate
+	properties_x = [ ('gamma', r'\gamma'),
+	 				 ('gamma', r'\gamma'),
+					 ('gamma', r'\gamma'),
+					 ('gamma', r'\gamma'),
+					 ('gamma', r'\gamma'),
 					 ('gamma', r'\gamma') ]
 	properties_y = [ ('degree', 'k'),
 					 ('strength', r'\tau'),
@@ -35,12 +35,12 @@ if __name__ == "__main__":
 					 ('act_max', r'a_m'),
 					 ('beta', r'\beta') ]
 
-	bounds = (0, 1000) #bounds for alpha MLE fit
+	alphamax = 1000 #maximum alpha for MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
 	pval_thres = 0.1 #threshold above which alphas are considered
-	alpha_min, alpha_max = 1e-4, 1e2 #extreme values for alpha (to avoid num errors)
+	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
 	#plotting variables
 	gridsize = 40 #grid size for hex bins
@@ -93,7 +93,7 @@ if __name__ == "__main__":
 		'grid_params' : dict( left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.2, hspace=0.4 ),
 		'width_ratios' : [1, 1, 1, 1.2],
 		'dpi' : 300,
-		'savename' : 'figure_data_corrs_{}_{}'.format( propx[0], propy[0] ) }
+		'savename' : 'figure_fit_corrs_{}_{}'.format( propx[0], propy[0] ) }
 
 		#initialise plot
 		sns.set( style='ticks' ) #set fancy fancy plot
@@ -113,25 +113,10 @@ if __name__ == "__main__":
 			egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
 
 			#fit activity model to all ego networks in dataset
-			egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, bounds=bounds, nsims=nsims, amax=amax )
+			egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
 
-			#join (ego) properties and fits
-			props_fits = pd.concat( [ egonet_props, egonet_fits ], axis=1 )
-
-			#filtering process
-			#step 1: egos with t > a_0
-			props_fits_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
-			#step 2: egos with pvalue > threshold
-			props_fits_filter = props_fits_filter[ props_fits_filter.pvalue > pval_thres ]
-			#step 3: alphas between extreme values (numerical errors)
-			props_fits_filter = props_fits_filter[ props_fits_filter.alpha.between( alpha_min, alpha_max ) ]
-
-			#gamma distribution quantities
-			gammas = pd.Series( props_fits_filter.alpha + props_fits_filter.act_min, name='gamma' )
-			betas = pd.Series( ( props_fits_filter.act_avg - props_fits_filter.act_min ) / ( props_fits_filter.alpha + props_fits_filter.act_min ), name='beta' )
-
-			#add gamma quantities to [filtered] properties and fits
-			props_fits_filter = pd.concat( [ props_fits_filter, gammas, betas ], axis=1 )
+			#filter egos according to fitting results
+			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 
 			## PLOTTING ##
@@ -145,7 +130,7 @@ if __name__ == "__main__":
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=props_fits_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
@@ -153,20 +138,27 @@ if __name__ == "__main__":
 				cbar.ax.set_title( r'$N_{'+propx[1]+','+propy[1]+'}$' )
 				cbar.ax.minorticks_off()
 
+			#lines
+			plt.axvline( x=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
+
 			#texts
 			plt.text( 0, 1.15, textname, va='top', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 			#finalise subplot
-			if prop_pos in [0, 1]:
-				plt.axis([ 1e-4, 1e2, 8e-1, 1e3 ])
-			if prop_pos in [2, 4]:
-				plt.axis([ 1e-4, 1e2, 8e-1, 1e2 ])
+			if prop_pos == 0:
+				plt.axis([ 1e-3, 1e3, 8e-1, 1e3 ])
+			if prop_pos == 1:
+				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
+			if prop_pos == 2:
+				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
 			if prop_pos == 3:
-				plt.axis([ 1e-4, 1e2, 8e-1, 1e1 ])
+				plt.axis([ 1e-3, 1e3, 8e-1, 1e3 ])
+			if prop_pos == 4:
+				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
 			if prop_pos == 5:
-				plt.axis([ 8e-1, 2e2, 5e-3, 1e2 ])
+				plt.axis([ 1e-3, 1e3, 5e-3, 1e4 ])
 			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-			ax.locator_params( numticks=6 )
+			ax.locator_params( numticks=5 )
 			if grid_pos not in [10, 11, 12, 13]:
 				ax.tick_params(labelbottom=False)
 			if grid_pos not in [0, 4, 8, 12]:

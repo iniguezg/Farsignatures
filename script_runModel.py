@@ -3,6 +3,8 @@
 ### SCRIPT FOR RUNNING MODEL IN FARSIGNATURES PROJECT ###
 
 #import modules
+import sys
+
 import model_misc as mm
 
 
@@ -12,14 +14,19 @@ if __name__ == "__main__":
 
 	## CONF ##
 
+	#parameters
+	a0 = 1 #minimum alter activity
+	k = 100 #number of alters (ego's degree)
+	ntimes = 10000 #number of realizations for averages
+
 	#parameter arrays
-	alpha_vals = [ 0.01, 1, 100 ] #cumulative advantage parameter
-	T_vals = [ 1000 ] #max time (mean alter activity) in dynamics
+	# alpha_vals = [ -0.7, 0., 9. ] #PA parameter
+	# t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
+	alpha_vals = [ float( sys.argv[1] ) ]
+	t_vals = [ float( sys.argv[2] ) ]
 
 	#parameter dict
-	params = {}
-	params['k'] = 100 #number of alters (ego's degree)
-	params['ntimes'] = 10000 #number of realizations for averages
+	params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
 
 	#flags and locations
 	loadflag = 'n'
@@ -28,14 +35,14 @@ if __name__ == "__main__":
 	## MODEL ##
 
 	for alpha in alpha_vals: #loop through alpha values
-		params['alpha'] = alpha #CA parameter
+		params['alpha'] = alpha #PA parameter
 
-		print( '\talpha = {:.2f}'.format( alpha ) ) #to know where we stand
+		print( 'alpha = {:.2f}'.format( alpha ) flush=True ) #to know where we stand
 
-		for T in T_vals: #loop through times
-			params['T'] = T #time to run dynamics
+		for t in t_vals: #loop through times
+			params['t'] = t #mean alter activity (max time in dynamics)
 
-			print( '\t\tT = {:.2f}'.format( T ) ) #to know where we stand
+			print( '\tt = {:.2f}'.format( t ) flush=True ) #to know where we stand
 
 			#run model of alter activity, according to parameters
 			activity = mm.model_activity( params, loadflag=loadflag, saveloc=saveloc )

@@ -4,6 +4,7 @@
 
 #import modules
 import os, sys
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -20,16 +21,16 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#properties to plot
-	prop_names = [ 'alpha' ]
-	prop_labels = [ r'$\alpha$' ]
+	#property to plot
+	prop_names = [ 'gamma' ]
+	prop_labels = [ r'$\gamma$' ]
 
-	bounds = (0, 1000) #bounds for alpha MLE fit
+	alphamax = 1000 #maximum alpha for MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
-	pval_thres = 0.1 #threshold above which alphas are considered
-	alpha_min, alpha_max = 1e-4, 1e2 #extreme values for alpha (to avoid num errors)
+	pval_thres = 0.1 #threshold above which alpha MLEs are considered
+	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -58,7 +59,7 @@ if __name__ == "__main__":
 	'ticklabel' : 15,
 	'text_size' : 11,
 	'marker_size' : 5,
-	'linewidth' : 1.5,
+	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
 	'legend_prop' : { 'size':15 },
@@ -85,30 +86,33 @@ if __name__ == "__main__":
 
 	#loop through considered datasets
 	for grid_pos, (dataname, eventname, textname) in enumerate(datasets):
+#		for grid_pos, (dataname, eventname, textname) in enumerate([ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)') ]):
 		print( 'dataset name: ' + eventname[:-4] ) #print output
 
 		## DATA ##
 
 		#prepare ego network properties
 		egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-		degrees, num_events, amins = egonet_props['degree'], egonet_props['strength'], egonet_props['act_min'] #unpack props
 
 		#fit activity model to all ego networks in dataset
-		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, bounds=bounds, nsims=nsims, amax=amax )
+		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
 
-		#filtering process
-		#step 1: egos with t > a_0
-		egonet_fits_filter = egonet_fits[ degrees * amins < num_events ]
-#		#step 1 (alternative): egos with tau > 10
-#		egonet_fits_filter = egonet_fits[ num_events > 10 ]
-		#step 2: egos with pvalue > threshold
-		egonet_fits_filter = egonet_fits_filter[ egonet_fits_filter.pvalue > pval_thres ]
-		#step 3: alphas between extreme values (numerical errors)
-		egonet_fits_filter = egonet_fits_filter[ egonet_fits_filter.alpha.between( alpha_min, alpha_max ) ]
+		#filter egos according to fitting results
+		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 		#some measures
-		num_egos_filter = len( egonet_fits_filter ) #filtered egos
-		frac_egos_random = ( egonet_fits_filter.alpha > 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (alpha > 1)
+		num_egos = len( egonet_props ) #all egos
+		num_egos_filter = len( egonet_filter ) #filtered egos
+		frac_egos_random = ( egonet_filter.gamma > 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (gamma > 1, i.e. alpha > 1 - a0)
+
+
+		## PRINTING ##
+
+		print( 'fraction filtered egos = {:.2f}'.format( num_egos_filter / float(num_egos) ) )
+		print( 'fraction inf egos = {:.2f}'.format( len(egonet_inf) / float(num_egos) ) )
+		print( 'fraction null egos = {:.2f}'.format( len(egonet_null) / float(num_egos) ) )
+		print( '\n' )
+
 
 		## PLOTTING ##
 
@@ -116,35 +120,35 @@ if __name__ == "__main__":
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
 		if grid_pos in [10, 11, 12, 13]:
-			plt.xlabel( r'parameter $\alpha$', size=plot_props['xylabel'] )
+			plt.xlabel( r'$\gamma$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r"CCDF $P[ \alpha' \geq \alpha ]$", size=plot_props['xylabel'] )
+			plt.ylabel( r"CCDF $P[ \gamma' \geq \gamma ]$", size=plot_props['xylabel'] )
 
 		#loop through considered properties
 		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
 
 			#prepare data
-			yplot_data = egonet_fits_filter[ prop_name ] #filtered data!
+			yplot_data = egonet_filter[ prop_name ] #filtered data!
 			xplot, yplot = pm.plot_CCDF_cont( yplot_data ) #complementary cumulative dist
 
 			#plot plot!
-			plt.loglog( xplot, yplot, 'o', label=prop_label, mec=colors[prop_pos], mfc='w', mew=plot_props['linewidth'], ms=plot_props['marker_size'] )
+			plt.loglog( xplot, yplot, '-', label=prop_label, c=colors[prop_pos], lw=plot_props['linewidth'] )
 
 		#lines
-		plt.vlines( x=1, ymin = 1e-4, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
-		plt.hlines( y=frac_egos_random, xmin = 1e-4, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
+		plt.vlines( x=1, ymin = 1e-5, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
+		plt.hlines( y=frac_egos_random, xmin = 1e-3, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
 
 		#texts
 
 		plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
-		txt_str = '$N_{\mathrm{filtered}} =$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{\mathrm{random}} =$'+'{:.2f}'.format(frac_egos_random)
+		txt_str = '$N_{\gamma}=$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{RN} =$'+'{:.2f}'.format(frac_egos_random)
 		plt.text( 0.05, 0.05, txt_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 		#finalise subplot
-		plt.axis([ 1e-4, 2e2, 1e-4, 2e0 ])
+		plt.axis([ 1e-3, 5e2, 1e-5, 2e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-		ax.locator_params( numticks=6 )
+		ax.locator_params( numticks=5 )
 		if grid_pos not in [10, 11, 12, 13]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
@@ -153,3 +157,8 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
+
+
+#DEBUGGIN'
+
+#			plt.loglog( xplot, yplot, '-', label=prop_label, mec=colors[prop_pos], mfc='w', mew=plot_props['linewidth'], ms=plot_props['marker_size'] )

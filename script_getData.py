@@ -17,7 +17,7 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#input arguments
-	loadflag = 'n' #load flag ( 'y', 'n' )
+	loadflag = 'y' #load flag ( 'y', 'n' )
 
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'

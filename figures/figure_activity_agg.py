@@ -5,11 +5,10 @@
 #import modules
 import os, sys
 import numpy as np
-import pandas as pd
 import seaborn as sns
+import scipy.stats as ss
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.colors import LogNorm
 from os.path import expanduser
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
@@ -23,13 +22,13 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	bounds = (0, 1000) #bounds for alpha MLE fit
+	alphamax = 1000 #maximum alpha for MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
 	pval_thres = 0.1 #threshold above which alphas are considered
-	alpha_lims = [ (1e-4, 1e0), (1e0, 1e2) ] #alpha intervals to aggregate egos
-#	alpha_lims = [ (1e-4, 1e2) ]
+	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+	gamma_lims = [ (1e-3, 1e0), (1e0, 1e2) ] #alpha intervals to aggregate egos
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -61,7 +60,7 @@ if __name__ == "__main__":
 	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
-	'legend_prop' : { 'size':15 },
+	'legend_prop' : { 'size':12 },
 	'legend_hlen' : 1,
 	'legend_np' : 1,
 	'legend_colsp' : 1.1 }
@@ -74,7 +73,7 @@ if __name__ == "__main__":
 	'dpi' : 300,
 	'savename' : 'figure_activity_agg' }
 
-	colors = sns.color_palette( 'Set2', n_colors=len(alpha_lims) ) #colors to plot
+	colors = sns.color_palette( 'Set2', n_colors=len(gamma_lims) ) #colors to plot
 
 	#initialise plot
 	sns.set( style='ticks' ) #set fancy fancy plot
@@ -94,16 +93,10 @@ if __name__ == "__main__":
 		egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
 
 		#fit activity model to all ego networks in dataset
-		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, bounds=bounds, nsims=nsims, amax=amax )
+		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
 
-		#join (ego) properties and fits
-		props_fits = pd.concat( [ egonet_props, egonet_fits ], axis=1 )
-
-		#filtering process
-		#step 1: egos with t > a_0
-		props_fits_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
-		#step 2: egos with pvalue > threshold
-		props_fits_filter = props_fits_filter[ props_fits_filter.pvalue > pval_thres ]
+		#filter egos according to fitting results
+		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 
 		## PLOTTING ##
@@ -116,50 +109,50 @@ if __name__ == "__main__":
 		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"PDF $p_a(t)$", size=plot_props['xylabel'] )
 
-		#loop through alpha intervals to aggregate egos
-		for alpha_pos, (alpha_min, alpha_max) in enumerate( alpha_lims ):
+		#loop through gamma intervals to aggregate egos
+		for gamma_pos, (gamma_min, gamma_max) in enumerate( gamma_lims ):
 
 			#filtering process (continued)
-			#step 3: alphas between extreme values in selected interval
-			props_fits_alpha = props_fits_filter[ props_fits_filter.alpha.between( alpha_min, alpha_max ) ]
+			#gammas between extreme values in selected interval
+			egonet_filter_gamma = egonet_filter[ egonet_filter.gamma.between( gamma_min, gamma_max ) ]
 
 			#get [aggregated] activity distribution
-			acts_filter = egonet_acts.loc[ props_fits_alpha.index ] #alter activities (filtered egos only)
+			acts_filter = egonet_acts.loc[ egonet_filter_gamma.index ] #alter activities (only filtered egos with gamma in interval)
 
 			if len(acts_filter) > 0: #if there's anything to plot
 				#plot data!
 
-				xplot = np.arange( props_fits_alpha.act_min.min(), props_fits_alpha.act_max.max()+1, dtype=int ) #activity range
+				xplot = np.arange( egonet_filter_gamma.act_min.min(), egonet_filter_gamma.act_max.max()+1, dtype=int ) #activity range
 				yplot_data, not_used = np.histogram( acts_filter, bins=len(xplot), range=( xplot.min()-0.5, xplot.max()+0.5 ), density=True )
 
-#				label = 'data' if alpha_pos == 0 else None
-				symbol = 'o' if alpha_pos == 0 else 's'
+#				label = 'data' if gamma_pos == 0 else None
+				symbol = 'o' if gamma_pos == 0 else 's'
 
-				plt.loglog( xplot, yplot_data, symbol, c=colors[alpha_pos], label=None, ms=plot_props['marker_size'], zorder=0 )
+				plt.loglog( xplot, yplot_data, symbol, c=colors[gamma_pos], label=None, ms=plot_props['marker_size'], zorder=0 )
 
 				#plot model!
 
-				#average values of model parameters (over filtered egos)
-				t = props_fits_alpha.act_avg.mean()
-				alpha = props_fits_alpha.alpha.mean()
-				a0 = int( props_fits_alpha.act_min.mean() )
+				#avg values of model parameters (over filtered egos)
+				gamma = egonet_filter_gamma.gamma.mean()
+				a0 = int( egonet_filter_gamma.act_min.mean() )
+				beta = egonet_filter_gamma.beta.mean()
 
-				xplot = np.arange( a0, 1e2, dtype=int ) #activity range
-				yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in xplot ])
+				xplot = np.arange( a0+1, 1e4, dtype=int ) #activity range
+				yplot_model = ss.gamma.pdf( xplot, gamma, a0, beta ) #gamma approx
 
-				label = r'$10^{'+str(int(np.log10(alpha_min)))+r'} \leq \alpha \leq 10^{'+str(int(np.log10(alpha_max)))+'}$'
+				label = '$\gamma < 1$' if gamma_pos == 0 else '$\gamma > 1$'
 
-				plt.loglog( xplot, yplot_model, '-', c=colors[alpha_pos], label=label, lw=plot_props['linewidth'], zorder=1 )
+				plt.loglog( xplot, yplot_model, '-', c=colors[gamma_pos], label=label, lw=plot_props['linewidth'], zorder=1 )
 
 		#text
 		plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 		#legend
-		if grid_pos == 13:
-			plt.legend( loc='upper left', bbox_to_anchor=(1.1, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )
+		if grid_pos == 0:
+			plt.legend( loc='upper right', bbox_to_anchor=(1.1, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )
 
 		#finalise subplot
-		plt.axis([ 5e-1, 1e2, 1e-5, 1e0 ])
+		plt.axis([ 5e-1, 1e4, 1e-6, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=6 )
 		if grid_pos not in [10, 11, 12, 13]:
@@ -171,9 +164,12 @@ if __name__ == "__main__":
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
 
+
 #DEBUGGIN'
 
 		# xplot = np.arange( egonet_props.act_min.min(), egonet_props.act_max.max()+1, dtype=int ) #activity range
 		# yplot_data, not_used = np.histogram( egonet_acts, bins=len(xplot), range=( xplot.min()-0.5, xplot.max()+0.5 ), density=True )
 
 #				xplot = np.arange( a0, props_fits_alpha.act_max.max()+1, dtype=int ) #activity range
+
+				# label = r'$10^{'+str(int(np.log10(gamma_min)))+r'} \leq \gamma \leq 10^{'+str(int(np.log10(gamma_max)))+'}$'

@@ -49,14 +49,14 @@ def activity_dist_gamma( a, t, alpha, a0 ):
 	return pa
 
 #function to run model of alter activity, according to parameters
-def model_activity( params, loadflag='n', saveloc='files/' ):
+def model_activity( params, loadflag='n', saveloc='files/model/' ):
 	"""Run model of alter activity, according to parameters"""
 
 	#get model parameters
-	alpha, k, T, ntimes = params['alpha'], params['k'], params['T'], params['ntimes']
+	alpha, a0, k, t, ntimes = params['alpha'], params['a0'], params['k'], params['t'], params['ntimes']
 
 	#filename for output file
-	savename = saveloc+'activity_alpha_{:.2f}_k_{}_T_{:.2f}_ntimes_{}.npy'.format( alpha, k, T, ntimes )
+	savename = saveloc+'activity_alpha_{:.2f}_a0_{}_k_{}_t_{:.2f}_ntimes_{}.npy'.format( alpha, a0, k, t, ntimes )
 
 	if loadflag == 'y': #load activity
 		with open( savename, 'rb' ) as act_file:
@@ -66,48 +66,30 @@ def model_activity( params, loadflag='n', saveloc='files/' ):
 
 		rng = np.random.default_rng() #initialise random number generator
 
-		time = np.arange( 0, k*T, dtype=int ) #time step array (without final time tau = kT)
+		time = np.arange( a0*k, k*t, dtype=int ) #time step array (without final time tau = k*t)
 
-		#initialise array of activity per realization (row) per alter (column) (accumulated until tau = kT)
+		#initialise array of activity per realization (row) per alter (column) (accumulated until tau = k*t)
 		#run = 0, ..., ntimes-1, alter = 0, ..., k-1
-		#initial condition: a_i(0) = 0 for all i
-		activity = np.zeros( ( ntimes, k ), dtype=int )
+		#initial condition: a_i(0) = a0 for all i
+		activity = np.ones( ( ntimes, k ), dtype=int ) * a0
 
-		#initialise pool from where to select alters at each time step (default value = -1)
-		#axis 0: 0 (random choice) and 1 (cumulative advantage [CA])
-		#axis 1: run = 0, ..., ntimes-1
-		#axis 2: alter = 0, ..., max between degree k and max tau = kT
-		alter_pool = - np.ones( ( 2, ntimes, max([ k, len(time) ]) ), dtype=int )
-		alter_pool[ 0, :, :k ] = np.tile( np.arange( k, dtype=int ), ( ntimes, 1 ) )
+		#prob that alter w/ activity a_i(tau) gets active, over activity array of realisation
+		prob_func = lambda act_rel, alpha, k, tau : ( act_rel + alpha ) / ( tau + k * alpha )
+		#random alter chosen with previous probability
+		alter_func = lambda act_rel, alpha, k, tau : rng.choice( k, p=prob_func( act_rel, alpha, k, tau ) )
 
 		#activity dynamics
-		for tau in time: #loop through time step tau = 0, ..., kT-1
-			t = tau / float( k ) #get MC time (mean alter activity)
+		for tau in time: #loop through time step tau = a0*k, ..., k*t-1
 
-			if t % 100 == 0:
-				print( 't = {:.2f}'.format( t ) ) #to know where we stand
+			t_inter = tau / float( k ) #get intermediate MC time (mean alter activity)
+			if t_inter % 10 == 0:
+				print( "\t\tt' = {:.2f}".format( t_inter ), flush=True ) #to know where we stand
 
-			#probability of choosing random alter
-			p_rand = alpha / ( alpha + t )
-
-			#maximum length of pools (random and CA)
-			pool_lens = np.array([ k, tau ])
-
-			#mechanisms with which we'll choose alters ( random [0] or CA[1] )
-			rand_mechs = rng.choice( 2, size=ntimes, p=[ p_rand, 1 - p_rand ] )
-
-			#positions of alters (chosen with given raandom mechanisms)
-			alter_pos = rng.integers( pool_lens[ rand_mechs ] )
-
-			#alters chosen
-			alters = alter_pool[ rand_mechs, range(ntimes), alter_pos ]
+			#get active alters for all realizations
+			alters = np.apply_along_axis( alter_func, 1, activity, alpha, k, tau )
 
 			#increase activity of chosen alters
 			activity[ range( ntimes ), alters ] += 1
-
-			#save alters with nonzero activity in CA alter pool
-			alter_pool[ 1, range(ntimes), tau ] = alters
-
 
 		with open( savename, 'wb' ) as act_file:
 			np.save( act_file, activity ) #save activity
@@ -269,3 +251,55 @@ def alpha_KSstat( activity, alphamax=1000 ):
 # 	alpha_res = spo.minimize_scalar( alpha_min, args=( t, activity ), bounds=bounds, method='bounded' )
 #
 # 	return alpha_res.x
+
+		# #initialise pool from where to select alters at each time step (default value = -1)
+		# #axis 0: 0 (random choice) and 1 (cumulative advantage [CA])
+		# #axis 1: run = 0, ..., ntimes-1
+		# #axis 2: alter = 0, ..., max between degree k and max tau = kT
+		# alter_pool = - np.ones( ( 2, ntimes, max([ k, len(time) ]) ), dtype=int )
+		# #initialise random choice as all alters
+		# alter_pool[ 0, :, :k ] = np.tile( np.arange( k, dtype=int ), ( ntimes, 1 ) )
+		# #initialise CA as all alters with a0 events each
+		# alter_pool[ 1, :, :a0*k ] = np.tile( np.repeat( np.arange( k, dtype=int ), a0 ), ( ntimes, 1 ) )
+
+		# time = np.arange( 0, k*T, dtype=int ) #time step array (without final time tau = kT)
+		#
+		# #initialise array of activity per realization (row) per alter (column) (accumulated until tau = kT)
+		# #run = 0, ..., ntimes-1, alter = 0, ..., k-1
+		# #initial condition: a_i(0) = 0 for all i
+		# activity = np.zeros( ( ntimes, k ), dtype=int )
+		#
+		# #initialise pool from where to select alters at each time step (default value = -1)
+		# #axis 0: 0 (random choice) and 1 (cumulative advantage [CA])
+		# #axis 1: run = 0, ..., ntimes-1
+		# #axis 2: alter = 0, ..., max between degree k and max tau = kT
+		# alter_pool = - np.ones( ( 2, ntimes, max([ k, len(time) ]) ), dtype=int )
+		# alter_pool[ 0, :, :k ] = np.tile( np.arange( k, dtype=int ), ( ntimes, 1 ) )
+		#
+		# #activity dynamics
+		# for tau in time: #loop through time step tau = 0, ..., kT-1
+		# 	t = tau / float( k ) #get MC time (mean alter activity)
+		#
+		# 	if t % 100 == 0:
+		# 		print( 't = {:.2f}'.format( t ) ) #to know where we stand
+		#
+		# 	#probability of choosing random alter
+		# 	p_rand = alpha / ( alpha + t )
+		#
+		# 	#maximum length of pools (random and CA)
+		# 	pool_lens = np.array([ k, tau ])
+		#
+		# 	#mechanisms with which we'll choose alters ( random [0] or CA[1] )
+		# 	rand_mechs = rng.choice( 2, size=ntimes, p=[ p_rand, 1 - p_rand ] )
+		#
+		# 	#positions of alters (chosen with given raandom mechanisms)
+		# 	alter_pos = rng.integers( pool_lens[ rand_mechs ] )
+		#
+		# 	#alters chosen
+		# 	alters = alter_pool[ rand_mechs, range(ntimes), alter_pos ]
+		#
+		# 	#increase activity of chosen alters
+		# 	activity[ range( ntimes ), alters ] += 1
+		#
+		# 	#save alters with nonzero activity in CA alter pool
+		# 	alter_pool[ 1, range(ntimes), tau ] = alters
