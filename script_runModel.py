@@ -37,12 +37,12 @@ if __name__ == "__main__":
 	for alpha in alpha_vals: #loop through alpha values
 		params['alpha'] = alpha #PA parameter
 
-		print( 'alpha = {:.2f}'.format( alpha ) flush=True ) #to know where we stand
+		print( 'alpha = {:.2f}'.format( alpha ), flush=True ) #to know where we stand
 
 		for t in t_vals: #loop through times
 			params['t'] = t #mean alter activity (max time in dynamics)
 
-			print( '\tt = {:.2f}'.format( t ) flush=True ) #to know where we stand
+			print( '\tt = {:.2f}'.format( t ), flush=True ) #to know where we stand
 
 			#run model of alter activity, according to parameters
 			activity = mm.model_activity( params, loadflag=loadflag, saveloc=saveloc )
