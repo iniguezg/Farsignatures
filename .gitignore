@@ -8,6 +8,7 @@
 !*.sh
 !*.slurm
 !files/data/*.pkl
+!files/model/*.npy
 
 #specific things to ignore
 *.out
