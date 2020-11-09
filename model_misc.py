@@ -157,6 +157,33 @@ def alpha_KSstat( activity, alphamax=1000 ):
 	return alpha, KSstat
 
 
+#function to get optimal gamma and KS statistic from activity array
+def gamma_KSstat( activity ):
+	"""Get optimal gamma and KS statistic from activity array"""
+
+	a0 = min(activity) #minimum alter activity
+
+	#filtered alter activity (a > a0)
+	activity_noa0 = activity[ activity > a0 ] #alter activity a > a0
+	k_noa0 = activity_noa0.size #degree
+	tau_noa0 = activity_noa0.sum() #strength (number of events)
+	t_noa0 = activity_noa0.mean() #mean alter activity
+	amin_noa0 = activity_noa0.min() #min alter activity
+
+	#closed-form (biased) gamma/beta estimators
+	gamma_bias = k_noa0 * ( t_noa0 - a0 ) / ( ( activity_noa0 - t_noa0 ) * np.log( activity_noa0 - a0 ) ).sum()
+	beta_bias = ( t_noa0 - a0 ) / gamma_bias
+
+	#small-sample bias corrections
+	gamma = gamma_bias - ( 3*gamma_bias - (2/3.)*( gamma_bias / (1 + gamma_bias) ) - (4/5.) * gamma_bias / (1 + gamma_bias)**2 ) / k_noa0
+	beta = beta_bias * k_noa0 / ( k_noa0 - 1 )
+
+	#KS statistic
+	KSstat, KSpval = ss.ks_1samp( activity_noa0, ss.gamma.cdf, args=( gamma, a0, beta ) )
+
+	return gamma, gamma_bias, beta, beta_bias, KSstat, KSpval
+
+
 #DEBUGGIN'
 
 # #function to run (slow) model of alter activity, according to parameters

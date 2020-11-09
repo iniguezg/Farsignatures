@@ -7,7 +7,7 @@ import os, sys
 import numpy as np
 import seaborn as sns
 import matplotlib as mpl
-#import scipy.stats as ss
+import scipy.stats as ss
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from os.path import expanduser
@@ -30,9 +30,8 @@ if __name__ == "__main__":
 
 	#parameter arrays
 	alpha_vals = [ -0.7, 0., 9. ] #PA parameter
-	# t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
-	t_vals = [ 2., 10., 100. ]
-	a_vals = np.unique( np.logspace( 0, 4, num=100, dtype=int ) ) #alter activities
+	t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
+	a_vals = np.unique( np.logspace( 0, 5, num=100, dtype=int ) ) #alter activities
 
 	#parameter dict
 	params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
@@ -52,16 +51,16 @@ if __name__ == "__main__":
 	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
-	'legend_prop' : { 'size':9 },
-	'legend_hlen' : 3,
+	'legend_prop' : { 'size':12 },
+	'legend_hlen' : 1,
 	'legend_np' : 1,
 	'legend_colsp' : 1.1 }
 
 	#plot variables
 	fig_props = { 'fig_num' : 1,
-	'fig_size' : (12, 5),
-	'aspect_ratio' : (1, 3),
-	'grid_params' : dict( left=0.07, bottom=0.125, right=0.985, top=0.95, wspace=0.1 ),
+	'fig_size' : (12, 8),
+	'aspect_ratio' : (2, 3),
+	'grid_params' : dict( left=0.065, bottom=0.08, right=0.985, top=0.95, wspace=0.1, hspace=0.4 ),
 	'dpi' : 300,
 	'savename' : 'figure_activity_num_approx' }
 
@@ -89,9 +88,9 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ alphapos ] )
 		sns.despine( ax=ax ) #take out spines
-		plt.xlabel( r'activity $a$', size=plot_props['xylabel'] )
+		plt.xlabel( r'$a$', size=plot_props['xylabel'] )
 		if alphapos == 0:
-			plt.ylabel( r'PDF $p_a(t)$', size=plot_props['xylabel'] )
+			plt.ylabel( r'$p_a(t)$', size=plot_props['xylabel'] )
 
 		#plot plot!
 
@@ -107,7 +106,7 @@ if __name__ == "__main__":
 			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
 			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
 
-			plt.loglog( xplot, yplot, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
+			line_sims, = plt.loglog( xplot, yplot, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
 
 #THEO
 
@@ -117,16 +116,16 @@ if __name__ == "__main__":
 			xplot = a_vals
 			yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in xplot ])
 
-			plt.loglog( xplot, yplot_model, '-', label='{:.0f}'.format(t), c=colors[post], lw=plot_props['linewidth'], zorder=0 )
+			label = '$t = $ {:.0f}'.format(t) if post == 0 else '{:.0f}'.format(t)
+
+			line_theo, = plt.loglog( xplot, yplot_model, '-', label=label, c=colors[post], lw=plot_props['linewidth'], zorder=0 )
 
 			#gamma approximation
 
 			xplot = a_vals[1:] #disregard a = a_0 for gamma approx
 			yplot_model = np.array([ mm.activity_dist_gamma( a, t, alpha, a0 ) for a in xplot ])
 
-			label = 'Eq. ()' if post == 3 else None
-
-			plt.loglog( xplot, yplot_model, '--', label=label, c=colors[post], lw=plot_props['linewidth'], zorder=1 )
+			line_gamma, = plt.loglog( xplot, yplot_model, '--', label=None, c=colors[post], lw=plot_props['linewidth'], zorder=1 )
 
 		#text
 		if alphapos == 0:
@@ -135,15 +134,92 @@ if __name__ == "__main__":
 			reg_str = 'crossover regime\n'
 		if alphapos == 2:
 			reg_str = 'random regime\n'
-		plt.text( 0.5, 1.05, reg_str+r'($\gamma=$ {:.1f}'.format(gamma)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+		plt.text( 0.5, 1.1, reg_str+r'($\gamma=$ {:.1f}'.format(gamma)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+
+		#legends
+		if alphapos == 1:
+			leg = plt.legend( loc='upper center', bbox_to_anchor=(0.5, -0.2), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=len(t_vals) )
+		if alphapos == 0:
+			leg = plt.legend( (line_sims, line_theo, line_gamma), ('num', 'Eq. ()', 'Eq. ()'), loc='upper right', bbox_to_anchor=(1, 0.9), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+
+		#finalise subplot
+		plt.axis([ 8e-1, 5e4, 5e-7, 1e0 ])
+		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
+		ax.locator_params( numticks=6 )
+		if alphapos > 0:
+			plt.yticks([])
+
+
+# D-F: scaling (with time t) of activity distribution for varying alpha
+
+	for alphapos, alpha in enumerate( alpha_vals ): #loop through alpha values
+		params['alpha'] = alpha #PA parameter
+		gamma = alpha + a0 #gamma dist shape parameter
+
+		print( 'alpha = '+str( alpha ) )
+
+		#initialise subplot
+		ax = plt.subplot( grid[ alphapos + 3 ] ) #lower row
+		sns.despine( ax=ax ) #take out spines
+		plt.xlabel( r'$(a - a_0) / \beta$', size=plot_props['xylabel'] )
+		if alphapos == 0:
+			plt.ylabel( r'$\beta p_a(t)$', size=plot_props['xylabel'] )
+
+		#plot plot!
+
+#SIMS
+
+		for post, t in enumerate( t_vals ): #loop through times
+			params['t'] = t #mean alter activity (max time in dynamics)
+			beta = ( t - a0 ) / ( alpha + a0 ) #gamma dist scale parameter
+
+			#load model of alter activity, according to parameters
+			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
+
+			#plot arrays for unbinned distribution
+			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
+			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
+
+			#rescale plot arrays
+			xplot_resc = ( xplot - a0 ) / beta #rescaled activity ( a - a0 ) / beta
+			yplot_resc = beta * yplot #rescaled probability beta * p_d(t)
+
+			line_sims, = plt.loglog( xplot_resc, yplot_resc, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
+
+#THEO
+
+		for post, t in enumerate( t_vals ): #loop through times
+			beta = ( t - a0 ) / ( alpha + a0 ) #gamma dist scale parameter
+
+			#PGF expression
+
+			xplot = a_vals
+			yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in xplot ])
+
+			#rescale plot arrays
+			xplot_resc = ( xplot - a0 ) / beta #rescaled activity ( a - a0 ) / beta
+			yplot_resc = beta * yplot_model #rescaled probability beta * p_d(t)
+
+			line_theo, = plt.loglog( xplot_resc, yplot_resc, '-', label=None, c=colors[post], lw=plot_props['linewidth'], zorder=0 )
+
+		#gamma approximation (w/ last t value only!)
+
+		xplot = a_vals[1:] #disregard a = a_0 for gamma approx
+		xplot_resc = ( xplot - a0 ) / beta #rescaled activity ( a - a0 ) / beta
+
+		#after scaling, gamma dist is standard form!
+		yplot_model = np.array([ ss.gamma.pdf( db, gamma ) for db in xplot_resc ])
+
+		line_gamma, = plt.loglog( xplot_resc, yplot_model, '--', label=None, c='k', lw=plot_props['linewidth']+1, zorder=1 )
 
 		#legend
 		if alphapos == 0:
-			leg = plt.legend( loc='upper right', bbox_to_anchor=(1, 0.95), title=r'$t=$', prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=1 )
+			leg = plt.legend( (line_sims, line_theo, line_gamma), ('num', 'Eq. ()', 'Eq. ()'), loc='upper right', bbox_to_anchor=(1, 0.9), prop=plot_props['legend_prop'], handlelength=2.2, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
 
 		#finalise subplot
-		plt.axis([ 8e-1, 1e4, 5e-7, 1e0 ])
+		plt.axis([ 8e-1, 1e2, 5e-7, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
+		ax.locator_params( numticks=6 )
 		if alphapos > 0:
 			plt.yticks([])
 

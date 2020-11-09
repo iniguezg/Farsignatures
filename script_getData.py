@@ -70,8 +70,18 @@ if __name__ == "__main__":
 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
 
 	alphamax = 1000 #maximum alpha for MLE fit
-	nsims = 100 #number of syntethic datasets used to calculate p-value
+	nsims = 1000 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
 	#fit activity model to all ego networks in dataset
 	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
+
+
+	# ## analysis 6: fit gamma approx of activity model to all ego networks in all datasets ##
+	#
+	# dataname = sys.argv[1] #considered dataset
+	# eventname = sys.argv[2]
+	# print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	#
+	# #fit gamma approx of activity model to all ego networks in dataset
+	# egonet_gammas = dm.egonet_gammas( dataname, eventname, root_data, loadflag, saveloc )
