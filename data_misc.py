@@ -73,21 +73,23 @@ def data_params( datasets, root_data, loadflag, saveloc ):
 	elif loadflag == 'n': #or else, compute parameters
 
 		#initialise dataframe of parameters for datasets
-		params_data = pd.DataFrame( np.zeros( ( len(datasets), 5 ) ), index=pd.Series( [ dset[1][:-4] for dset in datasets ], name='dataset') , columns=pd.Series( [ 'num_egos', 'num_events', 'avg_degree', 'avg_strength', 'avg_activity' ], name='parameter' ) )
+		params_data = pd.DataFrame( np.zeros( ( len(datasets), 7 ) ), index=pd.Series( [ dset[1][:-4] for dset in datasets ], name='dataset') , columns=pd.Series( [ 'num_egos', 'num_events', 'avg_degree', 'avg_strength', 'avg_activity', 'avg_actmin', 'avg_actmax' ], name='parameter' ) )
 
 		for dataname, eventname in datasets: #loop through considered datasets
 			print( 'dataset name: ' + eventname[:-4] ) #print output
 
 			#prepare ego network properties
 			egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-			degrees, actmeans = egonet_props['degree'], egonet_props['act_avg']
+#			degrees, actmeans = egonet_props['degree'], egonet_props['act_avg']
 
 			#save dataset parameters
-			params_data.at[ eventname[:-4], 'num_egos' ] = len( degrees )
-			params_data.at[ eventname[:-4], 'num_events' ] = ( degrees * actmeans ).sum() / 2 #divide by 2 (since events are counted twice per ego/alter pair)
-			params_data.at[ eventname[:-4], 'avg_degree' ] = degrees.mean()
-			params_data.at[ eventname[:-4], 'avg_strength' ] = ( degrees * actmeans ).mean()
-			params_data.at[ eventname[:-4], 'avg_activity' ] = actmeans.mean()
+			params_data.at[ eventname[:-4], 'num_egos' ] = len( egonet_props )
+			params_data.at[ eventname[:-4], 'num_events' ] = ( egonet_props.degree * egonet_props.act_avg ).sum() / 2 #divide by 2 (since events are counted twice per ego/alter pair)
+			params_data.at[ eventname[:-4], 'avg_degree' ] = egonet_props.degree.mean()
+			params_data.at[ eventname[:-4], 'avg_strength' ] = ( egonet_props.degree * egonet_props.act_avg ).mean()
+			params_data.at[ eventname[:-4], 'avg_activity' ] = egonet_props.act_avg.mean()
+			params_data.at[ eventname[:-4], 'avg_actmin' ] = egonet_props.act_min.mean()
+			params_data.at[ eventname[:-4], 'avg_actmax' ] = egonet_props.act_max.mean()
 
 			#fix dtypes
 			params_data = params_data.astype({ 'num_egos' : int, 'num_events' : int })
