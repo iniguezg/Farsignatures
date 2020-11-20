@@ -23,10 +23,10 @@ if __name__ == "__main__":
 
 	#property to plot
 	prop_names = [ 'gamma' ]
-	prop_labels = [ r'$\gamma$' ]
+	prop_labels = [ r'$\alpha_r$' ]
 
 	alphamax = 1000 #maximum alpha for MLE fit
-	nsims = 100 #number of syntethic datasets used to calculate p-value
+	nsims = 1000 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
@@ -120,9 +120,9 @@ if __name__ == "__main__":
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
 		if grid_pos in [10, 11, 12, 13]:
-			plt.xlabel( r'$\gamma$', size=plot_props['xylabel'] )
+			plt.xlabel( r'$\alpha_r$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r"CCDF $P[ \gamma' \geq \gamma ]$", size=plot_props['xylabel'] )
+			plt.ylabel( r"CCDF $P[ \alpha_r' \geq \alpha_r ]$", size=plot_props['xylabel'] )
 
 		#loop through considered properties
 		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
@@ -142,11 +142,11 @@ if __name__ == "__main__":
 
 		plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
-		txt_str = '$N_{\gamma}=$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{RN} =$'+'{:.2f}'.format(frac_egos_random)
+		txt_str = r'$N_{\alpha}=$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{RN} =$'+'{:.2f}'.format(frac_egos_random)
 		plt.text( 0.05, 0.05, txt_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 		#finalise subplot
-		plt.axis([ 1e-3, 5e2, 1e-5, 2e0 ])
+		plt.axis([ 1e-3, 1e3, 1e-5, 2e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
 		if grid_pos not in [10, 11, 12, 13]:
