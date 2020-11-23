@@ -56,7 +56,7 @@ def model_activity( params, loadflag='n', saveloc='files/model/' ):
 	alpha, a0, k, t, ntimes = params['alpha'], params['a0'], params['k'], params['t'], params['ntimes']
 
 	#filename for output file
-	savename = saveloc+'activity_alpha_{:.2f}_a0_{}_k_{}_t_{:.2f}_ntimes_{}.npy'.format( alpha, a0, k, t, ntimes )
+	savename = saveloc+'activity_alpha_{:.3f}_a0_{}_k_{}_t_{:.2f}_ntimes_{}.npy'.format( alpha, a0, k, t, ntimes )
 
 	if loadflag == 'y': #load activity
 		with open( savename, 'rb' ) as act_file:
