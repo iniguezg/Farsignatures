@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR CREATING DAATA TABLE IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR CREATING DATA TABLE IN FARSIGNATURES PROJECT ###
 
 #import modules
 import pandas as pd

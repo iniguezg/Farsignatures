@@ -22,8 +22,10 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#property to plot
-	prop_names = [ 'gamma' ]
-	prop_labels = [ r'$\alpha_r$' ]
+	# prop_names = [ 'gamma' ]
+	# prop_labels = [ r'\hat{\alpha}_r' ]
+	prop_names = [ 'beta' ]
+	prop_labels = [ r'1 / \hat{\beta}' ]
 
 	alphamax = 1000 #maximum alpha for MLE fit
 	nsims = 1000 #number of syntethic datasets used to calculate p-value
@@ -59,7 +61,7 @@ if __name__ == "__main__":
 	'ticklabel' : 15,
 	'text_size' : 11,
 	'marker_size' : 5,
-	'linewidth' : 2,
+	'linewidth' : 3,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
 	'legend_prop' : { 'size':15 },
@@ -71,7 +73,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (10, 8),
 	'aspect_ratio' : (4, 4),
-	'grid_params' : dict( left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.3, hspace=0.5 ),
+	'grid_params' : dict( left=0.085, bottom=0.085, right=0.98, top=0.965, wspace=0.3, hspace=0.5 ),
 	'dpi' : 300,
 	'savename' : 'figure_alphas_CCDF' }
 
@@ -103,7 +105,8 @@ if __name__ == "__main__":
 		#some measures
 		num_egos = len( egonet_props ) #all egos
 		num_egos_filter = len( egonet_filter ) #filtered egos
-		frac_egos_random = ( egonet_filter.gamma > 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (gamma > 1, i.e. alpha > 1 - a0)
+#		frac_egos_random = ( egonet_filter.gamma > 1 ).sum() / float( num_egos_filter )
+		frac_egos_random = ( egonet_filter.beta < 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (beta < 1, i.e. t_r < alpha_r)
 
 
 		## PRINTING ##
@@ -119,24 +122,26 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		if grid_pos in [10, 11, 12, 13]:
-			plt.xlabel( r'$\alpha_r$', size=plot_props['xylabel'] )
-		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r"CCDF $P[ \alpha_r' \geq \alpha_r ]$", size=plot_props['xylabel'] )
 
 		#loop through considered properties
 		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
 
+			#initialise subplot
+			if grid_pos in [10, 11, 12, 13]:
+				plt.xlabel( '${}$'.format( prop_label ), size=plot_props['xylabel'] )
+			if grid_pos in [0, 4, 8, 12]:
+				plt.ylabel( r"$P[ {}' \geq {} ]$".format( prop_label, prop_label ), size=plot_props['xylabel'] )
+
 			#prepare data
-			yplot_data = egonet_filter[ prop_name ] #filtered data!
+			yplot_data = 1 / egonet_filter[ prop_name ] #filtered data!
 			xplot, yplot = pm.plot_CCDF_cont( yplot_data ) #complementary cumulative dist
 
 			#plot plot!
 			plt.loglog( xplot, yplot, '-', label=prop_label, c=colors[prop_pos], lw=plot_props['linewidth'] )
 
 		#lines
-		plt.vlines( x=1, ymin = 1e-5, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
-		plt.hlines( y=frac_egos_random, xmin = 1e-3, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth'] )
+		plt.vlines( x=1, ymin = 1e-5, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth']-1 )
+		plt.hlines( y=frac_egos_random, xmin = 1e-4, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth']-1 )
 
 		#texts
 
@@ -146,7 +151,7 @@ if __name__ == "__main__":
 		plt.text( 0.05, 0.05, txt_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 		#finalise subplot
-		plt.axis([ 1e-3, 1e3, 1e-5, 2e0 ])
+		plt.axis([ 1e-4, 1e3, 1e-4, 2e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
 		if grid_pos not in [10, 11, 12, 13]:

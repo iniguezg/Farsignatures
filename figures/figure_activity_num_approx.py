@@ -25,16 +25,16 @@ if __name__ == "__main__":
 
 	#parameters
 	a0 = 1 #minimum alter activity
-	k = 100 #number of alters (ego's degree)
 	ntimes = 10000 #number of realizations for averages
 
 	#parameter arrays
-	beta_vals = [ 100., 1., 0.01 ] #crossover parameter
-	trel_vals = [ 0.1, 1., 10., 100., 1000. ] #relative mean alter activity
-	a_vals = np.unique( np.logspace( np.log10(a0+1), 4, num=100, dtype=int ) ) #alter activities
+	k_vals = [ 100, 10 ] #number of alters (ego's degree)
+	alpha_vals = [ -0.7, 0., 9. ] #PA parameter
+	t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
+	a_vals = np.unique( np.logspace( np.log10(a0), 4, num=100, dtype=int ) ) #alter activities
 
 	#parameter dict
-	params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
+	params = { 'a0' : a0, 'ntimes' : ntimes }
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -58,13 +58,13 @@ if __name__ == "__main__":
 
 	#plot variables
 	fig_props = { 'fig_num' : 1,
-	'fig_size' : (12, 5),
-	'aspect_ratio' : (1, 3),
-	'grid_params' : dict( left=0.06, bottom=0.18, right=0.99, top=0.98, wspace=0.1 ),
+	'fig_size' : (12, 8),
+	'aspect_ratio' : (2, 3),
+	'grid_params' : dict( left=0.06, bottom=0.075, right=0.99, top=0.96, wspace=0.1, hspace=0.4 ),
 	'dpi' : 300,
 	'savename' : 'figure_activity_num_approx' }
 
-	colors = sns.color_palette( 'Set2', n_colors=len(trel_vals) ) #colors to plot
+	colors = sns.color_palette( 'Set2', n_colors=len(t_vals) ) #colors to plot
 
 
 	## PLOTTING ##
@@ -77,77 +77,112 @@ if __name__ == "__main__":
 	grid.update( **fig_props['grid_params'] )
 
 
-# A-C: time dependence of activity distribution for varying alpha
+# Time dependence of activity distribution for varying alpha
+# A-C and D-F: 2 values of degree
 
-	for betapos, beta in enumerate( beta_vals ): #loop through beta values
-		print( 'beta = '+str( beta ) )
+	for kpos, k in enumerate( k_vals ): #loop through k values
+		params['k'] = k #set degree
 
-		#initialise subplot
-		ax = plt.subplot( grid[ betapos ] )
-		sns.despine( ax=ax ) #take out spines
-		plt.xlabel( r'$a_r$', size=plot_props['xylabel'] )
-		if betapos == 0:
-			plt.ylabel( r'$p_a$', size=plot_props['xylabel'] )
+		print( 'k = '+str( k ) )
 
-		#plot plot!
+		for alphapos, alpha in enumerate( alpha_vals ): #loop through alpha values
+			params['alpha'] = alpha #PA parameter
+			gamma = alpha + a0 #rescaled parameter
 
-# #SIMS
-#
-# 		for post, t in enumerate( t_vals ): #loop through times
-# 			alpha = ( t - a0 ) / beta - a0 #set alpha
-#
-# 			params['alpha'] = alpha #PA parameter
-# 			params['t'] = t #mean alter activity (max time in dynamics)
-#
-# 			#load model of alter activity, according to parameters
-# 			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
-#
-# 			#plot arrays for unbinned distribution
-# 			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
-# 			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
-#
-# 			line_sims, = plt.loglog( xplot, yplot, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
+			print( '\talpha = '+str( alpha ) )
 
-#THEO
+			#initialise subplot
+			ax = plt.subplot( grid[ 3*kpos + alphapos ] )
+			sns.despine( ax=ax ) #take out spines
+			plt.xlabel( r'$a$', size=plot_props['xylabel'] )
+			if alphapos == 0:
+				plt.ylabel( r'$p_a$', size=plot_props['xylabel'] )
 
-		for post, trel in enumerate( trel_vals ): #loop through relative times
-			t = trel + a0 #get mean alter activity
-			gamma = trel / beta #gamma parameter (relative alpha)
-			alpha = gamma - a0 #get alpha
+			#plot plot!
 
-			print( '\t\talpha = {}, t = {}'.format( alpha, t ) ) #to know what we plot
+	#SIMS
 
-			#PGF expression
+			for post, t in enumerate( t_vals ): #loop through times
+				params['t'] = t #mean alter activity (max time in dynamics)
 
-			xplot = a_vals - a0 #relative activity
-			yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in a_vals ])
+				#load model of alter activity, according to parameters
+				activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
 
-			label = r'$t_r =$ {:.0e}, $\alpha_r =$ {:.0e}'.format( trel, gamma )
+				#plot arrays for unbinned distribution
+				xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
+				yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
 
-			line_theo, = plt.loglog( xplot, yplot_model, '-', label=label, c=colors[post], lw=plot_props['linewidth'], zorder=0 )
+				line_sims, = plt.loglog( xplot, yplot, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
 
-		#text
-		if betapos == 0:
-			reg_str = 'heterogeneous signature\n'
-		if betapos == 1:
-			reg_str = 'crossover regime\n'
-		if betapos == 2:
-			reg_str = 'homogeneous signature\n'
-		plt.text( 0.5, 1, reg_str+r'($\beta=$ {}'.format(beta)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+	#THEO
 
-		#legends
-		leg = plt.legend( loc='upper right', bbox_to_anchor=(1, 0.9), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
-		# if betapos == 0:
-		# 	leg = plt.legend( (line_sims, line_theo), ('num', 'Eq. (S9)'), loc='upper right', bbox_to_anchor=(1, 0.9), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+			for post, t in enumerate( t_vals ): #loop through times
+				#PGF expression
 
-		#finalise subplot
-		plt.axis([ 8e-1, 5e3, 5e-7, 1e0 ])
-		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-		ax.locator_params( numticks=6 )
-		if betapos > 0:
-			plt.yticks([])
+				xplot = a_vals
+				yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in xplot ])
+
+				label = '$t = $ {:.0f}'.format(t) if post == 0 else '{:.0f}'.format(t)
+
+				line_theo, = plt.loglog( xplot, yplot_model, '-', label=label, c=colors[post], lw=plot_props['linewidth'], zorder=0 )
+
+			#texts
+
+			plt.text( 0.5, 1, r'$\alpha_r=$ {:.1f}'.format(gamma), va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+
+			if alphapos == 0:
+				plt.text( -0.18, 1.02, '$k =$ {}'.format(k), va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+
+			#legends
+			if kpos == 0 and alphapos == 0:
+				leg = plt.legend( loc='upper left', bbox_to_anchor=(1.15, -0.19), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=len(t_vals) )
+			if alphapos == 1:
+				leg = plt.legend( (line_sims, line_theo), ('num', 'theo'), loc='upper right', bbox_to_anchor=(1, 0.9), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+
+			#finalise subplot
+			plt.axis([ 8e-1, 5e4, 5e-7, 1e0 ])
+			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
+			ax.locator_params( numticks=6 )
+			if alphapos > 0:
+				plt.yticks([])
 
 
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
+
+
+#DEBUGGIN'
+
+		# #low alpha: power-law limit
+		# if alphapos == 0:
+		# 	label = 'Power law'
+		# 	act_dist = lambda a1, alpha1: mp.power( a1, -( 1 - alpha1 ) ) / mp.gamma( alpha1 )
+		#
+		# 	yplot = [ float( act_dist( a, alpha ) ) for a in a_vals ]
+		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S11)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
+		#
+		# #intermediate alpha: power law with exponential cutoff
+		# if alphapos == 1:
+		# 	label = 'Power law with exponential cutoff'
+		# 	t = t_vals[-1] #consider only large t
+		#
+		# 	lt = lambda alpha1: mp.ln( 1 + alpha1 / t )
+		# 	exp_decay = lambda a1, alpha1: mp.exp( -lt(alpha1) * ( a1 + alpha1 ) + alpha1 * mp.ln( alpha1 / t ) )
+		# 	act_dist = lambda a1, alpha1: mp.power( a1, -( 1 - alpha1 ) ) * exp_decay( a1, alpha1 ) / mp.gamma( alpha1 )
+		#
+		# 	yplot = [ float( act_dist( a, alpha ) ) for a in a_vals ]
+		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S12)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
+		#
+		# #high alpha: Poisson limit
+		# if alphapos == 2:
+		# 	label = 'Poisson'
+		# 	mu = float( t_vals[-1] ) #Poisson mean is time
+		#
+		# 	xplot = np.arange( ss.poisson.ppf( ppf, mu ), ss.poisson.ppf( 1 - ppf, mu ) )
+		# 	yplot = ss.poisson.pmf( xplot, mu )
+		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S10)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
+
+			# bins = np.logspace( 0, np.log10( activity.max() ), num=25 )
+			# yplot, bin_edges = np.histogram( activity, bins=bins, density=True )
+			# xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]

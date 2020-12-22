@@ -79,7 +79,6 @@ if __name__ == "__main__":
 
 	#parameter arrays
 	alpha_vals = [ -0.7, 0., 9. ] #PA parameter
-	a_vals = np.unique( np.logspace( 0, 5, num=100, dtype=int ) ) #alter activities
 
 	for alphapos, alpha in enumerate( alpha_vals ): #loop through alpha values
 		params['alpha'] = alpha #PA parameter
@@ -90,9 +89,9 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ alphapos ] ) #upper row
 		sns.despine( ax=ax ) #take out spines
-		plt.xlabel( r'$a_r / \beta_r$', size=plot_props['xylabel'] )
+		plt.xlabel( r'$a_r / \beta$', size=plot_props['xylabel'] )
 		if alphapos == 0:
-			plt.ylabel( r'$\beta_r p_a$', size=plot_props['xylabel'] )
+			plt.ylabel( r'$\beta p_a$', size=plot_props['xylabel'] )
 
 		#plot plot!
 
@@ -105,9 +104,11 @@ if __name__ == "__main__":
 			#load model of alter activity, according to parameters
 			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
 
+			a_vals = np.arange( activity.min(), activity.max()+1, dtype=int )
+
 			#plot arrays for unbinned distribution
-			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
-			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
+			xplot = a_vals
+			yplot, not_used = np.histogram( activity, bins=len(a_vals), range=( a_vals[0]-0.5, a_vals[-1]+0.5 ), density=True )
 
 			#rescale plot arrays
 			xplot_resc = ( xplot - a0 ) / beta #rescaled activity ( a - a0 ) / beta
@@ -116,6 +117,8 @@ if __name__ == "__main__":
 			line_sims, = plt.loglog( xplot_resc, yplot_resc, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
 
 #THEO
+
+		a_vals = np.unique( np.logspace( np.log10(a0+1), 5, num=100, dtype=int ) ) #alter activities
 
 		for post, t in enumerate( t_vals ): #loop through times
 			beta = ( t - a0 ) / ( alpha + a0 ) #gamma dist scale parameter
@@ -135,7 +138,7 @@ if __name__ == "__main__":
 
 		#gamma approximation (w/ last t value only!)
 
-		xplot = a_vals[1:] #disregard a = a_0 for gamma approx
+		xplot = a_vals
 		xplot_resc = ( xplot - a0 ) / beta #rescaled activity ( a - a0 ) / beta
 
 		#after scaling, gamma dist is standard form!
@@ -145,13 +148,7 @@ if __name__ == "__main__":
 
 		#texts
 
-		if alphapos == 0:
-			reg_str = 'preferential attachment regime\n'
-		if alphapos == 1:
-			reg_str = 'crossover regime\n'
-		if alphapos == 2:
-			reg_str = 'random regime\n'
-		plt.text( 0.5, 1.14, reg_str+r'($\alpha_r=$ {:.1f}'.format(gamma)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+		plt.text( 0.5, 1.05, r'$\alpha_r=$ {:.1f}'.format(gamma), va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 
 		if alphapos == 0:
 			plt.text( -0.2, 1, 'GAMMA\nSCALING', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['ticklabel'], weight='bold' )
@@ -160,7 +157,7 @@ if __name__ == "__main__":
 		if alphapos == 0:
 			leg = plt.legend( loc='upper left', bbox_to_anchor=(1.15, -0.19), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=len(t_vals) )
 		if alphapos == 1:
-			leg = plt.legend( (line_sims, line_theo, line_gamma), ('num', 'Eq. (S9)', 'Eq. ()'), loc='upper right', bbox_to_anchor=(1, 1.03), prop=plot_props['legend_prop'], handlelength=2.2, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+			leg = plt.legend( (line_sims, line_theo, line_gamma), ('num', 'theo', 'gamma'), loc='upper right', bbox_to_anchor=(1, 1.03), prop=plot_props['legend_prop'], handlelength=2.2, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
 
 		#finalise subplot
 		plt.axis([ 8e-1, 1e2, 5e-7, 1e0 ])
@@ -174,7 +171,6 @@ if __name__ == "__main__":
 
 	#parameter arrays
 	alpha_vals = [ 9., 99., 999. ] #PA parameter
-	a_vals = np.concatenate(( np.linspace( 1, 9, num=9 ), np.unique( np.logspace( 1, 5, num=1000, dtype=int ) ) )) #alter activities
 
 	for alphapos, alpha in enumerate( alpha_vals ): #loop through alpha values
 		params['alpha'] = alpha #PA parameter
@@ -199,9 +195,11 @@ if __name__ == "__main__":
 			#load model of alter activity, according to parameters
 			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )
 
+			a_vals = np.arange( activity.min(), activity.max()+1, dtype=int )
+
 			#plot arrays for unbinned distribution
-			xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
-			yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
+			xplot = a_vals
+			yplot, not_used = np.histogram( activity, bins=len(a_vals), range=( a_vals[0]-0.5, a_vals[-1]+0.5 ), density=True )
 
 			#rescale plot arrays
 			xplot_resc = ( xplot - t ) / np.sqrt( t - a0 ) #rescaled activity
@@ -210,6 +208,8 @@ if __name__ == "__main__":
 			line_sims, = plt.semilogy( xplot_resc, yplot_resc, 'o', label=None, c=colors[post], ms=plot_props['marker_size'], zorder=0 )
 
 #THEO
+
+		a_vals = np.concatenate(( np.linspace( 1, 9, num=9 ), np.unique( np.logspace( 1, 5, num=1000, dtype=int ) ) )) #alter activities
 
 		for post, t in enumerate( t_vals ): #loop through times
 
@@ -236,26 +236,19 @@ if __name__ == "__main__":
 
 		#texts
 
-		if alphapos == 0:
-			reg_str = 'random regime\n'
-		if alphapos == 1:
-			reg_str = 'random regime\n'
-		if alphapos == 2:
-			reg_str = 'random regime\n'
-		plt.text( 0.5, 1.16, reg_str+r'($\alpha_r=$ {:.1f}'.format(gamma)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+		plt.text( 0.5, 1.05, r'$\alpha_r=$ {:.1f}'.format(gamma), va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 
 		if alphapos == 0:
 			plt.text( -0.2, 1.02, 'GAUSSIAN\nSCALING', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['ticklabel'], weight='bold' )
 
 		#legends
 		if alphapos == 1:
-			leg = plt.legend( (line_sims, line_theo, line_gauss), ('num', 'Eq. (S9)', 'Eq. ()'), loc='upper right', bbox_to_anchor=(1, 1.05), prop=plot_props['legend_prop'], handlelength=2.2, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+			leg = plt.legend( (line_sims, line_theo, line_gauss), ('num', 'theo', 'Gaussian'), loc='upper right', bbox_to_anchor=(1, 1.05), prop=plot_props['legend_prop'], handlelength=2.2, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
 
 
 		#finalise subplot
 		plt.axis([ -20, 20, 5e-7, 5e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-#		ax.locator_params( numticks=6 )
 		if alphapos > 0:
 			plt.yticks([])
 
