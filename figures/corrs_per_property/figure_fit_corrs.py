@@ -21,22 +21,27 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#fit/data properties to correlate
-	properties_x = [ ('gamma', r'\gamma'),
-	 				 ('gamma', r'\gamma'),
-					 ('gamma', r'\gamma'),
-					 ('gamma', r'\gamma'),
-					 ('gamma', r'\gamma'),
-					 ('gamma', r'\gamma') ]
-	properties_y = [ ('degree', 'k'),
-					 ('strength', r'\tau'),
-					 ('act_avg', 't'),
+#	fit/data properties to correlate
+	properties_x = [ ('gamma', r'\hat{\alpha}_r'),
+	 				 ('gamma', r'\hat{\alpha}_r'),
+					 ('act_avg_rel', 't_r'),
+					 ('beta', r'\beta'),
+					 ('beta', r'\beta'),
+					 ('beta', r'\beta'),
+					 ('beta', r'\beta') ]
+	properties_y = [ ('act_avg_rel', 't_r'),
+					 ('beta', r'\beta'),
+					 ('beta', r'\beta'),
+					 ('degree', 'k'),
+					 ('str_rel', r'\tau_r'),
 					 ('act_min', r'a_0'),
 					 ('act_max', r'a_m'),
-					 ('beta', r'\beta') ]
+					]
+	# properties_x = [ ('gamma', r'\hat{\alpha}_r') ]
+	# properties_y = [ ('act_avg_rel', 't_r') ]
 
 	alphamax = 1000 #maximum alpha for MLE fit
-	nsims = 100 #number of syntethic datasets used to calculate p-value
+	nsims = 1000 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
 
 	pval_thres = 0.1 #threshold above which alphas are considered
@@ -118,6 +123,11 @@ if __name__ == "__main__":
 			#filter egos according to fitting results
 			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
+			#add relative quantities
+			tau_rels = pd.Series( egonet_filter.strength - egonet_filter.degree * egonet_filter.act_min, name='str_rel' )
+			t_rels = pd.Series( egonet_filter.act_avg - egonet_filter.act_min, name='act_avg_rel' )
+			egonet_filter = pd.concat( [ egonet_filter, tau_rels, t_rels ], axis=1 )
+
 
 			## PLOTTING ##
 
@@ -130,7 +140,7 @@ if __name__ == "__main__":
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r', zorder=0 )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
@@ -139,24 +149,35 @@ if __name__ == "__main__":
 				cbar.ax.minorticks_off()
 
 			#lines
-			plt.axvline( x=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
+
+			if prop_pos == 0:
+				plt.plot( [1e-2, 1e4], [1e-2, 1e4], '-', c='0.6', lw=plot_props['linewidth'], zorder=1 )
+				plt.plot( [1, 1], [1, 1e4], '--', c='0.6', lw=plot_props['linewidth'], zorder=1 )
+
+			if prop_pos in [ 1, 2 ]:
+				plt.axhline( y=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
+
+			if prop_pos in [ 3, 4, 5, 6 ]:
+				plt.axvline( x=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
 
 			#texts
 			plt.text( 0, 1.15, textname, va='top', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 			#finalise subplot
 			if prop_pos == 0:
-				plt.axis([ 1e-3, 1e3, 8e-1, 1e3 ])
+				plt.axis([ 1e-2, 2e2, 1e-2, 1e4 ])
 			if prop_pos == 1:
-				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
+				plt.axis([ 1e-3, 1e3, 1e-4, 1e5 ])
 			if prop_pos == 2:
-				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
+				plt.axis([ 1e-2, 1e3, 1e-4, 1e5 ])
 			if prop_pos == 3:
-				plt.axis([ 1e-3, 1e3, 8e-1, 1e3 ])
+				plt.axis([ 1e-4, 1e5, 5e-1, 1e3 ])
 			if prop_pos == 4:
-				plt.axis([ 1e-3, 1e3, 8e-1, 1e4 ])
+				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
 			if prop_pos == 5:
-				plt.axis([ 1e-3, 1e3, 5e-3, 1e4 ])
+				plt.axis([ 1e-4, 1e5, 5e-1, 1e3 ])
+			if prop_pos == 6:
+				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
 			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 			ax.locator_params( numticks=5 )
 			if grid_pos not in [10, 11, 12, 13]:
