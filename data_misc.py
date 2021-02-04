@@ -5,6 +5,7 @@
 #import modules
 import numpy as np
 import pandas as pd
+import graph_tool.all as gt
 
 import model_misc as mm
 
@@ -247,6 +248,43 @@ def egonet_filter( egonet_props, egonet_fits, alphamax=1000, pval_thres=0.1, alp
 	egonet_null = egonet_rest.drop( egonet_inf.index )
 
 	return egonet_filter, egonet_inf, egonet_null
+
+
+#function to build weighted graph from event list in dataset
+def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Build weighted graph from event list in dataset"""
+
+	savename = saveloc + 'graph_weights_' + eventname[:-4] + '.gt'
+
+	if loadflag == 'y': #load file
+		graph_weights = gt.load_graph( savename )
+
+	elif loadflag == 'n': #or else, compute
+
+		names = ['nodei', 'nodej', 'tstamp'] #column names
+
+		#load (unique) event list: node i, node j, timestamp
+		filename = root_data + dataname + '/data_formatted/' + eventname
+		events = pd.read_csv( filename, sep=';', header=None, names=names )
+
+		#create edge list (as np array): ( node i, node j, weight )
+		#weight as alter activity: count number of events per alter of each ego
+		edge_list = events.groupby(['nodei', 'nodej']).size().reset_index( name='weight' ).to_numpy()
+
+		#initialise graph stuff
+		graph_weights = gt.Graph( directed=False ) #initialise (undirected) graph
+		eweight = graph_weights.new_ep( 'long' ) #initialise weight as (int) edge property map
+
+		#add (hashed) edge list (with weights) and get vertex indices as vertex property map
+		vid = graph_weights.add_edge_list( edge_list, hashed=True, eprops=[ eweight ] )
+
+		#set internal property maps
+		graph_weights.vertex_properties[ 'id' ] = vid #vertex id
+		graph_weights.edge_properties[ 'weight' ] = eweight #edge weight
+
+		graph_weights.save( savename ) #save graph
+
+	return graph_weights
 
 
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study

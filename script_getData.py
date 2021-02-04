@@ -63,19 +63,19 @@ if __name__ == "__main__":
 	# 	print('fraction with t > a_0 = {:.2f}'.format( num_egos_dynamics / float(num_egos) ))
 
 
-	## analysis 5: fit activity model to ego networks in all datasets ##
-
-	dataname = sys.argv[1] #considered dataset
-	eventname = sys.argv[2]
-	nsims = int( sys.argv[3] ) #number of syntethic datasets used to calculate p-value
-
-	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
-
-	alphamax = 1000 #maximum alpha for MLE fit
-	amax = 10000 #maximum activity for theoretical activity distribution
-
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
+	# ## analysis 5: fit activity model to ego networks in all datasets ##
+	#
+	# dataname = sys.argv[1] #considered dataset
+	# eventname = sys.argv[2]
+	# nsims = int( sys.argv[3] ) #number of syntethic datasets used to calculate p-value
+	#
+	# print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	#
+	# alphamax = 1000 #maximum alpha for MLE fit
+	# amax = 10000 #maximum activity for theoretical activity distribution
+	#
+	# #fit activity model to all ego networks in dataset
+	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
 
 
 	# ## analysis 6: fit gamma approx of activity model to all ego networks in all datasets ##
@@ -85,3 +85,12 @@ if __name__ == "__main__":
 	#
 	# 	#fit gamma approx of activity model to all ego networks in dataset
 	# 	egonet_gammas = dm.egonet_gammas( dataname, eventname, root_data, loadflag, saveloc )
+
+
+	## analysis 7: build weighted graph from event list in all datasets ##
+
+	for dataname, eventname in datasets: #loop through considered datasets
+		print( 'dataset name: ' + eventname[:-4] ) #print output
+
+		#prepare ego network properties
+		graph_weights = dm.graph_weights( dataname, eventname, root_data, loadflag, saveloc )
