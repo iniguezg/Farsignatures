@@ -89,8 +89,15 @@ if __name__ == "__main__":
 
 	## analysis 7: build weighted graph from event list in all datasets ##
 
+	# dataname = sys.argv[1] #considered dataset
+	# eventname = sys.argv[2]
+	max_iter = 1000 #max number of iteration for centrality calculations
+
 	for dataname, eventname in datasets: #loop through considered datasets
 		print( 'dataset name: ' + eventname[:-4] ) #print output
 
-		#prepare ego network properties
-		graph_weights = dm.graph_weights( dataname, eventname, root_data, loadflag, saveloc )
+		#build weighted graph from event list in dataset
+		graph = dm.graph_weights( dataname, eventname, root_data, 'y', saveloc )
+
+		#get graph properties for dataset
+		graph_props = dm.graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=max_iter )

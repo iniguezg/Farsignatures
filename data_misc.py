@@ -254,10 +254,10 @@ def egonet_filter( egonet_props, egonet_fits, alphamax=1000, pval_thres=0.1, alp
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""
 
-	savename = saveloc + 'graph_weights_' + eventname[:-4] + '.gt'
+	savename = saveloc + 'graph_' + eventname[:-4] + '.gt'
 
 	if loadflag == 'y': #load file
-		graph_weights = gt.load_graph( savename )
+		graph = gt.load_graph( savename )
 
 	elif loadflag == 'n': #or else, compute
 
@@ -272,19 +272,71 @@ def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 		edge_list = events.groupby(['nodei', 'nodej']).size().reset_index( name='weight' ).to_numpy()
 
 		#initialise graph stuff
-		graph_weights = gt.Graph( directed=False ) #initialise (undirected) graph
-		eweight = graph_weights.new_ep( 'long' ) #initialise weight as (int) edge property map
+		graph = gt.Graph( directed=False ) #initialise (undirected) graph
+		eweight = graph.new_ep( 'long' ) #initialise weight as (int) edge property map
 
 		#add (hashed) edge list (with weights) and get vertex indices as vertex property map
-		vid = graph_weights.add_edge_list( edge_list, hashed=True, eprops=[ eweight ] )
+		vid = graph.add_edge_list( edge_list, hashed=True, eprops=[ eweight ] )
 
 		#set internal property maps
-		graph_weights.vertex_properties[ 'id' ] = vid #vertex id
-		graph_weights.edge_properties[ 'weight' ] = eweight #edge weight
+		graph.vertex_properties[ 'id' ] = vid #vertex id
+		graph.edge_properties[ 'weight' ] = eweight #edge weight
 
-		graph_weights.save( savename ) #save graph
+		graph.save( savename ) #save graph
 
-	return graph_weights
+	return graph
+
+
+#function to get graph properties for dataset
+def graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=1000 ):
+	"""Get graph properties for dataset"""
+
+	savename = saveloc + 'graph_props_' + eventname[:-4] + '.pkl'
+
+	if loadflag == 'y': #load file
+		graph_props = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute
+
+		#prepare ego network properties & weighted graph
+		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		graph = graph_weights( dataname, eventname, root_data, 'y', saveloc )
+
+		#calculate properties of all egos
+
+		print('\tmeasure: pagerank')
+		vpagerank, niter = gt.pagerank( graph, weight=graph.ep.weight, max_iter=max_iter, ret_iter=True ) #PageRank centrality
+		print( '\t\titerations: {}'.format(niter) )
+
+		print('\tmeasure: betweenness')
+		vbetweenness, ebetweenness = gt.betweenness( graph, weight=graph.ep.weight ) #betweenness centrality
+
+		print('\tmeasure: closeness')
+		vcloseness = gt.closeness( graph, weight=graph.ep.weight ) #closeness centrality
+
+		print('\tmeasure: eigenvector')
+		eig_A, veigenvector = gt.eigenvector( graph, weight=graph.ep.weight, max_iter=max_iter ) #eigenvector centrality
+
+		print('\tmeasure: Katz')
+		vkatz = gt.katz( graph, alpha=1/eig_A, weight=graph.ep.weight, max_iter=max_iter ) #eigenvector centrality
+
+		print('\tmeasure: HITS')
+		eig_AAt, vauthority, vhub = gt.hits( graph, weight=graph.ep.weight, max_iter=max_iter ) #HITS centrality
+
+		#accumulate property names/measures
+		columns = [ 'pagerank', 'betweenness', 'closeness', 'eigenvector', 'katz', 'authority', 'hub' ]
+		vprops = [ graph.vp.id, vpagerank, vbetweenness, vcloseness, veigenvector, vkatz, vauthority, vhub ] #first one is nodei (vertex id)
+
+		#get vertex (ego) list with properties as array
+		varray = graph.get_vertices( vprops=vprops )
+
+		#re-organize as dataframe
+		graph_props = pd.DataFrame( varray[:, 2:], index=pd.Series( varray[:, 1].astype(int), name='nodei' ), columns=columns )
+		graph_props = graph_props.reindex( egonet_props.index ) #re-index (just in case)
+
+		graph_props.to_pickle( savename ) #save dataframe to file
+
+	return graph_props
 
 
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study
