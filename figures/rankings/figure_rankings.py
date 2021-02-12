@@ -6,7 +6,7 @@
 import os, sys
 import pandas as pd
 import seaborn as sns
-import scipy.ndimage as sn
+import scipy.stats as ss
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from os.path import expanduser
@@ -25,12 +25,20 @@ if __name__ == "__main__":
 
 	#fit/data properties to rank
 	propx = ('beta', r'r( \beta )')
-	properties_y = [ ('pagerank', r'r( c_p )'),
-	 				 ('betweenness', r'r( c_b )'),
-					 ('closeness', r'r( c_c )'),
-					 ('eigenvector', r'r( c_e )'),
-					 ('katz', r'r( c_k )'),
-					 ('authority', r'r( c_h )') ]
+	# properties_y = [ ('clustering', r'r( c )'),
+	# 				 ('pagerank', r'r( c_p )'),
+	#  				 ('betweenness', r'r( c_b )'),
+	# 				 ('closeness', r'r( c_c )'),
+	# 				 ('eigenvector', r'r( c_e )'),
+	# 				 ('katz', r'r( c_k )'),
+	# 				 ('authority', r'r( c_h )') ]
+	properties_y = [ ('gamma', r'r( \hat{\alpha}_r )'),
+					 ('act_avg_rel', 'r( t_r )'),
+					 ('degree', 'r( k )'),
+					 ('str_rel', r'r( \tau_r )'),
+					 ('act_min', r'r( a_0 )'),
+					 ('act_max', r'r( a_m )') ]
+
 
 	max_iter = 1000 #max number of iteration for centrality calculations
 	alphamax = 1000 #maximum alpha for MLE fit
@@ -82,7 +90,7 @@ if __name__ == "__main__":
 
 	#loop through properties to rank
 	for prop_pos, propy in enumerate( properties_y ):
-#	for prop_pos, propy in enumerate( [ ('katz', r'r( c_k )') ] ):
+#	for prop_pos, propy in enumerate( [ ('clustering', r'r( c )') ] ):
 
 		print( 'propx = {}, propy = {}'.format( propx[0], propy[0] ) )
 
@@ -119,6 +127,11 @@ if __name__ == "__main__":
 			#filter egos according to fitting results
 			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
+			#add relative quantities
+			tau_rels = pd.Series( egonet_filter.strength - egonet_filter.degree * egonet_filter.act_min, name='str_rel' )
+			t_rels = pd.Series( egonet_filter.act_avg - egonet_filter.act_min, name='act_avg_rel' )
+			egonet_filter = pd.concat( [ egonet_filter, tau_rels, t_rels ], axis=1 )
+
 			#some measures
 			num_egos_filter = len( egonet_filter ) #filtered egos
 			frac_egos_random = ( egonet_filter.beta < 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (beta < 1, i.e. t_r < alpha_r)
@@ -137,12 +150,12 @@ if __name__ == "__main__":
 			#rank egos according to decreasing properties (and normalize ranks)
 			data = egonet_filter[[ propx[0], propy[0] ]].rank( ascending=False, pct=True )
 
-#			yplot_filter = sn.uniform_filter1d( yplot, int(num_egos_filter/filter_factor) )
+			#calculate Spearman/Kendall rank correlation coefficients (and p-values)
+			spearman_corr, spearman_pval = ss.spearmanr( egonet_filter[ propx[0] ], egonet_filter[ propy[0] ] )
+			kendall_corr, kendall_pval = ss.kendalltau( egonet_filter[ propx[0] ], egonet_filter[ propy[0] ], variant='c' )
 
 			#plot plot!
 			hexbin = plt.hexbin( propx[0], propy[0], data=data, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
-#			hexbin = plt.hexbin( propx[0], propy[0], data=data, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
-
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
@@ -150,11 +163,16 @@ if __name__ == "__main__":
 				cbar.ax.set_title( r'$N_{\bullet, \bullet}$' )
 				cbar.ax.minorticks_off()
 
-			# #lines
-			# plt.axvline( x=1-frac_egos_random, ls='--', c='k', lw=plot_props['linewidth'] )
-
 			#texts
+
 			plt.text( 0, 1.15, textname, va='top', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+
+			corr_str = r'$\rho_s = {:.2f}$'.format( spearman_corr )
+			plt.text( 0.05, 0.2, corr_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['legend_prop']['size'] )
+
+			corr_str = r'$\rho_{\tau} = '+'{:.2f}$'.format( kendall_corr )
+			plt.text( 0.05, 0.05, corr_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['legend_prop']['size'] )
+
 
 			#finalise subplot
 			plt.axis([ 1e-4, 1, 1e-4, 1 ])

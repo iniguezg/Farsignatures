@@ -153,6 +153,9 @@ def graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=100
 
 		#calculate properties of all egos
 
+		print('\tmeasure: clustering')
+		vclustering = gt.local_clustering( graph, weight=graph.ep.weight ) #local clustering coefficient
+
 		print('\tmeasure: pagerank')
 		vpagerank, niter = gt.pagerank( graph, weight=graph.ep.weight, max_iter=max_iter, ret_iter=True ) #PageRank centrality
 		print( '\t\titerations: {}'.format(niter) )
@@ -173,8 +176,8 @@ def graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=100
 		eig_AAt, vauthority, vhub = gt.hits( graph, weight=graph.ep.weight, max_iter=max_iter ) #HITS centrality
 
 		#accumulate property names/measures
-		columns = [ 'pagerank', 'betweenness', 'closeness', 'eigenvector', 'katz', 'authority', 'hub' ]
-		vprops = [ graph.vp.id, vpagerank, vbetweenness, vcloseness, veigenvector, vkatz, vauthority, vhub ] #first one is nodei (vertex id)
+		columns = [ 'clustering', 'pagerank', 'betweenness', 'closeness', 'eigenvector', 'katz', 'authority', 'hub' ]
+		vprops = [ graph.vp.id, vclustering, vpagerank, vbetweenness, vcloseness, veigenvector, vkatz, vauthority, vhub ] #first one is nodei (vertex id)
 
 		#get vertex (ego) list with properties as array
 		varray = graph.get_vertices( vprops=vprops )

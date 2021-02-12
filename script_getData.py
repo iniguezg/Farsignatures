@@ -91,6 +91,7 @@ if __name__ == "__main__":
 
 	# dataname = sys.argv[1] #considered dataset
 	# eventname = sys.argv[2]
+#	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt') ]
 	max_iter = 1000 #max number of iteration for centrality calculations
 
 	for dataname, eventname in datasets: #loop through considered datasets
