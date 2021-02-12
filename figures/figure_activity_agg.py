@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
 	## CONF ##
 
+	max_iter = 1000 #max number of iteration for centrality calculations
 	alphamax = 1000 #maximum alpha for MLE fit
 	nsims = 100 #number of syntethic datasets used to calculate p-value
 	amax = 10000 #maximum activity for theoretical activity distribution
@@ -89,14 +90,15 @@ if __name__ == "__main__":
 
 		## DATA ##
 
-		#prepare ego network properties
+		#prepare ego network / graph properties
 		egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		graph_props = dm.graph_props( dataname, eventname, root_data, 'y', saveloc, max_iter=max_iter )
 
 		#fit activity model to all ego networks in dataset
 		egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
 
 		#filter egos according to fitting results
-		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 
 		## PLOTTING ##

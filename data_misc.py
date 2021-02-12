@@ -99,157 +99,6 @@ def data_params( datasets, root_data, loadflag, saveloc ):
 
 	return params_data
 
-
-#function to fit activity model to all ego networks in dataset
-def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
-	"""Fit activity model to all ego networks in dataset"""
-
-	savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
-
-	if loadflag == 'y': #load files
-		egonet_fits = pd.read_pickle( savename )
-
-	elif loadflag == 'n': #or else, compute everything
-
-		rng = np.random.default_rng() #initialise random number generator
-
-		#prepare ego network properties
-		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-		degrees, num_events, actmeans, amins = egonet_props['degree'], egonet_props['strength'], egonet_props['act_avg'], egonet_props['act_min'] #unpack props
-		num_egos = len(egonet_props) #number of egos
-
-		#initialise dataframe of alpha fits, KS statistics and p-values (to NaNs!)
-		egonet_fits = pd.DataFrame( np.zeros( ( num_egos, 3 ) )*np.nan, index=egonet_props.index, columns=pd.Series( [ 'alpha', 'statistic', 'pvalue' ], name='measure' ) )
-
-		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
-			if pos % 10 == 0: #to know where we stand
-				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
-
-			#parameters in data
-			k = degrees[nodei] #degree
-			tau = num_events[nodei] #strength (number of events)
-			t = actmeans[nodei] #mean alter activity
-			a0 = amins[nodei] #minimum alter activity
-
-			#only do fitting for egos with t > a_0
-			if k * a0 < tau:
-				#alter activity in data
-				activity = egonet_acts[nodei]
-
-				#alpha fit and KS statistic for data
-				alpha, KSstat = mm.alpha_KSstat( activity, alphamax=alphamax )
-
-				#theo activity dist in range a=[0, amax] (i.e. inclusive)
-				act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
-				act_dist_theo = act_dist_theo / act_dist_theo.sum() #normalise if needed
-
-				#simulations of alter activity from data fit
-				activity_sims = rng.choice( amax+1, (nsims, k), p=act_dist_theo )
-
-				#KS statistics of alpha fit for simulated activity (get alpha but leave out!)
-				KSstat_sims = np.array([ mm.alpha_KSstat( act, alphamax=alphamax )[1] for act in activity_sims ])
-
-				#get p-values as fraction of sim KS stats LARGER than data KS stat
-				pvalue = ( KSstat_sims > KSstat ).sum() / nsims
-
-				#save results
-				egonet_fits.loc[nodei] = alpha, KSstat, pvalue
-
-		egonet_fits.to_pickle( savename ) #save dataframe to file
-
-	return egonet_fits
-
-
-#function to fit gamma approx of activity model to all ego networks in dataset
-def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
-	"""Fit gamma approx of activity model to all ego networks in dataset"""
-
-	savename = saveloc + 'egonet_gammas_' + eventname[:-4] + '.pkl'
-
-	if loadflag == 'y': #load files
-		egonet_gammas = pd.read_pickle( savename )
-
-	elif loadflag == 'n': #or else, compute everything
-
-		rng = np.random.default_rng() #initialise random number generator
-
-		#prepare ego network properties
-		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-		num_egos = len(egonet_props) #number of egos
-
-		#initialise dataframe of (un-) biased gamma/beta fits, KS statistics & p-values (NaNs!)
-		egonet_gammas = pd.DataFrame( np.zeros( ( num_egos, 6 ) )*np.nan, index=egonet_props.index, columns=pd.Series( [ 'gamma', 'gamma_bias', 'beta', 'beta_bias', 'statistic', 'pvalue' ], name='measure' ) )
-
-		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
-			if pos % 1000 == 0: #to know where we stand
-				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
-
-			#all alter activity
-			activity = egonet_acts[nodei] #alter activity in data
-			# k = activity.size #degree
-			a0 = egonet_props.act_min[nodei] #minimum alter activity
-
-			#filtered alter activity (a > a0)
-			activity_noa0 = activity[ activity > a0 ] #alter activity a > a0
-			k_noa0 = activity_noa0.size #degree
-			tau_noa0 = activity_noa0.sum() #strength (number of events)
-			amin_noa0 = activity_noa0.min() #min alter activity
-
-			#only do fitting for egos with activity heterogeneties (after filtering!)
-			if k_noa0 * amin_noa0 < tau_noa0:
-
-				#gamma fit and KS statistic/p-value for data
-				gamma, gamma_bias, beta, beta_bias, KSstat, KSpval = mm.gamma_KSstat( activity )
-
-				# #simulations of alter activity from data fit (include a = a0)
-				# activity_sims = a0 + rng.gamma( gamma, scale=beta, size=(nsims, k) ).round().astype(int)
-				#
-				# #KS statistics of gamma fit for simulated activity (ignore estimators!)
-				# KSstat_sims = np.array([ mm.gamma_KSstat( act )[4] for act in activity_sims ])
-				#
-				# #get p-values as fraction of sim KS stats LARGER than data KS stat
-				# pvalue = ( KSstat_sims > KSstat ).sum() / nsims
-
-				#save results
-				egonet_gammas.loc[nodei] = gamma, gamma_bias, beta, beta_bias, KSstat, KSpval
-
-		egonet_gammas.to_pickle( savename ) #save dataframe to file
-
-	return egonet_gammas
-
-
-#function to filter egos according to fitting results
-def egonet_filter( egonet_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
-	"""Filter egos according to fitting results"""
-
-	#join (ego) properties and fits
-	props_fits = pd.concat( [ egonet_props, egonet_fits ], axis=1 )
-
-	#egos with well-fitted parameters (alpha, gamma, beta)
-
-	#step 1: egos with t > a_0
-	egonet_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
-	#step 2: egos with pvalue > threshold
-	egonet_filter = egonet_filter[ egonet_filter.pvalue > pval_thres ]
-	#step 3 egos with alpha < alphamax (within tolerance threshold)
-	egonet_filter = egonet_filter[ egonet_filter.alpha < alphamax - alph_thres ]
-
-	#gamma distribution quantities
-	gammas = pd.Series( egonet_filter.alpha + egonet_filter.act_min, name='gamma' )
-	betas = pd.Series( ( egonet_filter.act_avg - egonet_filter.act_min ) / ( egonet_filter.alpha + egonet_filter.act_min ), name='beta' )
-
-	#add gamma quantities to [filtered] properties and fits
-	egonet_filter = pd.concat( [ egonet_filter, gammas, betas ], axis=1 )
-
-	#egos without paremeters or with alpha -> inf
-
-	egonet_rest = props_fits.drop( egonet_filter.index )
-	egonet_inf = egonet_rest[ egonet_rest.alpha > alphamax - alph_thres ]
-	egonet_null = egonet_rest.drop( egonet_inf.index )
-
-	return egonet_filter, egonet_inf, egonet_null
-
-
 #function to build weighted graph from event list in dataset
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""
@@ -339,6 +188,98 @@ def graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=100
 	return graph_props
 
 
+#function to fit activity model to all ego networks in dataset
+def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
+	"""Fit activity model to all ego networks in dataset"""
+
+	savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
+
+	if loadflag == 'y': #load files
+		egonet_fits = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute everything
+
+		rng = np.random.default_rng() #initialise random number generator
+
+		#prepare ego network properties
+		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		degrees, num_events, actmeans, amins = egonet_props['degree'], egonet_props['strength'], egonet_props['act_avg'], egonet_props['act_min'] #unpack props
+		num_egos = len(egonet_props) #number of egos
+
+		#initialise dataframe of alpha fits, KS statistics and p-values (to NaNs!)
+		egonet_fits = pd.DataFrame( np.zeros( ( num_egos, 3 ) )*np.nan, index=egonet_props.index, columns=pd.Series( [ 'alpha', 'statistic', 'pvalue' ], name='measure' ) )
+
+		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
+			if pos % 10 == 0: #to know where we stand
+				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
+
+			#parameters in data
+			k = degrees[nodei] #degree
+			tau = num_events[nodei] #strength (number of events)
+			t = actmeans[nodei] #mean alter activity
+			a0 = amins[nodei] #minimum alter activity
+
+			#only do fitting for egos with t > a_0
+			if k * a0 < tau:
+				#alter activity in data
+				activity = egonet_acts[nodei]
+
+				#alpha fit and KS statistic for data
+				alpha, KSstat = mm.alpha_KSstat( activity, alphamax=alphamax )
+
+				#theo activity dist in range a=[0, amax] (i.e. inclusive)
+				act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
+				act_dist_theo = act_dist_theo / act_dist_theo.sum() #normalise if needed
+
+				#simulations of alter activity from data fit
+				activity_sims = rng.choice( amax+1, (nsims, k), p=act_dist_theo )
+
+				#KS statistics of alpha fit for simulated activity (get alpha but leave out!)
+				KSstat_sims = np.array([ mm.alpha_KSstat( act, alphamax=alphamax )[1] for act in activity_sims ])
+
+				#get p-values as fraction of sim KS stats LARGER than data KS stat
+				pvalue = ( KSstat_sims > KSstat ).sum() / nsims
+
+				#save results
+				egonet_fits.loc[nodei] = alpha, KSstat, pvalue
+
+		egonet_fits.to_pickle( savename ) #save dataframe to file
+
+	return egonet_fits
+
+
+#function to filter egos according to fitting results
+def egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
+	"""Filter egos according to fitting results"""
+
+	#join (ego) properties and fits
+	props_fits = pd.concat( [ egonet_props, graph_props, egonet_fits ], axis=1 )
+
+	#egos with well-fitted parameters (alpha, gamma, beta)
+
+	#step 1: egos with t > a_0
+	egonet_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
+	#step 2: egos with pvalue > threshold
+	egonet_filter = egonet_filter[ egonet_filter.pvalue > pval_thres ]
+	#step 3 egos with alpha < alphamax (within tolerance threshold)
+	egonet_filter = egonet_filter[ egonet_filter.alpha < alphamax - alph_thres ]
+
+	#gamma distribution quantities
+	gammas = pd.Series( egonet_filter.alpha + egonet_filter.act_min, name='gamma' )
+	betas = pd.Series( ( egonet_filter.act_avg - egonet_filter.act_min ) / ( egonet_filter.alpha + egonet_filter.act_min ), name='beta' )
+
+	#add gamma quantities to [filtered] properties and fits
+	egonet_filter = pd.concat( [ egonet_filter, gammas, betas ], axis=1 )
+
+	#egos without paremeters or with alpha -> inf
+
+	egonet_rest = props_fits.drop( egonet_filter.index )
+	egonet_inf = egonet_rest[ egonet_rest.alpha > alphamax - alph_thres ]
+	egonet_null = egonet_rest.drop( egonet_inf.index )
+
+	return egonet_filter, egonet_inf, egonet_null
+
+
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study
 def format_data_CNS( root_data, loadflag ):
 	"""Format data (Bluetooth, Call, SMS) from Copenhagen Networks Study"""
@@ -415,6 +356,64 @@ def format_data_CNS( root_data, loadflag ):
 
 
 	return events_bt, events_call, events_sms
+
+
+#function to fit gamma approx of activity model to all ego networks in dataset
+def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Fit gamma approx of activity model to all ego networks in dataset"""
+
+	savename = saveloc + 'egonet_gammas_' + eventname[:-4] + '.pkl'
+
+	if loadflag == 'y': #load files
+		egonet_gammas = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute everything
+
+		rng = np.random.default_rng() #initialise random number generator
+
+		#prepare ego network properties
+		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		num_egos = len(egonet_props) #number of egos
+
+		#initialise dataframe of (un-) biased gamma/beta fits, KS statistics & p-values (NaNs!)
+		egonet_gammas = pd.DataFrame( np.zeros( ( num_egos, 6 ) )*np.nan, index=egonet_props.index, columns=pd.Series( [ 'gamma', 'gamma_bias', 'beta', 'beta_bias', 'statistic', 'pvalue' ], name='measure' ) )
+
+		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
+			if pos % 1000 == 0: #to know where we stand
+				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
+
+			#all alter activity
+			activity = egonet_acts[nodei] #alter activity in data
+			# k = activity.size #degree
+			a0 = egonet_props.act_min[nodei] #minimum alter activity
+
+			#filtered alter activity (a > a0)
+			activity_noa0 = activity[ activity > a0 ] #alter activity a > a0
+			k_noa0 = activity_noa0.size #degree
+			tau_noa0 = activity_noa0.sum() #strength (number of events)
+			amin_noa0 = activity_noa0.min() #min alter activity
+
+			#only do fitting for egos with activity heterogeneties (after filtering!)
+			if k_noa0 * amin_noa0 < tau_noa0:
+
+				#gamma fit and KS statistic/p-value for data
+				gamma, gamma_bias, beta, beta_bias, KSstat, KSpval = mm.gamma_KSstat( activity )
+
+				# #simulations of alter activity from data fit (include a = a0)
+				# activity_sims = a0 + rng.gamma( gamma, scale=beta, size=(nsims, k) ).round().astype(int)
+				#
+				# #KS statistics of gamma fit for simulated activity (ignore estimators!)
+				# KSstat_sims = np.array([ mm.gamma_KSstat( act )[4] for act in activity_sims ])
+				#
+				# #get p-values as fraction of sim KS stats LARGER than data KS stat
+				# pvalue = ( KSstat_sims > KSstat ).sum() / nsims
+
+				#save results
+				egonet_gammas.loc[nodei] = gamma, gamma_bias, beta, beta_bias, KSstat, KSpval
+
+		egonet_gammas.to_pickle( savename ) #save dataframe to file
+
+	return egonet_gammas
 
 
 #DEBUGGIN'

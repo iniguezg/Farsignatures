@@ -1,15 +1,17 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR PLOTTING FIGURE (FIT CORRS) IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR PLOTTING FIGURE (FIT RANKINGS) IN FARSIGNATURES PROJECT ###
 
 #import modules
 import os, sys
+import numpy as np
 import pandas as pd
 import seaborn as sns
+import scipy.ndimage as sn
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from matplotlib.colors import LogNorm
 from os.path import expanduser
+from matplotlib.ticker import ( MultipleLocator, LogLocator )
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import data_misc as dm
@@ -21,24 +23,14 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-#	fit/data properties to correlate
-	properties_x = [ ('gamma', r'\hat{\alpha}_r'),
-	 				 ('gamma', r'\hat{\alpha}_r'),
-					 ('act_avg_rel', 't_r'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta') ]
-	properties_y = [ ('act_avg_rel', 't_r'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('degree', 'k'),
-					 ('str_rel', r'\tau_r'),
-					 ('act_min', r'a_0'),
-					 ('act_max', r'a_m'),
-					]
-	# properties_x = [ ('gamma', r'\hat{\alpha}_r') ]
-	# properties_y = [ ('act_avg_rel', 't_r') ]
+	#fit/data properties to rank
+	properties_x = [ ('pagerank', r'r( c_p )'),
+	 				 ('betweenness', r'r( c_b )'),
+					 ('closeness', r'r( c_c )'),
+					 ('eigenvector', r'r( c_e )'),
+					 ('katz', r'r( c_k )'),
+					 ('authority', r'r( c_h )') ]
+	propy = ('beta', r'\beta')
 
 	max_iter = 1000 #max number of iteration for centrality calculations
 	alphamax = 1000 #maximum alpha for MLE fit
@@ -48,9 +40,8 @@ if __name__ == "__main__":
 	pval_thres = 0.1 #threshold above which alphas are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
-	#plotting variables
-	gridsize = 40 #grid size for hex bins
-	vmax = 1e4 #max value in colorbar (larger than [filtered] N in any dataset!)
+	#plot variables
+	filter_factor = 80. #factor for uniform filter
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -82,30 +73,32 @@ if __name__ == "__main__":
 	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
-	'legend_prop' : { 'size':15 },
-	'legend_hlen' : 1,
+	'legend_prop' : { 'size':12 },
+	'legend_hlen' : 1.7,
 	'legend_np' : 1,
 	'legend_colsp' : 1.1 }
 
-	#loop through properties to correlate
-	for prop_pos, (propx, propy) in enumerate(zip( properties_x, properties_y )):
-#	for prop_pos, (propx, propy) in enumerate(zip( [('gamma', r'\gamma')], [('beta', r'\beta')] )):
+	colors = sns.color_palette( 'Set2', n_colors=1 ) #colors to plot
+
+	#loop through properties to rank
+	for prop_pos, propx in enumerate( properties_x ):
+#	for prop_pos, propx in enumerate( [ ('pagerank', r'r( c_p )') ] ):
+
 		print( 'propx = {}, propy = {}'.format( propx[0], propy[0] ) )
 
 		#plot variables
 		fig_props = { 'fig_num' : 1,
 		'fig_size' : (10, 8),
 		'aspect_ratio' : (4, 4),
-		'grid_params' : dict( left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.2, hspace=0.4 ),
-		'width_ratios' : [1, 1, 1, 1.2],
+		'grid_params' : dict( left=0.08, bottom=0.075, right=0.985, top=0.965, wspace=0.3, hspace=0.3 ),
 		'dpi' : 300,
-		'savename' : 'figure_fit_corrs_{}_{}'.format( propx[0], propy[0] ) }
+		'savename' : 'figure_rankings_{}'.format( propx[0] ) }
 
 		#initialise plot
 		sns.set( style='ticks' ) #set fancy fancy plot
 		fig = plt.figure( fig_props['fig_num'], figsize=fig_props['fig_size'] )
 		plt.clf()
-		grid = gridspec.GridSpec( *fig_props['aspect_ratio'], width_ratios=fig_props['width_ratios'] )
+		grid = gridspec.GridSpec( *fig_props['aspect_ratio'] )
 		grid.update( **fig_props['grid_params'] )
 
 		#loop through considered datasets
@@ -125,10 +118,8 @@ if __name__ == "__main__":
 			#filter egos according to fitting results
 			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
-			#add relative quantities
-			tau_rels = pd.Series( egonet_filter.strength - egonet_filter.degree * egonet_filter.act_min, name='str_rel' )
-			t_rels = pd.Series( egonet_filter.act_avg - egonet_filter.act_min, name='act_avg_rel' )
-			egonet_filter = pd.concat( [ egonet_filter, tau_rels, t_rels ], axis=1 )
+			#some measures
+			num_egos_filter = len( egonet_filter ) #filtered egos
 
 
 			## PLOTTING ##
@@ -141,51 +132,35 @@ if __name__ == "__main__":
 			if grid_pos in [0, 4, 8, 12]:
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
-			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r', zorder=0 )
+			#rank egos (beta parameter) by decreasing property value
+			xplot = np.arange( 1, num_egos_filter+1 ) / num_egos_filter
+			yplot = egonet_filter.sort_values( by=propx[0], ascending=False ).beta
+			yplot_filter = sn.uniform_filter1d( yplot, int(num_egos_filter/filter_factor) )
 
-			#colorbar
-			if grid_pos in [3, 7, 11]:
-				cbar = plt.colorbar( hexbin, ax=ax )
-				cbar.ax.set_title( r'$N_{'+propx[1]+','+propy[1]+'}$' )
-				cbar.ax.minorticks_off()
+			#plot plot!
+			plt.semilogy( xplot, yplot, '--', label='data', c='0.8', lw=plot_props['linewidth']-1 )
+			plt.semilogy( xplot, yplot_filter, '-', label='filter', c=colors[0], lw=plot_props['linewidth'] )
 
 			#lines
-
-			if prop_pos == 0:
-				plt.plot( [1e-2, 1e4], [1e-2, 1e4], '-', c='0.6', lw=plot_props['linewidth'], zorder=1 )
-				plt.plot( [1, 1], [1, 1e4], '--', c='0.6', lw=plot_props['linewidth'], zorder=1 )
-
-			if prop_pos in [ 1, 2 ]:
-				plt.axhline( y=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
-
-			if prop_pos in [ 3, 4, 5, 6 ]:
-				plt.axvline( x=1, ls='--', c='0.6', lw=plot_props['linewidth'] )
+			plt.axhline( y=1, ls='--', c='k', lw=plot_props['linewidth'] )
 
 			#texts
-			plt.text( 0, 1.15, textname, va='top', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+			plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+
+			#legend
+			if grid_pos == 13:
+				plt.legend( loc='lower left', bbox_to_anchor=(1, 0), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )
 
 			#finalise subplot
-			if prop_pos == 0:
-				plt.axis([ 1e-2, 2e2, 1e-2, 1e4 ])
-			if prop_pos == 1:
-				plt.axis([ 1e-3, 1e3, 1e-4, 1e5 ])
-			if prop_pos == 2:
-				plt.axis([ 1e-2, 1e3, 1e-4, 1e5 ])
-			if prop_pos == 3:
-				plt.axis([ 1e-4, 1e5, 5e-1, 1e3 ])
-			if prop_pos == 4:
-				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
-			if prop_pos == 5:
-				plt.axis([ 1e-4, 1e5, 5e-1, 1e3 ])
-			if prop_pos == 6:
-				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
+			plt.axis([ -0.05, 1.05, 5e-4, 2e4 ])
+			ax.xaxis.set_major_locator( MultipleLocator(0.5) )
+			ax.yaxis.set_major_locator( LogLocator( numticks=5 ) )
 			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-			ax.locator_params( numticks=5 )
 			if grid_pos not in [10, 11, 12, 13]:
 				ax.tick_params(labelbottom=False)
 			if grid_pos not in [0, 4, 8, 12]:
 				ax.tick_params(labelleft=False)
+
 
 		#finalise plot
 		if fig_props['savename'] != '':
