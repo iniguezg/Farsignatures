@@ -3,7 +3,7 @@
 ### SCRIPT FOR GETTING DATA PROPERTIES IN FARSIGNATURES PROJECT ###
 
 #import modules
-import sys
+import os, sys
 import pandas as pd
 from os.path import expanduser
 
@@ -31,13 +31,30 @@ if __name__ == "__main__":
 	# events_bt, events_call, events_sms = dm.format_data_CNS( root_data, loadflag )
 
 
-	# ## analysis 2: get ego network properties for all datasets ##
-	#
+	## analysis 2: get ego network properties for all datasets ##
+
+	# #SMALL DATASETS
 	# for dataname, eventname in datasets: #loop through considered datasets
 	# 	print( 'dataset name: ' + eventname[:-4] ) #print output
 	#
-	# 	#prepare ego network properties
+	# 	#prepare ego network properties / alter activities
 	# 	egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+
+	#LARGE DATASETS
+	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
+#	datasets = [ ('MPC_UEu_sample', 'text') ]
+	for dataname, eventname in datasets: #loop through datasets
+		print( 'dataset name: ' + eventname, flush=True ) #print output
+		#loop through files in data directory
+		fileloc = root_data + dataname +'/'+ eventname + '/'
+#		for filename in os.listdir( fileloc ):
+		for filename in [ '1000_1020405.txt' ]:
+			print( 'filename: ' + filename, flush=True )
+
+			#prepare ego network properties / alter activities
+			egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc )
 
 
 	# ## analysis 3: get parameters for all datasets ##
@@ -87,18 +104,18 @@ if __name__ == "__main__":
 	# 	egonet_gammas = dm.egonet_gammas( dataname, eventname, root_data, loadflag, saveloc )
 
 
-	## analysis 7: build weighted graph from event list in all datasets ##
-
-	# dataname = sys.argv[1] #considered dataset
-	# eventname = sys.argv[2]
-#	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt') ]
-	max_iter = 1000 #max number of iteration for centrality calculations
-
-	for dataname, eventname in datasets: #loop through considered datasets
-		print( 'dataset name: ' + eventname[:-4] ) #print output
-
-		#build weighted graph from event list in dataset
-		graph = dm.graph_weights( dataname, eventname, root_data, 'y', saveloc )
-
-		#get graph properties for dataset
-		graph_props = dm.graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=max_iter )
+# 	## analysis 7: build weighted graph from event list in all datasets ##
+#
+# 	# dataname = sys.argv[1] #considered dataset
+# 	# eventname = sys.argv[2]
+# #	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt') ]
+# 	max_iter = 1000 #max number of iteration for centrality calculations
+#
+# 	for dataname, eventname in datasets: #loop through considered datasets
+# 		print( 'dataset name: ' + eventname[:-4] ) #print output
+#
+# 		#build weighted graph from event list in dataset
+# 		graph = dm.graph_weights( dataname, eventname, root_data, 'y', saveloc )
+#
+# 		#get graph properties for dataset
+# 		graph_props = dm.graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=max_iter )

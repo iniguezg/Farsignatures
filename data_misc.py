@@ -5,9 +5,9 @@
 #import modules
 import numpy as np
 import pandas as pd
-import graph_tool.all as gt
+#import graph_tool.all as gt
 
-import model_misc as mm
+#import model_misc as mm
 
 
 ## FUNCTIONS ##
@@ -53,6 +53,47 @@ def egonet_props_acts( dataname, eventname, root_data, loadflag, saveloc ):
 
 		#dataframe with all ego network properties
 		columns = { 'nodej' : 'degree', 'tstamp' : 'strength', 0 : 'act_avg', 1 : 'act_min', 2 : 'act_max' }
+		egonet_props = pd.concat( [ degrees, num_events, actmeans, amins, amaxs ], axis=1 ).rename( columns=columns )
+
+		#save everything
+		egonet_props.to_pickle( savenames[0] )
+		egonet_acts.to_pickle( savenames[1] )
+
+	return egonet_props, egonet_acts
+
+def egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc ):
+	"""Get ego network properties and alter activities for large dataset separated into several files"""
+
+	savenames = ( saveloc + 'egonet_props_' + eventname +'_'+ filename[:-4] + '.pkl',
+				  saveloc + 'egonet_acts_' + eventname +'_'+ filename[:-4] + '.pkl' )
+
+	if loadflag == 'y': #load files
+		egonet_props = pd.read_pickle( savenames[0] )
+		egonet_acts = pd.read_pickle( savenames[1] )
+
+	elif loadflag == 'n': #or else, compute them
+
+		#load event list:
+		#ego_ID alter_ID timestamp comunication_type duration
+		events = pd.read_csv( fileloc + filename, sep=' ' )
+
+		#ego degrees: get neighbor lists (grouping by ego_ID and getting unique alter_ID values)
+		neighbors = events.groupby('ego_ID')['alter_ID'].unique()
+		degrees = neighbors.apply( len )
+
+		#mean alter activity: first get number of events per ego_ID (tau)
+		num_events = events.groupby('ego_ID')['timestamp'].size()
+		actmeans = num_events / degrees	#and then mean activity as avg number of events per alter
+
+		#alter activity: count number of events per alter of each ego
+		egonet_acts = events.groupby(['ego_ID', 'alter_ID']).size()
+
+		#min/max activity: get min/max activity across alters for each ego
+		amins = egonet_acts.groupby('ego_ID').apply( min )
+		amaxs = egonet_acts.groupby('ego_ID').apply( max )
+
+		#dataframe with all ego network properties
+		columns = { 'alter_ID' : 'degree', 'timestamp' : 'strength', 0 : 'act_avg', 1 : 'act_min', 2 : 'act_max' }
 		egonet_props = pd.concat( [ degrees, num_events, actmeans, amins, amaxs ], axis=1 ).rename( columns=columns )
 
 		#save everything
