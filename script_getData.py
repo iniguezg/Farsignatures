@@ -49,8 +49,8 @@ if __name__ == "__main__":
 		print( 'dataset name: ' + eventname, flush=True ) #print output
 		#loop through files in data directory
 		fileloc = root_data + dataname +'/'+ eventname + '/'
-#		for filename in os.listdir( fileloc ):
-		for filename in [ '1000_1020405.txt' ]:
+		for filename in os.listdir( fileloc ):
+#		for filename in [ '1000_1020405.txt' ]:
 			print( 'filename: ' + filename, flush=True )
 
 			#prepare ego network properties / alter activities
