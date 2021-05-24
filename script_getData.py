@@ -44,14 +44,16 @@ if __name__ == "__main__":
 	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
 	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
-#	datasets = [ ('MPC_UEu_sample', 'text') ]
+	# datasets = [ ('MPC_UEu_sample', 'text') ]
 	for dataname, eventname in datasets: #loop through datasets
 		print( 'dataset name: ' + eventname, flush=True ) #print output
-		#loop through files in data directory
 		fileloc = root_data + dataname +'/'+ eventname + '/'
-		for filename in os.listdir( fileloc ):
-#		for filename in [ '1000_1020405.txt' ]:
-			print( 'filename: ' + filename, flush=True )
+		filelist = os.listdir( fileloc )
+		# filelist = [ '1000_1020405.txt' ]
+		filecount = 1 #initialise counter
+		for filename in filelist: #loop through files in data directory
+			print( 'progress: {:.2f}%, filename: {}'.format( 100*filecount/float(len(filelist)), filename ), flush=True )
+			filecount += 1 #update counter
 
 			#prepare ego network properties / alter activities
 			egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc )
