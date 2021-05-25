@@ -1,0 +1,2 @@
+./egonet_props_text_2367333_2387126.pkl
+./egonet_props_text_8749301_8769339.pkl
