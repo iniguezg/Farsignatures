@@ -19,11 +19,16 @@ if __name__ == "__main__":
 	#input arguments
 	loadflag = 'n' #load flag ( 'y', 'n' )
 
-	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	saveloc = root_code+'files/data/' #location of output files
+	# #SMALL DATASETS
+	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	# saveloc = root_code+'files/data/' #location of output files
+	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
 
-	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
+	#LARGE DATASETS
+	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	# ## analysis 1: format data (Bluetooth, Call, SMS) from Copenhagen Networks Study ##
@@ -31,7 +36,7 @@ if __name__ == "__main__":
 	# events_bt, events_call, events_sms = dm.format_data_CNS( root_data, loadflag )
 
 
-	# analysis 2: get ego network properties for all datasets ##
+	# ## analysis 2: get ego network properties for all datasets ##
 
 	# #SMALL DATASETS
 	# for dataname, eventname in datasets: #loop through considered datasets
@@ -39,10 +44,8 @@ if __name__ == "__main__":
 	#
 	# 	#prepare ego network properties / alter activities
 	# 	egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-
+	#
 	# #LARGE DATASETS
-	# # root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	# # saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
 	# # datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
 	# datasets = [ ('MPC_UEu_sample', 'text') ]
 	# for dataname, eventname in datasets: #loop through datasets
@@ -59,18 +62,14 @@ if __name__ == "__main__":
 	# 		egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
 
 
-	## analysis 3: get parameters for all datasets ##
+	# ## analysis 3: get parameters for all datasets ##
 
 	# #SMALL DATASETS
 	# params_data = dm.data_params( datasets, root_data, loadflag, saveloc )
-
-	#LARGE DATASETS
-	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
-	# datasets = [ ('MPC_UEu_sample', 'text') ]
-
-	params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
+	#
+	# #LARGE DATASETS
+	# # datasets = [ ('MPC_UEu_sample', 'text') ]
+	# params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
 
 
 	# ## analysis 4: get number of egos with dynamics (t > a_0) for all datasets ##
@@ -91,19 +90,19 @@ if __name__ == "__main__":
 	# 	print('fraction with t > a_0 = {:.2f}'.format( num_egos_dynamics / float(num_egos) ))
 
 
-	# ## analysis 5: fit activity model to ego networks in all datasets ##
-	#
-	# dataname = sys.argv[1] #considered dataset
+	## analysis 5: fit activity model to ego networks in all datasets ##
+
+	#SMALL DATASETS
+	# dataname = sys.argv[1]
 	# eventname = sys.argv[2]
-	# nsims = int( sys.argv[3] ) #number of syntethic datasets used to calculate p-value
-	#
-	# print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
-	#
-	# alphamax = 1000 #maximum alpha for MLE fit
-	# amax = 10000 #maximum activity for theoretical activity distribution
-	#
-	# #fit activity model to all ego networks in dataset
-	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
+	#LARGE DATASETS
+	dataname = '' #not needed for loading
+	eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
+
+	print( 'event name: ' + eventname, flush=True ) #print output
+
+	#fit activity model to all ego networks in dataset
+	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=100 )
 
 
 	# ## analysis 6: fit gamma approx of activity model to all ego networks in all datasets ##

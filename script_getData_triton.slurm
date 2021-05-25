@@ -5,4 +5,7 @@
 # sbatch -J call -o call.out script_getData_triton.sh call
 
 #analysis 3
-sbatch -J params_data_parallel -o params_data_parallel.out script_getData_triton.sh
+#sbatch -J params_data_parallel -o params_data_parallel.out script_getData_triton.sh
+
+#analysis 5
+sbatch script_getData_triton.sh
