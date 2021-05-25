@@ -140,6 +140,53 @@ def data_params( datasets, root_data, loadflag, saveloc ):
 
 	return params_data
 
+
+#function to get parameters for all large datasets separated into several files
+def data_params_parallel( datasets, root_data, loadflag, saveloc ):
+	"""Get parameters for all large datasets separated into several files"""
+
+	#get dataframe of parameters for all large datasets
+	savename = saveloc + 'params_data_parallel.pkl' #savename
+	if loadflag == 'y': #load file
+		params_data = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute parameters
+
+		#initialise dataframe of parameters for large datasets
+		params_data = pd.DataFrame( np.zeros( ( len(datasets), 7 ) ), index=pd.Series( [ dset[1] for dset in datasets ], name='dataset') , columns=pd.Series( [ 'num_egos', 'num_events', 'avg_degree', 'avg_strength', 'avg_activity', 'avg_actmin', 'avg_actmax' ], name='parameter' ) )
+
+		for dataname, eventname in datasets: #loop through considered large datasets
+			print( 'dataset name: ' + eventname, flush=True ) #print output
+			fileloc = root_data + dataname +'/'+ eventname + '/'
+			filelist = os.listdir( fileloc )
+
+			for filepos, filename in enumerate( filelist ): #loop through files in data directory
+				#prepare ego network properties (for piece of large dataset!)
+				egonet_props_piece, not_used = egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
+
+				if filepos: #accumulate pieces of large dataset
+					egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
+				else: #and initialise dataframe
+					egonet_props = egonet_props_piece
+			egonet_props.sort_index() #sort ego indices
+
+			#save dataset parameters
+			params_data.at[ eventname, 'num_egos' ] = len( egonet_props )
+			params_data.at[ eventname, 'num_events' ] = egonet_props.strength.sum() #events are only counted once per ego/alter pair!
+			params_data.at[ eventname, 'avg_degree' ] = egonet_props.degree.mean()
+			params_data.at[ eventname, 'avg_strength' ] = egonet_props.strength.mean()
+			params_data.at[ eventname, 'avg_activity' ] = egonet_props.act_avg.mean()
+			params_data.at[ eventname, 'avg_actmin' ] = egonet_props.act_min.mean()
+			params_data.at[ eventname, 'avg_actmax' ] = egonet_props.act_max.mean()
+
+			#fix dtypes
+			params_data = params_data.astype({ 'num_egos' : int, 'num_events' : int })
+
+		params_data.to_pickle( savename ) #save dataframe to file
+
+	return params_data
+
+
 #function to build weighted graph from event list in dataset
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""
