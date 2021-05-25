@@ -3,6 +3,7 @@
 ### MODULE FOR MISCELLANEOUS FUNCTIONS FOR DATA IN FARSIGNATURES PROJECT ###
 
 #import modules
+import os
 import numpy as np
 import pandas as pd
 #import graph_tool.all as gt
