@@ -102,7 +102,7 @@ if __name__ == "__main__":
 	print( 'event name: ' + eventname, flush=True ) #print output
 
 	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=100 )
+	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=1000 )
 
 
 	# ## analysis 6: fit gamma approx of activity model to all ego networks in all datasets ##

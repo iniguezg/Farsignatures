@@ -1,8 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=egonet_fits_test
-#SBATCH --output=egonet_fits_test_%a.out
-#SBATCH --array=1-2
-#SBATCH --time=01:00:00
+#SBATCH --job-name=egonet_fits_text
+#SBATCH --output=egonet_fits_text_%a.out
+#SBATCH --array=1-409
+#SBATCH --time=05-00
 #SBATCH --mem-per-cpu=2G
 
 #analysis 2
@@ -18,5 +18,5 @@
 #analysis 5
 #find . ! -name . -prune -type f -name 'egonet_props_text_*' > filenames_text.txt
 n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_test.txt`
+filename=`sed -n "${n} p" filenames_text.txt`
 srun python script_getData.py ${filename}
