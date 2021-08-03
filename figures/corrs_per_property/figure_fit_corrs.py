@@ -142,7 +142,7 @@ if __name__ == "__main__":
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r', zorder=0 )
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu', zorder=0 )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:

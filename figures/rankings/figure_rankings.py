@@ -155,7 +155,7 @@ if __name__ == "__main__":
 			kendall_corr, kendall_pval = ss.kendalltau( egonet_filter[ propx[0] ], egonet_filter[ propy[0] ], variant='c' )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=data, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
+			hexbin = plt.hexbin( propx[0], propy[0], data=data, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu' )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
