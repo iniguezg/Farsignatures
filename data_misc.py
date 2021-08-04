@@ -354,7 +354,7 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 	elif loadflag == 'n': #or else, compute them
 
 		fileloc = root_data + dataname +'/'+ eventname + '/'
-		filelist = os.listdir( fileloc )
+		filelist = sorted( os.listdir( fileloc ) )
 
 		for filepos, filename in enumerate( filelist ): #loop through files in data directory
 			fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
