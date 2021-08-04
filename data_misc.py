@@ -366,14 +366,13 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 				egonet_fits_piece = pd.read_pickle( saveloc + 'egonet_fits_' + fnamend )
 			except FileNotFoundError:
 				print( 'file not found: {}'.format( fnamend ) )
-				continue #go to next iteration
-
-			if filepos: #accumulate pieces of large dataset
-				egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
-				egonet_fits = pd.concat([ egonet_fits, egonet_fits_piece ])
-			else: #and initialise dataframes
-				egonet_props = egonet_props_piece
-				egonet_fits = egonet_fits_piece
+			else:
+				if filepos: #accumulate pieces of large dataset
+					egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
+					egonet_fits = pd.concat([ egonet_fits, egonet_fits_piece ])
+				else: #and initialise dataframes
+					egonet_props = egonet_props_piece
+					egonet_fits = egonet_fits_piece
 
 		egonet_props.sort_index() #sort ego indices
 		egonet_fits.sort_index()
