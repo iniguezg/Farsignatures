@@ -340,6 +340,43 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=100
 	return egonet_fits
 
 
+#function to join ego network properties and fits for large dataset separated into several files
+def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Join ego network properties and fits for large dataset separated into several files"""
+
+	savenames = ( saveloc + 'egonet_props_' + eventname + '.pkl',
+				  saveloc + 'egonet_fits_' + eventname + '.pkl' )
+
+	if loadflag == 'y': #load files
+		egonet_props = pd.read_pickle( savenames[0] )
+		egonet_fits = pd.read_pickle( savenames[1] )
+
+	elif loadflag == 'n': #or else, compute them
+
+		fileloc = root_data + dataname +'/'+ eventname + '/'
+		filelist = os.listdir( fileloc )
+
+		for filepos, filename in enumerate( filelist ): #loop through files in data directory
+			#prepare ego network properties/fits (for piece of large dataset!)
+			egonet_props_piece = pd.read_pickle( saveloc + 'egonet_props_' + eventname +'_'+ filename[:-4] + '.pkl' )
+			egonet_fits_piece = pd.read_pickle( saveloc + 'egonet_fits_' + eventname +'_'+ filename[:-4] + '.pkl' )
+
+			if filepos: #accumulate pieces of large dataset
+				egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
+				egonet_fits = pd.concat([ egonet_fits, egonet_fits_piece ])
+			else: #and initialise dataframes
+				egonet_props = egonet_props_piece
+				egonet_fits = egonet_fits_piece
+
+		egonet_props.sort_index() #sort ego indices
+		egonet_fits.sort_index()
+
+		egonet_props.to_pickle( savenames[0] ) #save dataframes
+		egonet_fits.to_pickle( savenames[1] )
+
+	return egonet_props, egonet_fits
+	
+
 #function to filter egos according to fitting results
 def egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
 	"""Filter egos according to fitting results"""

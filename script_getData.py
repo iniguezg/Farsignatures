@@ -90,22 +90,29 @@ if __name__ == "__main__":
 	# 	print('fraction with t > a_0 = {:.2f}'.format( num_egos_dynamics / float(num_egos) ))
 
 
-	## analysis 5: fit activity model to ego networks in all datasets ##
+	# ## analysis 5: fit activity model to ego networks in all datasets ##
+	#
+	# #SMALL DATASETS
+	# # dataname = sys.argv[1]
+	# # eventname = sys.argv[2]
+	# #LARGE DATASETS
+	# dataname = '' #not needed for loading
+	# eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
+	#
+	# print( 'event name: ' + eventname, flush=True ) #print output
+	#
+	# #fit activity model to all ego networks in dataset
+	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=400 )
 
-	#SMALL DATASETS
-	# dataname = sys.argv[1]
-	# eventname = sys.argv[2]
-	#LARGE DATASETS
-	dataname = '' #not needed for loading
-	eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
 
-	print( 'event name: ' + eventname, flush=True ) #print output
+	## analysis 8: join ego network properties and fits for large dataset separated into several files
 
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=400 )
+	for dataname, eventname in datasets: #loop through datasets
+		print( 'dataset name: ' + eventname, flush=True ) #print output
+		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
-	# ## analysis 6: fit gamma approx of activity model to all ego networks in all datasets ##
+	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##
 	#
 	# for dataname, eventname in datasets: #loop through considered datasets
 	# 	print( '\t\tdataset name: ' + eventname[:-4], flush=True ) #print output
@@ -114,7 +121,7 @@ if __name__ == "__main__":
 	# 	egonet_gammas = dm.egonet_gammas( dataname, eventname, root_data, loadflag, saveloc )
 
 
-# 	## analysis 7: build weighted graph from event list in all datasets ##
+# 	## analysis 8: build weighted graph from event list in all datasets ##
 #
 # 	# dataname = sys.argv[1] #considered dataset
 # 	# eventname = sys.argv[2]
