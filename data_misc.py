@@ -359,19 +359,22 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 		for filepos, filename in enumerate( filelist ): #loop through files in data directory
 			fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
 
-			#prepare ego network properties/fits (for piece of large dataset!)
+			#prepare ego network properties (for piece of large dataset!)
 			egonet_props_piece = pd.read_pickle( saveloc + 'egonet_props_' + fnamend )
+			if filepos: #accumulate pieces of large dataset
+				egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
+			else: #and initialise dataframes
+				egonet_props = egonet_props_piece
 
+			#prepare ego network fits (for piece of large dataset!)
 			try: #handling missing fit data...
 				egonet_fits_piece = pd.read_pickle( saveloc + 'egonet_fits_' + fnamend )
 			except FileNotFoundError:
 				print( 'file not found: {}'.format( fnamend ) )
 			else:
 				if filepos: #accumulate pieces of large dataset
-					egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
 					egonet_fits = pd.concat([ egonet_fits, egonet_fits_piece ])
 				else: #and initialise dataframes
-					egonet_props = egonet_props_piece
 					egonet_fits = egonet_fits_piece
 
 		egonet_props.sort_index() #sort ego indices
