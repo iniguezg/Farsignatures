@@ -357,9 +357,16 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 		filelist = os.listdir( fileloc )
 
 		for filepos, filename in enumerate( filelist ): #loop through files in data directory
+			fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+
 			#prepare ego network properties/fits (for piece of large dataset!)
-			egonet_props_piece = pd.read_pickle( saveloc + 'egonet_props_' + eventname +'_'+ filename[:-4] + '.pkl' )
-			egonet_fits_piece = pd.read_pickle( saveloc + 'egonet_fits_' + eventname +'_'+ filename[:-4] + '.pkl' )
+			egonet_props_piece = pd.read_pickle( saveloc + 'egonet_props_' + fnamend )
+
+			try: #handling missing fit data...
+				egonet_fits_piece = pd.read_pickle( saveloc + 'egonet_fits_' + fnamend )
+			except FileNotFoundError:
+				print( 'file not found: {}'.format( fnamend ) )
+				continue #go to next iteration
 
 			if filepos: #accumulate pieces of large dataset
 				egonet_props = pd.concat([ egonet_props, egonet_props_piece ])
@@ -375,7 +382,7 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 		egonet_fits.to_pickle( savenames[1] )
 
 	return egonet_props, egonet_fits
-	
+
 
 #function to filter egos according to fitting results
 def egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
