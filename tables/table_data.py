@@ -16,8 +16,9 @@ if __name__ == "__main__":
 	root_loc = expanduser('~') + '/prg/xocial/Farsignatures/' #root location of code
 	saveloc_data = root_loc + 'files/data/' #location of data files
 
-	#get parameters for all datasets
+	#get parameters for all datasets (single and parallel)
 	params_data = pd.read_pickle( saveloc_data + 'params_data.pkl' )
+	params_data_parallel = pd.read_pickle( saveloc_data + 'params_data_parallel.pkl' )
 
 	## PRINTING ##
 
@@ -30,7 +31,10 @@ r"""
 Dataset & Event description & $N$ & $V$ & $\langle k \rangle$ & $\langle \tau \rangle$ & $\langle t \rangle$ & $\langle a_0 \rangle$ & $\langle a_m \rangle$ \\
 \midrule
 Mobile (call)~\cite{onnela2007analysis,onnela2007structure,karsai2011small,kivela2012multiscale,kovanen2013temporal,unicomb2018threshold,heydari2018multichannel} & Phone call records &"""
-+r' {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'MPC_UEu', 'num_egos' ], params_data.at[ 'MPC_UEu', 'num_events' ], params_data.at[ 'MPC_UEu', 'avg_degree' ], params_data.at[ 'MPC_UEu', 'avg_strength' ], params_data.at[ 'MPC_UEu', 'avg_activity' ], params_data.at[ 'MPC_UEu', 'avg_actmin' ], params_data.at[ 'MPC_UEu', 'avg_actmax' ] )+
++r' {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data_parallel.at[ 'call', 'num_egos' ], params_data_parallel.at[ 'call', 'num_events' ], params_data_parallel.at[ 'call', 'avg_degree' ], params_data_parallel.at[ 'call', 'avg_strength' ], params_data_parallel.at[ 'call', 'avg_activity' ], params_data_parallel.at[ 'call', 'avg_actmin' ], params_data_parallel.at[ 'call', 'avg_actmax' ] )+
+r"""
+Mobile (sms)~\cite{onnela2007analysis,onnela2007structure,karsai2011small,kivela2012multiscale,kovanen2013temporal,unicomb2018threshold,heydari2018multichannel} & Short messages &"""
++r' {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data_parallel.at[ 'text', 'num_egos' ], params_data_parallel.at[ 'text', 'num_events' ], params_data_parallel.at[ 'text', 'avg_degree' ], params_data_parallel.at[ 'text', 'avg_strength' ], params_data_parallel.at[ 'text', 'avg_activity' ], params_data_parallel.at[ 'text', 'avg_actmin' ], params_data_parallel.at[ 'text', 'avg_actmax' ] )+
 r"""
 Mobile (Wu 1)~\cite{wu2010evidence} & Short messages &"""
 +r' {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'MPC_Wu_SD01', 'num_egos' ], params_data.at[ 'MPC_Wu_SD01', 'num_events' ], params_data.at[ 'MPC_Wu_SD01', 'avg_degree' ], params_data.at[ 'MPC_Wu_SD01', 'avg_strength' ], params_data.at[ 'MPC_Wu_SD01', 'avg_activity' ], params_data.at[ 'MPC_Wu_SD01', 'avg_actmin' ], params_data.at[ 'MPC_Wu_SD01', 'avg_actmax' ] )+

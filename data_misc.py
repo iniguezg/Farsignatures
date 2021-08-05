@@ -387,7 +387,7 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 
 
 #function to filter egos according to fitting results
-def egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
+def egonet_filter( egonet_props, egonet_fits, graph_props=None, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
 	"""Filter egos according to fitting results"""
 
 	#join (ego) properties and fits

@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
-	#dataset list: dataname, eventname, textname
+	#dataset list: eventname, textname
 #	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
