@@ -4,6 +4,7 @@
 
 #import modules
 import os, sys
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -30,20 +31,22 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: dataname, eventname, textname
-	datasets = [ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
-				 ('SMS_net', 'MPC_Wu_SD01.evt', 'Mobile (Wu 1)'),
-				 ('SMS_net', 'MPC_Wu_SD02.evt', 'Mobile (Wu 2)'),
-				 ('SMS_net', 'MPC_Wu_SD03.evt', 'Mobile (Wu 3)'),
-				 ('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
-				 ('greedy_walk_nets', 'email.evt', 'Email 1'),
-				 ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
-				 ('greedy_walk_nets', 'fb.evt', 'Facebook'),
-				 ('greedy_walk_nets', 'messages.evt', 'Messages'),
-				 ('greedy_walk_nets', 'forum.evt', 'Forum'),
-				 ('greedy_walk_nets', 'pok.evt', 'Dating'),
-				 ('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
-				 ('Copenhagen_nets', 'CNS_calls.evt', 'CNS (call)'),
-				 ('Copenhagen_nets', 'CNS_sms.evt', 'CNS (sms)') ]
+#	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	datasets = [ ( 'call', 'Mobile (call)'),
+				 ( 'text', 'Mobile (sms)'),
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'sexcontact_events', 'Contact'),
+				 ( 'email', 'Email 1'),
+				 ( 'eml2', 'Email 2'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'forum', 'Forum'),
+				 ( 'pok', 'Dating'),
+				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -77,20 +80,20 @@ if __name__ == "__main__":
 	grid.update( **fig_props['grid_params'] )
 
 	#loop through considered datasets
-	for grid_pos, (dataname, eventname, textname) in enumerate(datasets):
-		print( 'dataset name: ' + eventname[:-4] ) #print output
+	for grid_pos, (eventname, textname) in enumerate(datasets):
+		print( 'dataset name: ' + eventname ) #print output
 
 		## DATA ##
 
 		#prepare ego network properties
-		egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
 		## PLOTTING ##
 
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		if grid_pos in [10, 11, 12, 13]:
+		if grid_pos in [11, 12, 13, 14]:
 			plt.xlabel( r'property $\bullet$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"CCDF $P[ \bullet' \geq \bullet ]$", size=plot_props['xylabel'] )
@@ -114,10 +117,10 @@ if __name__ == "__main__":
 			plt.legend( loc='upper left', bbox_to_anchor=(0.1, 1.55), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(prop_names) )
 
 		#finalise subplot
-		plt.axis([ 1e0, 1e5, 5e-6, 5e0 ])
+		plt.axis([ 1e0, 1e5, 1e-5, 2e0 ])
 		ax.tick_params( axis='both', which='major', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=6 )
-		if grid_pos not in [10, 11, 12, 13]:
+		if grid_pos not in [11, 12, 13, 14]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)

@@ -11,8 +11,12 @@
 !files/data/*.pkl
 !files/model/*.npy
 
-#specific things to ignore
+#specific files to ignore
 *.out
+*call.pkl
+*text.pkl
+
+#specific dirs to ignore
 __pycache__/
 _old/
 figures/_old/
