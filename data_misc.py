@@ -335,7 +335,9 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=100
 				#save results
 				egonet_fits.loc[nodei] = alpha, KSstat, pvalue
 
-		egonet_fits.to_pickle( savename ) #save dataframe to file
+			if pos % 10 == 0: #every once in a while...
+				egonet_fits.to_pickle( savename ) #save dataframe to file
+		egonet_fits.to_pickle( savename ) #and again (just in case)
 
 	return egonet_fits
 
