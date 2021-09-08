@@ -62,14 +62,14 @@ if __name__ == "__main__":
 	# 		egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
 
 
-	# ## analysis 3: get parameters for all datasets ##
+	## analysis 3: get parameters for all datasets ##
 
 	# #SMALL DATASETS
 	# params_data = dm.data_params( datasets, root_data, loadflag, saveloc )
-	#
-	# #LARGE DATASETS
-	# # datasets = [ ('MPC_UEu_sample', 'text') ]
-	# params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
+
+	#LARGE DATASETS
+	# datasets = [ ('MPC_UEu_sample', 'text') ]
+	params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
 
 
 	# ## analysis 4: get number of egos with dynamics (t > a_0) for all datasets ##
@@ -90,19 +90,19 @@ if __name__ == "__main__":
 	# 	print('fraction with t > a_0 = {:.2f}'.format( num_egos_dynamics / float(num_egos) ))
 
 
-	## analysis 5: fit activity model to ego networks in all datasets ##
-
-	#SMALL DATASETS
-	# dataname = sys.argv[1]
-	# eventname = sys.argv[2]
-	#LARGE DATASETS
-	dataname = '' #not needed for loading
-	eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
-
-	print( 'event name: ' + eventname, flush=True ) #print output
-
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=300 )
+	# ## analysis 5: fit activity model to ego networks in all datasets ##
+	#
+	# #SMALL DATASETS
+	# # dataname = sys.argv[1]
+	# # eventname = sys.argv[2]
+	# #LARGE DATASETS
+	# dataname = '' #not needed for loading
+	# eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
+	#
+	# print( 'event name: ' + eventname, flush=True ) #print output
+	#
+	# #fit activity model to all ego networks in dataset
+	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=300 )
 
 
 	# ## analysis 8: join ego network properties and fits for large dataset separated into several files
