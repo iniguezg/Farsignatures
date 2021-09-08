@@ -28,7 +28,8 @@ if __name__ == "__main__":
 					 ('beta', r'\beta'),
 					 ('beta', r'\beta'),
 					 ('beta', r'\beta'),
-					 ('beta', r'\beta') ]
+					 ('beta', r'\beta')
+					]
 	properties_y = [ ('act_avg_rel', 't_r'),
 					 ('beta', r'\beta'),
 					 ('beta', r'\beta'),
@@ -40,38 +41,39 @@ if __name__ == "__main__":
 	# properties_x = [ ('gamma', r'\hat{\alpha}_r') ]
 	# properties_y = [ ('act_avg_rel', 't_r') ]
 
-	max_iter = 1000 #max number of iteration for centrality calculations
 	alphamax = 1000 #maximum alpha for MLE fit
-	nsims = 1000 #number of syntethic datasets used to calculate p-value
-	amax = 10000 #maximum activity for theoretical activity distribution
-
-	pval_thres = 0.1 #threshold above which alphas are considered
+	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+	# max_iter = 1000 #max number of iteration for centrality calculations
+	# nsims = 1000 #number of syntethic datasets used to calculate p-value
+	# amax = 10000 #maximum activity for theoretical activity distribution
 
 	#plotting variables
 	gridsize = 40 #grid size for hex bins
-	vmax = 1e4 #max value in colorbar (larger than [filtered] N in any dataset!)
+	vmax = 4e6 #max value in colorbar (larger than [filtered] N in any dataset!)
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
-	#dataset list: dataname, eventname, textname
-	datasets = [ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
-				 ('SMS_net', 'MPC_Wu_SD01.evt', 'Mobile (Wu 1)'),
-				 ('SMS_net', 'MPC_Wu_SD02.evt', 'Mobile (Wu 2)'),
-				 ('SMS_net', 'MPC_Wu_SD03.evt', 'Mobile (Wu 3)'),
-				 ('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
-				 ('greedy_walk_nets', 'email.evt', 'Email 1'),
-				 ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
-				 ('greedy_walk_nets', 'fb.evt', 'Facebook'),
-				 ('greedy_walk_nets', 'messages.evt', 'Messages'),
-				 ('greedy_walk_nets', 'forum.evt', 'Forum'),
-				 ('greedy_walk_nets', 'pok.evt', 'Dating'),
-				 ('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
-				 ('Copenhagen_nets', 'CNS_calls.evt', 'CNS (call)'),
-				 ('Copenhagen_nets', 'CNS_sms.evt', 'CNS (sms)') ]
+	#dataset list: eventname, textname
+	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	datasets = [ ( 'call', 'Mobile (call)'),
+				 ( 'text', 'Mobile (sms)'),
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'sexcontact_events', 'Contact'),
+				 ( 'email', 'Email 1'),
+				 ( 'eml2', 'Email 2'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'forum', 'Forum'),
+				 ( 'pok', 'Dating'),
+				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -109,21 +111,18 @@ if __name__ == "__main__":
 		grid.update( **fig_props['grid_params'] )
 
 		#loop through considered datasets
-		for grid_pos, (dataname, eventname, textname) in enumerate(datasets):
-#		for grid_pos, (dataname, eventname, textname) in enumerate([ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)') ]):
-			print( 'dataset name: ' + eventname[:-4] ) #print output
+		for grid_pos, (eventname, textname) in enumerate(datasets):
+			print( 'dataset name: ' + eventname ) #print output
 
 			## DATA ##
 
-			#prepare ego network / graph properties
-			egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-			graph_props = dm.graph_props( dataname, eventname, root_data, 'y', saveloc, max_iter=max_iter )
-
+			#prepare ego network properties
+			egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 			#fit activity model to all ego networks in dataset
-			egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
+			egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
 			#filter egos according to fitting results
-			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 			#add relative quantities
 			tau_rels = pd.Series( egonet_filter.strength - egonet_filter.degree * egonet_filter.act_min, name='str_rel' )
@@ -136,13 +135,13 @@ if __name__ == "__main__":
 			#initialise subplot
 			ax = plt.subplot( grid[ grid_pos] )
 			sns.despine( ax=ax ) #take out spines
-			if grid_pos in [10, 11, 12, 13]:
+			if grid_pos in [11, 12, 13, 14]:
 				plt.xlabel( '$'+propx[1]+'$', size=plot_props['xylabel'] )
 			if grid_pos in [0, 4, 8, 12]:
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu', zorder=0 )
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r', zorder=0 )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
@@ -153,7 +152,7 @@ if __name__ == "__main__":
 			#lines
 
 			if prop_pos == 0:
-				plt.plot( [1e-2, 1e4], [1e-2, 1e4], '-', c='0.6', lw=plot_props['linewidth'], zorder=1 )
+				plt.plot( [1e-4, 1e4], [1e-4, 1e4], '-', c='0.6', lw=plot_props['linewidth'], zorder=1 )
 				plt.plot( [1, 1], [1, 1e4], '--', c='0.6', lw=plot_props['linewidth'], zorder=1 )
 
 			if prop_pos in [ 1, 2 ]:
@@ -167,7 +166,7 @@ if __name__ == "__main__":
 
 			#finalise subplot
 			if prop_pos == 0:
-				plt.axis([ 1e-2, 2e2, 1e-2, 1e4 ])
+				plt.axis([ 1e-4, 1e3, 1e-3, 1e4 ])
 			if prop_pos == 1:
 				plt.axis([ 1e-3, 1e3, 1e-4, 1e5 ])
 			if prop_pos == 2:
@@ -182,7 +181,7 @@ if __name__ == "__main__":
 				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
 			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 			ax.locator_params( numticks=5 )
-			if grid_pos not in [10, 11, 12, 13]:
+			if grid_pos not in [11, 12, 13, 14]:
 				ax.tick_params(labelbottom=False)
 			if grid_pos not in [0, 4, 8, 12]:
 				ax.tick_params(labelleft=False)
