@@ -420,6 +420,58 @@ def egonet_filter( egonet_props, egonet_fits, graph_props=None, alphamax=1000, p
 	return egonet_filter, egonet_inf, egonet_null
 
 
+#function to get connected ego/alter activity ranks / properties for dataset
+def egonet_ranks_props( eventname, loadflag, saveloc, prop_name='beta', alphamax=1000, pval_thres=0.1, alph_thres=1 ):
+	"""Get connected ego/alter activity ranks / properties for dataset"""
+
+	savename = saveloc + 'egonet_ranks_props_' + eventname + '.pkl'
+
+	if loadflag == 'y': #load file
+		egonet_ranks_props = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute it
+
+		## DATA ##
+
+		#prepare ego network properties / alter activities
+		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
+		#fit activity model to all ego networks
+		egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
+
+		#filter egos according to fitting results
+		egonet_filt, egonet_inf, egonet_null = egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+
+		## HOMOPHILY ANALYSIS ##
+
+		#initialise dataframe of connected ego/alter activity ranks / properties
+		egonet_ranks_props = pd.DataFrame( np.ones(( egonet_acts.size, 4 ))*np.nan, index=egonet_acts.index, columns=pd.Series( ['ego_rank', 'alter_rank', 'ego_prop', 'alter_prop'], name='property' ) )
+
+		for nodei in egonet_filt.index: #lopp through all egos
+
+			#get ranks of alters of selected ego
+			all_alter_ranks = egonet_acts[nodei].rank( ascending=False )
+
+			for nodej in egonet_acts[nodei].index: #loop through alters
+				if nodej in egonet_filt.index: #only for alters with alpha
+
+					#get rank of selected ego/alter
+					ego_rank = egonet_acts[nodej].rank( ascending=False )[nodei]
+					alter_rank = all_alter_ranks[nodej]
+
+					#get property of selected ego/alter
+					ego_prop = egonet_filt.loc[nodei, prop_name]
+					alter_prop = egonet_filt.loc[nodej, prop_name]
+
+					#get connected ego/alter activity ranks / properties
+					egonet_ranks_props.loc[nodei, nodej] = ego_rank, alter_rank, ego_prop, alter_prop
+		egonet_ranks_props.dropna( inplace=True ) #keep only edges with alphas
+
+		egonet_ranks_props.to_pickle( savename ) #save dataframe
+
+	return egonet_ranks_props
+
+
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study
 def format_data_CNS( root_data, loadflag ):
 	"""Format data (Bluetooth, Call, SMS) from Copenhagen Networks Study"""
