@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR PLOTTING FIGURE (ALPHAS HOMOPHILY) IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR PLOTTING FIGURE (HOMOPHILY Z-SCORES) IN FARSIGNATURES PROJECT ###
 
 #import modules
 import os, sys
@@ -26,10 +26,7 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#property to correlate
-	# prop_name = 'gamma'
-	# prop_label = r'\hat{\alpha}_r'
 	prop_name = 'beta'
-	prop_label = r'1 / \hat{\beta}'
 
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
@@ -89,7 +86,7 @@ if __name__ == "__main__":
 	'grid_params' : dict( left=0.07, bottom=0.08, right=0.98, top=0.965, wspace=0.2, hspace=0.4 ),
 	'width_ratios' : [1, 1, 1, 1.2],
 	'dpi' : 300,
-	'savename' : 'figure_alphas_homophily' }
+	'savename' : 'figure_homophily_zscore' }
 
 	#initialise plot
 	sns.set( style='ticks' ) #set fancy fancy plot
