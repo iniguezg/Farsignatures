@@ -19,16 +19,16 @@ if __name__ == "__main__":
 	#input arguments
 	loadflag = 'n' #load flag ( 'y', 'n' )
 
-	# #SMALL DATASETS
-	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	# saveloc = root_code+'files/data/' #location of output files
-	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
+	#SMALL DATASETS
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	saveloc = root_code+'files/data/' #location of output files
+	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
 
-	#LARGE DATASETS
-	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	# #LARGE DATASETS
+	# root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	# ## analysis 1: format data (Bluetooth, Call, SMS) from Copenhagen Networks Study ##
@@ -105,11 +105,11 @@ if __name__ == "__main__":
 	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=300 )
 
 
-	## analysis 8: join ego network properties and fits for large dataset separated into several files
-
-	for dataname, eventname in datasets: #loop through datasets
-		print( 'dataset name: ' + eventname, flush=True ) #print output
-		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
+	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
+	#
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
+	# 	egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##
@@ -136,3 +136,10 @@ if __name__ == "__main__":
 #
 # 		#get graph properties for dataset
 # 		graph_props = dm.graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=max_iter )
+
+
+	## analysis 9: compute connection kernel for all ego networks in all datasets
+
+	for dataname, eventname in datasets: #loop through datasets
+		print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+		egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )

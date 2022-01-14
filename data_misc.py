@@ -62,6 +62,8 @@ def egonet_props_acts( dataname, eventname, root_data, loadflag, saveloc ):
 
 	return egonet_props, egonet_acts
 
+
+#function to get ego network properties and alter activities for large dataset separated into several files
 def egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc ):
 	"""Get ego network properties and alter activities for large dataset separated into several files"""
 
@@ -186,6 +188,66 @@ def data_params_parallel( datasets, root_data, loadflag, saveloc ):
 		params_data.to_pickle( savename ) #save dataframe to file
 
 	return params_data
+
+
+#function to compute connection kernel for all ego networks in dataset
+def egonet_kernel( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Compute connection kernel for all ego networks in dataset"""
+
+	savename = saveloc + 'egonet_kernel_' + eventname + '.pkl'
+
+	if loadflag == 'y': #load files
+		egonet_kernel = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute them
+		egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel for all egos
+
+		#prepare ego network properties
+		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+
+		#prepare raw events
+		names = ['nodei', 'nodej', 'tstamp'] #column names
+		#load (unique) event list: node i, node j, timestamp
+		filename = root_data + dataname + '/data_formatted/' + eventname + '.evt'
+		events = pd.read_csv( filename, sep=';', header=None, names=names )
+		#reverse nodes i, j in all events
+		events_rev = events.rename( columns={ 'nodei':'nodej', 'nodej':'nodei' } )[ names ]
+		#duplicate events (all nodes with events appear as node i)
+		events_concat = pd.concat([ events, events_rev ])
+
+		#compute connection kernel for each ego network
+		for pos, (nodei, events_nodei) in enumerate( events_concat.groupby('nodei') ): #loop through egos
+			if pos % 100 == 0: #to know where we stand
+				print( 'ego {} out of {}'.format( pos, len(egonet_props) ), flush=True )
+
+			events_nodei = events_nodei.sort_values('tstamp') #sort by timestamp!
+
+			#get alter list and initialise their activities
+			neighs_nodei = events_nodei.nodej.unique()
+			alter_acts = pd.Series( np.zeros(len(neighs_nodei)), index=neighs_nodei, dtype=int )
+
+			#initialise kernel arrays
+			act_max = egonet_props.loc[nodei, 'act_max'] #max alter activity
+			act_counts = np.zeros( act_max+1, dtype=int ) #no. connections at given activity
+			act_options = np.zeros( act_max+1, dtype=int ) #no. potential alters at given activity
+
+			for nodej in events_nodei.nodej: #loop through (ordered) events
+				act_options += np.bincount( alter_acts, minlength=act_max+1 ) #update no. potential alters at each activity
+				act_counts[ alter_acts[nodej] ] += 1 #add connection to alter with given activity
+				alter_acts[nodej] += 1 #increase activity of selected alter
+
+			if act_options[-1] == 0: #remove last activity point if not neccesary...
+				act_counts = act_counts[:-1]
+				act_options = act_options[:-1]
+
+			#store kernel as multi-index series
+			index_arrs = [ nodei*np.ones(len(act_counts), dtype=int), np.arange(len(act_counts), dtype=int) ]
+			egonet_kernel = egonet_kernel.append( pd.Series( act_counts / act_options.astype(float), index=index_arrs ) )
+
+		egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
+		egonet_kernel.to_pickle( savename ) #save file
+
+	return egonet_kernel
 
 
 #function to build weighted graph from event list in dataset
