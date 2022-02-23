@@ -64,7 +64,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (10, 8),
 	'aspect_ratio' : (2, 2),
-	'grid_params' : dict( left=0.12, bottom=0.065, right=0.98, top=0.98, wspace=0.3, hspace=0.4 ),
+	'grid_params' : dict( left=0.08, bottom=0.065, right=0.98, top=0.98, wspace=0.3, hspace=0.4 ),
 	'dpi' : 300,
 	'savename' : 'figure1' }
 
@@ -122,8 +122,8 @@ if __name__ == "__main__":
 	colors = sns.color_palette( 'Set2', n_colors=k ) #colors to plot
 
 	#initialise subplot
-	subgrid = grid[ 0,0 ].subgridspec( 2, 2, hspace=0, wspace=0 )
-	ax = plt.subplot( subgrid[ 0,: ] )
+	subgrid = grid[ 0,0 ].subgridspec( 2, 3, hspace=0, wspace=0, width_ratios=[0.2, 1, 1] )
+	ax = plt.subplot( subgrid[ 0,1: ] )
 	ax.set_axis_off()
 
 	plt.text( -0.31, 0.88, 'a', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
@@ -159,7 +159,7 @@ if __name__ == "__main__":
 
 	for post, t in enumerate(snaps): #loop through snapshots of ego net
 		#initialise subplot
-		ax = plt.subplot( subgrid[ 1,post ] )
+		ax = plt.subplot( subgrid[ 1,post+1 ] )
 		ax.set_axis_off()
 
 		#plot plot nodes! ego, alters, and labels
@@ -217,7 +217,7 @@ if __name__ == "__main__":
 	plt.xlabel( r'activity', size=plot_props['xylabel'], labelpad=0 )
 	plt.ylabel( r'CCDF of alters', size=plot_props['xylabel'], labelpad=0 )
 
-	plt.text( -0.28, 0.99, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.24, 0.99, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	for posi, nodei in enumerate(nodei_vals): #loop through selected egos
 		activity = egonet_acts[nodei] #alter activities for selected ego
@@ -271,7 +271,7 @@ if __name__ == "__main__":
 	plt.xlabel( r'activity dispersion', size=plot_props['xylabel'] )
 	plt.ylabel( r'CCDF of egos', size=plot_props['xylabel'] )
 
-	plt.text( -0.31, 1.15, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.19, 1.15, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
@@ -327,7 +327,7 @@ if __name__ == "__main__":
 	plt.xlabel( r'activity', size=plot_props['xylabel'] )
 	plt.ylabel( r'relative probability of event', size=plot_props['xylabel'] )
 
-	plt.text( -0.29, 1.15, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.24, 1.15, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):

@@ -49,7 +49,7 @@ def activity_dist_gamma( a, t, alpha, a0 ):
 	return pa
 
 #function to run model of alter activity, according to parameters
-def model_activity( params, loadflag='n', saveloc='files/model/' ):
+def model_activity( params, loadflag='n', saveloc='files/model/', saveflag=True, seed=None, print_every=10 ):
 	"""Run model of alter activity, according to parameters"""
 
 	#get model parameters
@@ -64,7 +64,7 @@ def model_activity( params, loadflag='n', saveloc='files/model/' ):
 
 	elif loadflag == 'n': #or else, compute activity
 
-		rng = np.random.default_rng() #initialise random number generator
+		rng = np.random.default_rng(seed) #initialise random number generator
 
 		time = np.arange( a0*k, k*t, dtype=int ) #time step array (without final time tau = k*t)
 
@@ -82,7 +82,7 @@ def model_activity( params, loadflag='n', saveloc='files/model/' ):
 		for tau in time: #loop through time step tau = a0*k, ..., k*t-1
 
 			t_inter = tau / float( k ) #get intermediate MC time (mean alter activity)
-			if t_inter % 10 == 0:
+			if t_inter % print_every == 0:
 				print( "\t\tt' = {:.2f}".format( t_inter ), flush=True ) #to know where we stand
 
 			#get active alters for all realizations
@@ -91,8 +91,9 @@ def model_activity( params, loadflag='n', saveloc='files/model/' ):
 			#increase activity of chosen alters
 			activity[ range( ntimes ), alters ] += 1
 
-		with open( savename, 'wb' ) as act_file:
-			np.save( act_file, activity ) #save activity
+		if saveflag:
+			with open( savename, 'wb' ) as act_file:
+				np.save( act_file, activity ) #save activity
 
 	return activity
 
