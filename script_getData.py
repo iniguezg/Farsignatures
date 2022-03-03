@@ -121,25 +121,40 @@ if __name__ == "__main__":
 	# 	egonet_gammas = dm.egonet_gammas( dataname, eventname, root_data, loadflag, saveloc )
 
 
-# 	## analysis 8: build weighted graph from event list in all datasets ##
-#
-# 	# dataname = sys.argv[1] #considered dataset
-# 	# eventname = sys.argv[2]
-# #	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt') ]
-# 	max_iter = 1000 #max number of iteration for centrality calculations
-#
-# 	for dataname, eventname in datasets: #loop through considered datasets
-# 		print( 'dataset name: ' + eventname[:-4] ) #print output
-#
-# 		#build weighted graph from event list in dataset
-# 		graph = dm.graph_weights( dataname, eventname, root_data, 'y', saveloc )
-#
-# 		#get graph properties for dataset
-# 		graph_props = dm.graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=max_iter )
+	# ## analysis 8: build weighted graph from event list in all datasets ##
+	#
+	# # dataname = sys.argv[1] #considered dataset
+	# # eventname = sys.argv[2]
+	# # datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt') ]
+	# max_iter = 1000 #max number of iteration for centrality calculations
+	#
+	# for dataname, eventname in datasets: #loop through considered datasets
+	# 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	#
+	# 	#build weighted graph from event list in dataset
+	# 	graph = dm.graph_weights( dataname, eventname[:-4], root_data, 'y', saveloc )
+	#
+	# 	#get graph properties for dataset
+	# 	graph_props = dm.graph_props( eventname[:-4], loadflag, saveloc, max_iter=max_iter )
 
 
-	## analysis 9: compute connection kernel for all ego networks in all datasets
+	# ## analysis 9: compute connection kernel for all ego networks in all datasets
+	#
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	# 	egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )
 
+
+	# ## analysis 10: perform node percolation by property on all datasets
+
+	prop_names = ['degree', 'strength', 'act_avg', 'act_min', 'act_max', 'alpha', 'gamma', 'beta'] #props to consider
+	alphamax = 1000 #maximum alpha for MLE fit
+	pval_thres = 0.1 #threshold above which alphas are considered
+	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+	ntimes=100 #realizations for random percolation
+
+	# datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
 	for dataname, eventname in datasets: #loop through datasets
 		print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
-		egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )
+
+		graph_percs = dm.graph_percs( eventname[:-4], loadflag, saveloc, prop_names=prop_names, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres, ntimes=ntimes )

@@ -25,19 +25,19 @@ if __name__ == "__main__":
 
 	#fit/data properties to rank
 	propx = ('beta', r'r( \beta )')
-	# properties_y = [ ('clustering', r'r( c )'),
-	# 				 ('pagerank', r'r( c_p )'),
-	#  				 ('betweenness', r'r( c_b )'),
-	# 				 ('closeness', r'r( c_c )'),
-	# 				 ('eigenvector', r'r( c_e )'),
-	# 				 ('katz', r'r( c_k )'),
-	# 				 ('authority', r'r( c_h )') ]
-	properties_y = [ ('gamma', r'r( \hat{\alpha}_r )'),
-					 ('act_avg_rel', 'r( t_r )'),
-					 ('degree', 'r( k )'),
-					 ('str_rel', r'r( \tau_r )'),
-					 ('act_min', r'r( a_0 )'),
-					 ('act_max', r'r( a_m )') ]
+	properties_y = [ ('clustering', r'r( c )'),
+					 ('pagerank', r'r( c_p )'),
+	 				 ('betweenness', r'r( c_b )'),
+					 ('closeness', r'r( c_c )'),
+					 ('eigenvector', r'r( c_e )'),
+					 ('katz', r'r( c_k )'),
+					 ('authority', r'r( c_h )') ]
+	# properties_y = [ ('gamma', r'r( \hat{\alpha}_r )'),
+	# 				 ('act_avg_rel', 'r( t_r )'),
+	# 				 ('degree', 'r( k )'),
+	# 				 ('str_rel', r'r( \tau_r )'),
+	# 				 ('act_min', r'r( a_0 )'),
+	# 				 ('act_max', r'r( a_m )') ]
 
 
 	max_iter = 1000 #max number of iteration for centrality calculations
@@ -117,12 +117,12 @@ if __name__ == "__main__":
 
 			## DATA ##
 
-			#prepare ego network / graph properties
-			egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-			graph_props = dm.graph_props( dataname, eventname, root_data, 'y', saveloc, max_iter=max_iter )
-
+			#prepare ego network properties / alter activities / graph properties
+			egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname[:-4] + '.pkl' )
+			egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname[:-4] + '.pkl' )
+			graph_props = pd.read_pickle( saveloc + 'graph_props_' + eventname[:-4] + '.pkl' )
 			#fit activity model to all ego networks in dataset
-			egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, alphamax=alphamax, nsims=nsims, amax=amax )
+			egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl' )
 
 			#filter egos according to fitting results
 			egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, graph_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )

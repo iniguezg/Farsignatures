@@ -6,7 +6,7 @@
 import os
 import numpy as np
 import pandas as pd
-#import graph_tool.all as gt
+# import graph_tool.all as gt
 
 import model_misc as mm
 
@@ -254,33 +254,37 @@ def egonet_kernel( dataname, eventname, root_data, loadflag, saveloc ):
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""
 
-	savename = saveloc + 'graph_' + eventname[:-4] + '.gt'
+	savename = saveloc + 'graph_' + eventname + '.gt'
 
 	if loadflag == 'y': #load file
 		graph = gt.load_graph( savename )
 
 	elif loadflag == 'n': #or else, compute
 
-		names = ['nodei', 'nodej', 'tstamp'] #column names
-
 		#load (unique) event list: node i, node j, timestamp
-		filename = root_data + dataname + '/data_formatted/' + eventname
-		events = pd.read_csv( filename, sep=';', header=None, names=names )
+		filename = root_data + dataname + '/data_formatted/' + eventname + '.evt'
+		events = pd.read_csv( filename, sep=';', header=None, names=['nodei', 'nodej', 'tstamp'] )
+
+		#rearrange events symetrically
+		events_sym = events.copy() #initialize array
+		for row in events.itertuples(): #loop through events
+			if row.nodei > row.nodej: #reverse links in lower-diagonal events
+				events_sym.loc[ row.Index, ['nodei', 'nodej'] ] = row.nodej, row.nodei
 
 		#create edge list (as np array): ( node i, node j, weight )
-		#weight as alter activity: count number of events per alter of each ego
-		edge_list = events.groupby(['nodei', 'nodej']).size().reset_index( name='weight' ).to_numpy()
+		#weight as alter activity: count number of (sym) events per alter of each ego
+		edge_list = events_sym.groupby(['nodei', 'nodej']).size().reset_index( name='weight' ).to_numpy()
 
 		#initialise graph stuff
 		graph = gt.Graph( directed=False ) #initialise (undirected) graph
-		eweight = graph.new_ep( 'long' ) #initialise weight as (int) edge property map
+		eweight = graph.new_ep('int') #initialise weight as (int) edge property map
 
 		#add (hashed) edge list (with weights) and get vertex indices as vertex property map
-		vid = graph.add_edge_list( edge_list, hashed=True, eprops=[ eweight ] )
+		vid = graph.add_edge_list( edge_list, hashed=True, eprops=[eweight] )
 
 		#set internal property maps
-		graph.vertex_properties[ 'id' ] = vid #vertex id
-		graph.edge_properties[ 'weight' ] = eweight #edge weight
+		graph.vertex_properties['id'] = vid #vertex id
+		graph.edge_properties['weight'] = eweight #edge weight
 
 		graph.save( savename ) #save graph
 
@@ -288,19 +292,19 @@ def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 
 
 #function to get graph properties for dataset
-def graph_props( dataname, eventname, root_data, loadflag, saveloc, max_iter=1000 ):
+def graph_props( eventname, loadflag, saveloc, max_iter=1000 ):
 	"""Get graph properties for dataset"""
 
-	savename = saveloc + 'graph_props_' + eventname[:-4] + '.pkl'
+	savename = saveloc + 'graph_props_' + eventname + '.pkl'
 
 	if loadflag == 'y': #load file
 		graph_props = pd.read_pickle( savename )
 
 	elif loadflag == 'n': #or else, compute
 
-		#prepare ego network properties & weighted graph
-		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-		graph = graph_weights( dataname, eventname, root_data, 'y', saveloc )
+		#load ego network properties, and weighted graph
+		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		graph = gt.load_graph( saveloc + 'graph_' + eventname + '.gt' )
 
 		#calculate properties of all egos
 
@@ -532,6 +536,76 @@ def egonet_ranks_props( eventname, loadflag, saveloc, prop_name='beta', alphamax
 		egonet_ranks_props.to_pickle( savename ) #save dataframe
 
 	return egonet_ranks_props
+
+
+#function to perform node percolation by property on dataset
+def graph_percs( eventname, loadflag, saveloc, prop_names=['beta'], alphamax=1000, pval_thres=0.1, alph_thres=1, seed=None, ntimes=100, print_every=10 ):
+	"""Perform node percolation by property on dataset"""
+
+	savename = saveloc + 'graph_percs_' + eventname + '.pkl'
+
+	if loadflag == 'y': #load file
+		graph_percs = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute
+
+		## DATA ##
+
+		#load ego network properties, and weighted graph
+		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		graph = gt.load_graph( saveloc + 'graph_' + eventname + '.gt' )
+		#fit activity model to all ego networks
+		egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
+
+		#filter egos according to fitting results
+		egonet_filt, egonet_inf, egonet_null = egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+
+		num_egos = len(egonet_props) #number of (un-)filtered egos
+		num_filt = len(egonet_filt)
+
+
+		## PERCOLATION ANALYSIS ##
+
+		#initialise dataframe of percolation processes
+		npercs = 2*len(prop_names)+1 #no. of percolations: large / small per prop plus random case
+		index = pd.Series( range( num_egos-num_filt+1, num_egos+1 ), name='rem_nodes' ) #array of remaining (filtered) egos
+		columns = pd.Series( [prop+'_large' for prop in prop_names] + [prop+'_small' for prop in prop_names] + ['random'], name='prop' ) #percolation cases
+		graph_percs = pd.DataFrame( np.zeros(( num_filt, npercs ), dtype=int), index=index, columns=columns )
+
+		#nodes NOT considered for percolation (inf+null beta classes)
+		not_nodei = egonet_props.index.difference( egonet_filt.index )
+		vertices_not = [ gt.find_vertex( graph, graph.vp.id, nodei )[0] for nodei in not_nodei ]
+
+	#percolation by increasing/decreasing (non-random) property
+
+		for prop in graph_percs.columns[:-1]: #loop through props
+			print('\t'+prop, flush=True)
+			ascending = True if prop[-6:] == '_large' else False #set order flag
+
+			#delete nodes by largest/smallest prop first
+			sorted_nodei = egonet_filt[ prop[:-6] ].sort_values( ascending=ascending ).index
+			vertices = [ gt.find_vertex( graph, graph.vp.id, nodei )[0] for nodei in sorted_nodei ] #get nodes with increasing/decreassing prop
+			sizes, comp = gt.vertex_percolation( graph, vertices_not + vertices )
+			graph_percs[ prop ] = sizes[ num_egos-num_filt: ] #only store results for valid beta values
+
+	#random node percolation
+
+		rng = np.random.default_rng(seed) #initialise random number generator
+		vertices = [ gt.find_vertex( graph, graph.vp.id, nodei )[0] for nodei in egonet_filt.index ] #get nodes with valid beta
+
+		print('\trandom')
+		for nt in range(ntimes): #loop through realizations
+			if nt % print_every == 0:
+				print('\t\tnt = {}'.format(nt), flush=True)
+
+			rng.shuffle(vertices) #randomly shuffle nodes (in place)
+			sizes, comp = gt.vertex_percolation( graph, vertices_not + vertices )
+			graph_percs.random += sizes[ num_egos-num_filt: ] #accumulate results
+		graph_percs.random /= float(ntimes) #and average
+
+		graph_percs.to_pickle( savename ) #save dataframe
+
+	return graph_percs
 
 
 #function to format data (Bluetooth, Call, SMS) from Copenhagen Networks Study
@@ -801,3 +875,49 @@ def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
 #				print( act )
 #				KSstat_sims.append( mm.alpha_KSstat( act, bounds=bounds )[1] )
 #			KSstat_sims = np.array( KSstat_sims )
+
+# #function to build weighted graph from event list in dataset
+# def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
+# 	"""Build weighted graph from event list in dataset"""
+#
+# 	savename = saveloc + 'graph_' + eventname[:-4] + '.gt'
+#
+# 	if loadflag == 'y': #load file
+# 		graph = gt.load_graph( savename )
+#
+# 	elif loadflag == 'n': #or else, compute
+#
+# 		names = ['nodei', 'nodej', 'tstamp'] #column names
+#
+# 		#load (unique) event list: node i, node j, timestamp
+# 		filename = root_data + dataname + '/data_formatted/' + eventname
+# 		events = pd.read_csv( filename, sep=';', header=None, names=names )
+#
+# 		#create edge list (as np array): ( node i, node j, weight )
+# 		#weight as alter activity: count number of events per alter of each ego
+# 		edge_list = events.groupby(['nodei', 'nodej']).size().reset_index( name='weight' ).to_numpy()
+#
+# 		#initialise graph stuff
+# 		graph = gt.Graph( directed=False ) #initialise (undirected) graph
+# 		eweight = graph.new_ep( 'long' ) #initialise weight as (int) edge property map
+#
+# 		#add (hashed) edge list (with weights) and get vertex indices as vertex property map
+# 		vid = graph.add_edge_list( edge_list, hashed=True, eprops=[ eweight ] )
+#
+# 		#set internal property maps
+# 		graph.vertex_properties[ 'id' ] = vid #vertex id
+# 		graph.edge_properties[ 'weight' ] = eweight #edge weight
+#
+# 		graph.save( savename ) #save graph
+#
+# 	return graph
+
+		# for prop in graph_percs.columns[:-2]: #loop through (non-random) properties
+		# sorted_nodei = egonet_filt[ prop[:-4] ].sort_values().index
+
+		# columns = pd.Series( [prop+'_LCC' for prop in prop_names] + [prop+'_2CC' for prop in prop_names] + ['rand_LCC', 'rand_2CC'], name='prop' ) #percolation cases
+
+			# #remove SMALLEST VALUES first
+			# sorted_nodei = egonet_filt[ prop[:-4] ].sort_values( ascending=False ).index
+			# vertices_rev = [ gt.find_vertex( graph, graph.vp.id, nodei )[0] for nodei in sorted_nodei ]
+			# sizes_rev, comp = gt.vertex_percolation( graph, vertices_rem + vertices_rev )
