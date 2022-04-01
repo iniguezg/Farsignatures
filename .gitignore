@@ -17,6 +17,9 @@
 *text.pkl
 *_call_*
 *_text_*
+egonet_kernel_*
+egonet_ranks_*
+graph_*.pkl
 
 #specific dirs to ignore
 __pycache__/

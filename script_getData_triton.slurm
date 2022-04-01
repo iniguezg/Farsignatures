@@ -9,5 +9,5 @@ module load anaconda
 #analysis 3
 #sbatch -J params_data_parallel -o params_data_parallel.out script_getData_triton.sh
 
-#analysis 5
+#analysis 5/12
 sbatch script_getData_triton.sh

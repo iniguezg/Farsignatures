@@ -145,16 +145,37 @@ if __name__ == "__main__":
 	# 	egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )
 
 
-	# ## analysis 10: perform node percolation by property on all datasets
+	# # ## analysis 10: perform node percolation by property on all datasets
+	#
+	# prop_names = ['degree', 'strength', 'act_avg', 'act_min', 'act_max', 'alpha', 'gamma', 'beta'] #props to consider
+	# alphamax = 1000 #maximum alpha for MLE fit
+	# pval_thres = 0.1 #threshold above which alphas are considered
+	# alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+	# ntimes=100 #realizations for random percolation
+	#
+	# # datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	#
+	# 	graph_percs = dm.graph_percs( eventname[:-4], loadflag, saveloc, prop_names=prop_names, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres, ntimes=ntimes )
 
-	prop_names = ['degree', 'strength', 'act_avg', 'act_min', 'act_max', 'alpha', 'gamma', 'beta'] #props to consider
-	alphamax = 1000 #maximum alpha for MLE fit
-	pval_thres = 0.1 #threshold above which alphas are considered
-	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
-	ntimes=100 #realizations for random percolation
 
-	# datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
-	for dataname, eventname in datasets: #loop through datasets
-		print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
+	# ## analysis 11: get ego network properties per time period in all datasets ##
+	#
+	# # datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
+	# for dataname, eventname in datasets: #loop through considered datasets
+	# 	print( 'dataset name: ' + eventname[:-4] ) #print output
+	#
+	# 	#prepare ego network properties / alter activities
+	# 	egonet_props_pieces, egonet_acts_pieces = dm.egonet_props_acts_pieces( dataname, eventname, root_data, loadflag, saveloc )
 
-		graph_percs = dm.graph_percs( eventname[:-4], loadflag, saveloc, prop_names=prop_names, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres, ntimes=ntimes )
+
+	## analysis 12: fit activity model to ego networks per time period in all datasets ##
+
+	dataname = sys.argv[1]
+	eventname = sys.argv[2]
+	piece = int( sys.argv[3] ) #chosen time period (=0,1)
+	print( 'event name: {}, time period (0/1): {}'.format( eventname, piece ), flush=True ) #print output
+
+	#fit activity model to all ego networks (for selected time period) in dataset
+	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc)

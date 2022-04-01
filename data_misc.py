@@ -6,6 +6,7 @@
 import os
 import numpy as np
 import pandas as pd
+import pickle as pk
 # import graph_tool.all as gt
 
 import model_misc as mm
@@ -104,6 +105,74 @@ def egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc 
 		egonet_acts.to_pickle( savenames[1] )
 
 	return egonet_props, egonet_acts
+
+
+#function to get ego network properties and alter activities per time period in dataset
+def egonet_props_acts_pieces( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Get ego network properties and alter activities per time period in dataset"""
+
+	savenames = ( saveloc + 'egonet_props_pieces_' + eventname[:-4] + '.pkl',
+				  saveloc + 'egonet_acts_pieces_' + eventname[:-4] + '.pkl' )
+
+	if loadflag == 'y': #load files
+		with open( savenames[0], 'rb' ) as file:
+			egonet_props_pieces = pk.load( file )
+		with open( savenames[1], 'rb' ) as file:
+			egonet_acts_pieces = pk.load( file )
+
+	elif loadflag == 'n': #or else, compute them
+
+		#load (unique) event list: node i, node j, timestamp
+		names = ['nodei', 'nodej', 'tstamp'] #column names
+		filename = root_data + dataname + '/data_formatted/' + eventname
+		events = pd.read_csv( filename, sep=';', header=None, names=names )
+
+		#reverse nodes i, j in all events
+		events_rev = events.rename( columns={ 'nodei':'nodej', 'nodej':'nodei' } )[ names ]
+		#duplicate events (all nodes with events appear as node i), reset index, and sort by tstamp
+		events_concat = pd.concat([ events, events_rev ]).reset_index(drop=True).sort_values( by='tstamp' )
+		events_grouped = events_concat.groupby('nodei') #group events by ego
+
+		#group events by ego and separate into two (equal-sized) time periods
+		events_pieces = [
+		events_grouped.apply( lambda x : x.iloc[ :int(np.ceil(len(x)/2)) ,:] ).reset_index(drop=True),
+		events_grouped.apply( lambda x : x.iloc[ len(x) - int(np.floor(len(x)/2)): ,:] ).reset_index(drop=True)
+						]
+
+		#initialise dframes and columns
+		egonet_props_pieces, egonet_acts_pieces = [], []
+		columns = { 'nodej' : 'degree', 'tstamp' : 'strength', 0 : 'act_avg', 1 : 'act_min', 2 : 'act_max' }
+
+		for pos, events_period in enumerate(events_pieces): #loop through time periods
+			events_period_grouped = events_period.groupby('nodei') #group events by ego (in period)
+
+			#ego degrees: get neighbor lists (grouping by node i and getting unique nodes j)
+			neighbors = events_period_grouped['nodej'].unique()
+			degrees = neighbors.apply( len )
+			#mean alter activity: first get number of events per ego (tau)
+			num_events = events_period_grouped['tstamp'].size()
+			actmeans = num_events / degrees	#and then mean activity as avg number of events per alter
+
+			#alter activity: count number of events per alter of each ego
+			egonet_acts = events_period.groupby(['nodei', 'nodej']).size()
+
+			#min/max activity: get min/max activity across alters for each ego
+			amins = egonet_acts.groupby('nodei').apply( min )
+			amaxs = egonet_acts.groupby('nodei').apply( max )
+
+			#dataframe with all ego network properties
+			egonet_props = pd.concat( [ degrees, num_events, actmeans, amins, amaxs ], axis=1 ).rename( columns=columns )
+
+			egonet_props_pieces.append( egonet_props ) #store results
+			egonet_acts_pieces.append( egonet_acts )
+
+		#save all to file
+		with open( savenames[0], 'wb' ) as file:
+			pk.dump( egonet_props_pieces, file )
+		with open( savenames[1], 'wb' ) as file:
+			pk.dump( egonet_acts_pieces, file )
+
+	return egonet_props_pieces, egonet_acts_pieces
 
 
 #function to get parameters for all datasets
@@ -347,7 +416,7 @@ def graph_props( eventname, loadflag, saveloc, max_iter=1000 ):
 
 
 #function to fit activity model to all ego networks in dataset
-def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
+def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=None, alphamax=1000, nsims=2500, amax=10000 ):
 	"""Fit activity model to all ego networks in dataset"""
 
 	savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
@@ -360,7 +429,10 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=100
 		rng = np.random.default_rng() #initialise random number generator
 
 		#prepare ego network properties
-		egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		if egonet_tuple: #load directly from tuple
+			egonet_props, egonet_acts = egonet_tuple
+		else: #or from function
+			egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
 		degrees, num_events, actmeans, amins = egonet_props['degree'], egonet_props['strength'], egonet_props['act_avg'], egonet_props['act_min'] #unpack props
 		num_egos = len(egonet_props) #number of egos
 
@@ -402,8 +474,10 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, alphamax=100
 				egonet_fits.loc[nodei] = alpha, KSstat, pvalue
 
 			if pos % 10 == 0: #every once in a while...
-				egonet_fits.to_pickle( savename ) #save dataframe to file
-		egonet_fits.to_pickle( savename ) #and again (just in case)
+				if egonet_tuple == None:
+					egonet_fits.to_pickle( savename ) #save dataframe to file
+		if egonet_tuple == None:
+			egonet_fits.to_pickle( savename ) #and again (just in case)
 
 	return egonet_fits
 
@@ -452,6 +526,29 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 		egonet_fits.to_pickle( savenames[1] )
 
 	return egonet_props, egonet_fits
+
+
+#function to fit activity model to all ego networks in selected time period in dataset
+def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
+	"""Fit activity model to all ego networks per time period in dataset"""
+
+	savename = saveloc + 'egonet_fits_piece_{}_{}'.format( piece, eventname[:-4] ) + '.pkl'
+
+	if loadflag == 'y': #load file
+		egonet_fits_piece = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute everything
+
+		#load ego network properties / alter activities (in selected time period)
+		egonet_props_pieces, egonet_acts_pieces = egonet_props_acts_pieces( dataname, eventname, root_data, 'y', saveloc )
+		egonet_tuple = ( egonet_props_pieces[piece], egonet_acts_pieces[piece] )
+
+		#fit activity model to all ego networks
+		egonet_fits_piece = egonet_fits( dataname, eventname, root_data, 'n', saveloc, egonet_tuple=egonet_tuple, alphamax=alphamax, nsims=nsims, amax=amax )
+
+		egonet_fits_piece.to_pickle( savename ) #save to file
+
+	return egonet_fits_piece
 
 
 #function to filter egos according to fitting results
@@ -921,3 +1018,13 @@ def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
 			# sorted_nodei = egonet_filt[ prop[:-4] ].sort_values( ascending=False ).index
 			# vertices_rev = [ gt.find_vertex( graph, graph.vp.id, nodei )[0] for nodei in sorted_nodei ]
 			# sizes_rev, comp = gt.vertex_percolation( graph, vertices_rem + vertices_rev )
+
+		# egonet_fits_pieces = [] #initialise dframe
+		# for pos, egonet_tuple in enumerate(zip( egonet_props_pieces, egonet_acts_pieces )): #loop through time periods
+		# 	print( '\ttime period: {} of {}'.format(pos+1, len(egonet_props_pieces)), flush=True )
+		#
+		# 	egonet_fits_pieces.append( egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=egonet_tuple, alphamax=alphamax, nsims=nsims, amax=amax ) ) #store results
+		#
+		# #save all to file
+		# with open( savename, 'wb' ) as file:
+		# 	pk.dump( egonet_fits_pieces, file )
