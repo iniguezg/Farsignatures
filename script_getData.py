@@ -22,7 +22,8 @@ if __name__ == "__main__":
 	#SMALL DATASETS
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	saveloc = root_code+'files/data/' #location of output files
+	# saveloc = root_code+'files/data/' #location of output files
+	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
 	datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt') ]
 
 	# #LARGE DATASETS
@@ -175,7 +176,8 @@ if __name__ == "__main__":
 	dataname = sys.argv[1]
 	eventname = sys.argv[2]
 	piece = int( sys.argv[3] ) #chosen time period (=0,1)
+	nsims = int( sys.argv[4] ) #realizations for fit bootstrapping
 	print( 'event name: {}, time period (0/1): {}'.format( eventname, piece ), flush=True ) #print output
 
 	#fit activity model to all ego networks (for selected time period) in dataset
-	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc)
+	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )

@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --job-name=egonet_fits_piece
 #SBATCH --output=egonet_fits_piece_%a.out
-#SBATCH --array=1-28
+#SBATCH --array=1,4-11,13,15,18-25,27
 #SBATCH --time=05-00
 #SBATCH --mem-per-cpu=2G
 
@@ -32,6 +32,7 @@
 
 
 #analysis 12
+#--array=1-28
 
 n=$SLURM_ARRAY_TASK_ID
 filename=`sed -n "${n} p" filenames_pieces.txt`

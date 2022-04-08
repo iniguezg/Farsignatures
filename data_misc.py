@@ -419,7 +419,10 @@ def graph_props( eventname, loadflag, saveloc, max_iter=1000 ):
 def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=None, alphamax=1000, nsims=2500, amax=10000 ):
 	"""Fit activity model to all ego networks in dataset"""
 
-	savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
+	if egonet_tuple: #when analyzing selected time period
+		savename = saveloc + 'egonet_fits_piece_{}_{}'.format( egonet_tuple[2], eventname[:-4] ) + '.pkl'
+	else: #or the full dataset
+		savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
 
 	if loadflag == 'y': #load files
 		egonet_fits = pd.read_pickle( savename )
@@ -430,7 +433,7 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple
 
 		#prepare ego network properties
 		if egonet_tuple: #load directly from tuple
-			egonet_props, egonet_acts = egonet_tuple
+			egonet_props, egonet_acts, piece = egonet_tuple
 		else: #or from function
 			egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
 		degrees, num_events, actmeans, amins = egonet_props['degree'], egonet_props['strength'], egonet_props['act_avg'], egonet_props['act_min'] #unpack props
@@ -474,10 +477,8 @@ def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple
 				egonet_fits.loc[nodei] = alpha, KSstat, pvalue
 
 			if pos % 10 == 0: #every once in a while...
-				if egonet_tuple == None:
-					egonet_fits.to_pickle( savename ) #save dataframe to file
-		if egonet_tuple == None:
-			egonet_fits.to_pickle( savename ) #and again (just in case)
+				egonet_fits.to_pickle( savename ) #save dataframe to file
+		egonet_fits.to_pickle( savename ) #and again (just in case)
 
 	return egonet_fits
 
@@ -541,12 +542,10 @@ def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc,
 
 		#load ego network properties / alter activities (in selected time period)
 		egonet_props_pieces, egonet_acts_pieces = egonet_props_acts_pieces( dataname, eventname, root_data, 'y', saveloc )
-		egonet_tuple = ( egonet_props_pieces[piece], egonet_acts_pieces[piece] )
+		egonet_tuple = ( egonet_props_pieces[piece], egonet_acts_pieces[piece], piece )
 
-		#fit activity model to all ego networks
+		#fit activity model to all ego networks (and save it)
 		egonet_fits_piece = egonet_fits( dataname, eventname, root_data, 'n', saveloc, egonet_tuple=egonet_tuple, alphamax=alphamax, nsims=nsims, amax=amax )
-
-		egonet_fits_piece.to_pickle( savename ) #save to file
 
 	return egonet_fits_piece
 
