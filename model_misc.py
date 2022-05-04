@@ -30,7 +30,7 @@ def activity_dist( a, t, alpha, a0 ):
 			ca = 0.
 
 		#activity distribution
-		pa = float( ca * mp.power( t-a0, a-a0 ) * mp.power( ( t+alpha ) / ( a0+alpha ), -(a + alpha) ) )
+		pa = float(mp.re( ca * mp.power( t-a0, a-a0 ) * mp.power( ( t+alpha ) / ( a0+alpha ), -(a + alpha) ) ))
 
 	else: #trivial case
 		pa = 1. if a == a0 else 0. #delta function at initial condition
