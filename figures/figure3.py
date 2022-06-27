@@ -117,6 +117,12 @@ if __name__ == "__main__":
 	t_rels = pd.Series( egonet_filter.act_avg - egonet_filter.act_min, name='act_avg_rel' )
 	egonet_filter = pd.concat( [ egonet_filter, t_rels ], axis=1 )
 
+	#print output
+	num_egos_filter = len( egonet_filter ) #statistically significant alpha
+	frac_egos_random = ( egonet_filter.beta < 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (beta < 1, i.e. t_r < alpha_r)
+	frac_egos_cumadv = ( egonet_filter.beta > 1 ).sum() / float( num_egos_filter ) #fraction of egos in CA regime (beta > 1, i.e. t_r > alpha_r)
+	print( '\thom regime: {:.2f}%, het regime: {:.2f}%'.format( frac_egos_random*100, frac_egos_cumadv*100 ) )
+
 
 	## PLOTTING ##
 
@@ -159,6 +165,7 @@ if __name__ == "__main__":
 	plt.text( -0.21, 0.98, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
+	total_egos_filter = 0 #init counter of all filtered egos
 	for grid_pos, (eventname, textname) in enumerate(datasets):
 		print( 'dataset name: ' + eventname ) #print output
 
@@ -171,6 +178,17 @@ if __name__ == "__main__":
 
 		#filter egos according to fitting results
 		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+
+		#print output
+		num_egos_filter = len( egonet_filter ) #statistically significant alpha
+		frac_egos_random = ( egonet_filter.beta < 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (beta < 1, i.e. t_r < alpha_r)
+		frac_egos_cumadv = ( egonet_filter.beta > 1 ).sum() / float( num_egos_filter ) #fraction of egos in CA regime (beta > 1, i.e. t_r > alpha_r)
+		print( '\thom regime: {:.2f}%, het regime: {:.2f}%'.format( frac_egos_random*100, frac_egos_cumadv*100 ) )
+
+		#print final output
+		total_egos_filter += num_egos_filter #statistically significant alpha
+		if grid_pos == len(datasets)-1:
+			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ) )
 
 
 		## PLOTTING ##
