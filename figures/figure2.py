@@ -258,7 +258,7 @@ if __name__ == "__main__":
 			ax.add_artist(leg2)
 
 		#finalise subplot
-		plt.axis([ 8e-1, 5e4, 5e-7, 1e0 ])
+		plt.axis([ 8e-1, 4e4, 2e-7, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=6 )
 		if grid_pos == 0:
@@ -268,8 +268,13 @@ if __name__ == "__main__":
 # C: Phase diagram of activity model
 
 	#subplot variables
-	gamma_vals = np.logspace(-2, 2, 50) #relative CA parameter
-	trel_vals = np.logspace(-2, 2, 50) #relative mean alter activity
+	gamma_vals = np.logspace(-1, 3.5, 50) #relative CA parameter
+	trel_vals = np.logspace(-1, 3.5, 50) #relative mean alter activity
+
+	#same values as in plot D, for comparison
+	a0 = 1 #minimum alter activity
+	alpha_vals = [ -0.7, 999. ] #PA parameter (Gamma regime, random regime)
+	t_vals = [ 2., 10., 100., 1000. ] #mean alter activity (max time in dynamics)
 
 	print('PHASE DIAGRAM')
 
@@ -294,11 +299,17 @@ if __name__ == "__main__":
 	plt.colorbar( label='dispersion $d$' ) #colorbar
 	plt.plot( gamma_vals, gamma_vals, '--k', lw=plot_props['linewidth'], zorder=1 ) #identity line
 
+	#parameter values for plot D
+	for alpha in alpha_vals:
+		xplot = ( alpha+a0 )*np.ones(len(t_vals))
+		yplot = np.array(t_vals) - a0
+		plt.plot( xplot, yplot, marker='o', ls='--', c='0.5', ms=6, lw=1, zorder=2 )
+
 	#texts
 	het_str = 'heterogeneous\nregime\n'+r'($\beta \gg 1$)'
-	plt.text( 0.3, 0.8, het_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+	plt.text( 0.4, 0.85, het_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 	hom_str = 'homogeneous\nregime\n'+r'($\beta \ll 1$)'
-	plt.text( 0.7, 0.2, hom_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+	plt.text( 0.6, 0.15, hom_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 	beta_str = r'$\beta = \frac{t_r}{\alpha_r}$'
 	plt.text( 1, 1.1, beta_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 
@@ -307,7 +318,7 @@ if __name__ == "__main__":
 	ax.set_yscale('log')
 	plt.axis([ gamma_vals[0], gamma_vals[-1], trel_vals[0], trel_vals[-1] ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-	ax.locator_params( numticks=5 )
+	ax.locator_params( numticks=6 )
 
 
 # D: Scaling properties of activity regimes

@@ -4,6 +4,7 @@
 
 #import modules
 import os, sys
+import pandas as pd
 import seaborn as sns
 import itertools as it
 import matplotlib.pyplot as plt
@@ -28,30 +29,37 @@ if __name__ == "__main__":
 				   ('act_min', r'a_0'),
 				   ('act_max', r'a_m') ]
 
+	#dispersion filtering
+	filter_prop = 'strength' #selected property and threshold to filter egos
+	filter_thres = 10
+
 	#plotting variables
 	gridsize = 40 #grid size for hex bins
-	vmax = 8e4 #max value in colorbar (larger than N in any dataset!)
+	# vmax = 3e6 #max value in colorbar (larger than [filtered] N in any dataset!)
+	vmax = 1e5
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
-	#dataset list: dataname, eventname, textname
-	datasets = [ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
-				 ('SMS_net', 'MPC_Wu_SD01.evt', 'Mobile (Wu 1)'),
-				 ('SMS_net', 'MPC_Wu_SD02.evt', 'Mobile (Wu 2)'),
-				 ('SMS_net', 'MPC_Wu_SD03.evt', 'Mobile (Wu 3)'),
-				 ('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
-				 ('greedy_walk_nets', 'email.evt', 'Email 1'),
-				 ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
-				 ('greedy_walk_nets', 'fb.evt', 'Facebook'),
-				 ('greedy_walk_nets', 'messages.evt', 'Messages'),
-				 ('greedy_walk_nets', 'forum.evt', 'Forum'),
-				 ('greedy_walk_nets', 'pok.evt', 'Dating'),
-				 ('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
-				 ('Copenhagen_nets', 'CNS_calls.evt', 'CNS (call)'),
-				 ('Copenhagen_nets', 'CNS_sms.evt', 'CNS (sms)') ]
+	#dataset list: eventname, textname
+	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	# datasets = [ ( 'call', 'Mobile (call)'),
+	# 			 ( 'text', 'Mobile (sms)'),
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'sexcontact_events', 'Contact'),
+				 ( 'email', 'Email 1'),
+				 ( 'eml2', 'Email 2'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'forum', 'Forum'),
+				 ( 'pok', 'Dating'),
+				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -68,8 +76,10 @@ if __name__ == "__main__":
 	'legend_colsp' : 1.1 }
 
 	#loop through combinations of properties to correlate
-	for propx, propy in it.combinations( properties, 2 ):
-#	for propx, propy in [ ( ('degree', 'k'), ('strength', r'\tau') ) ]:
+	# for propx, propy in it.combinations( properties, 2 ):
+	for propx, propy in [ ( ('degree', 'k'), ('dispersion', 'd') ) ]:
+	# for propx, propy in [ ( ('strength', r'\tau'), ('dispersion', 'd') ) ]:
+	# for propx, propy in [ ( ('act_avg', 't'), ('dispersion', 'd') ) ]:
 		print( 'propx = {}, propy = {}'.format( propx[0], propy[0] ) )
 
 		#plot variables
@@ -89,13 +99,32 @@ if __name__ == "__main__":
 		grid.update( **fig_props['grid_params'] )
 
 		#loop through considered datasets
-		for grid_pos, (dataname, eventname, textname) in enumerate(datasets):
-			print( 'dataset name: ' + eventname[:-4] ) #print output
+		for grid_pos, (eventname, textname) in enumerate(datasets):
+			print( 'dataset name: ' + eventname ) #print output
 
 			## DATA ##
 
 			#prepare ego network properties
-			egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+			egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+			egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
+
+			if propy[0] == 'dispersion':
+				#get activity means/variances/minimums per ego
+				act_avgs = egonet_acts.groupby('nodei').mean()
+				act_vars = egonet_acts.groupby('nodei').var() #NOTE: estimated variance (ddof=1)
+				act_mins = egonet_props.act_min
+				#filter by selected property
+				act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
+				act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
+				act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
+				#get dispersion index measure per ego (use relative mean!)
+				act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
+				act_disps = act_disps.dropna() #drop faulty egos
+				#add dispersion to props dataframe
+				egonet_props = pd.concat( [ egonet_props, act_disps.rename('dispersion') ], axis=1, join='inner' )
+				#print out correlation
+				print( '\tPearson corr = {:.2f}'.format( egonet_props.corr().loc[propx[0], propy[0]] ) )
+
 
 			## PLOTTING ##
 
@@ -108,7 +137,8 @@ if __name__ == "__main__":
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_props, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
+			yscale = 'lin'
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_props, xscale='log', yscale=yscale, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r' )
 
 			#colorbar
 			if grid_pos in [3, 7, 11]:
@@ -120,9 +150,10 @@ if __name__ == "__main__":
 			plt.text( 0, 1.15, textname, va='top', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 			#finalise subplot
-			plt.axis([ 1e0, 1e5, 1e0, 1e5 ])
+			# plt.axis([ 1e0, 1e5, 1e0, 1e5 ])
+			plt.axis([ 1e0, 1e5, 0, 1 ])
 			ax.tick_params( axis='both', which='major', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-			ax.locator_params( numticks=6 )
+			# ax.locator_params( numticks=6 )
 			if grid_pos not in [10, 11, 12, 13]:
 				ax.tick_params(labelbottom=False)
 			if grid_pos not in [0, 4, 8, 12]:
