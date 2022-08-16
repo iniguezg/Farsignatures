@@ -51,7 +51,7 @@ if __name__ == "__main__":
 	'figlabel' : 26,
 	'ticklabel' : 15,
 	'text_size' : 10,
-	'marker_size' : 10,
+	'marker_size' : 6,
 	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
@@ -62,9 +62,9 @@ if __name__ == "__main__":
 
 	#plot variables
 	fig_props = { 'fig_num' : 1,
-	'fig_size' : (10, 8),
-	'aspect_ratio' : (2, 2),
-	'grid_params' : dict( left=0.08, bottom=0.065, right=0.98, top=0.98, wspace=0.3, hspace=0.4 ),
+	'fig_size' : (10, 10),
+	'aspect_ratio' : (3, 2),
+	'grid_params' : dict( left=0.085, bottom=0.055, right=0.98, top=0.975, wspace=0.3, hspace=0.45 ),
 	'dpi' : 300,
 	'savename' : 'figure1' }
 
@@ -77,17 +77,17 @@ if __name__ == "__main__":
 	sns.set( style='ticks' ) #set fancy fancy plot
 	fig = plt.figure( fig_props['fig_num'], figsize=fig_props['fig_size'] )
 	plt.clf()
-	grid = gridspec.GridSpec( *fig_props['aspect_ratio'] )
+	grid = gridspec.GridSpec( *fig_props['aspect_ratio'], height_ratios=[0.5, 1, 1] )
 	grid.update( **fig_props['grid_params'] )
 
 
-# A: Example of event sequence and time evolution of ego network
+# A: Example of event sequence, alter ranking timeseries, and final ego network / activity distribution
 
-	#subplot variables
+	#diagram variables
 	dataname, eventname, textname = 'Copenhagen_nets', 'CNS_calls', 'CNS (call)' #selected dataset
 	nodei = 578 #selected ego
 	linelen = 0.4 #(half-)length of event line to plot
-	snaps = [ 0.3, 0.8 ] #snapshots (fractional time) to plot ego net
+	int_strs = [ 0.25, 0.75 ] #locations of interval strings
 	edgewid = 5 #edge width
 
 	print('DIAGRAM')
@@ -100,6 +100,7 @@ if __name__ == "__main__":
 	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
 	alters_nodei = egonet_acts.loc[nodei].sort_values(ascending=False).index #alters (from most to less active)
 	k = len(alters_nodei) #degree
+	activity = egonet_acts[nodei] #alter activities for selected ego
 
 	#prepare raw events
 	names = ['nodei', 'nodej', 'tstamp'] #column names
@@ -116,17 +117,19 @@ if __name__ == "__main__":
 	#normalize times to [0,1] interval
 	events_nodei['tstamp_norm'] = ( events_nodei.tstamp - min(events_nodei.tstamp) ) / ( max(events_nodei.tstamp) - min(events_nodei.tstamp) )
 
-
-	# A1: Example of event sequence
+	## PLOTTING ##
 
 	colors = sns.color_palette( 'Set2', n_colors=k ) #colors to plot
 
+
+	# A1: Example of event sequence
+
 	#initialise subplot
-	subgrid = grid[ 0,0 ].subgridspec( 2, 3, hspace=0, wspace=0, width_ratios=[0.2, 1, 1] )
-	ax = plt.subplot( subgrid[ 0,1: ] )
+	subgrid = grid[ 0,: ].subgridspec( 1, 4, wspace=0.4 )
+	ax = plt.subplot( subgrid[ 0 ] )
 	ax.set_axis_off()
 
-	plt.text( -0.31, 0.88, 'a', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.46, 0.94, 'a', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	for posj, nodej in enumerate( alters_nodei ): #loop through alters
 		plt.axhline( y=k-posj, c=colors[posj], lw=plot_props['linewidth'] ) #plot event line
@@ -137,11 +140,13 @@ if __name__ == "__main__":
 		y = k - posj #plot position
 		plt.vlines( event_tuple.tstamp_norm, y-linelen, y+linelen, color=colors[posj], lw=plot_props['linewidth']-1 ) #plot events
 
-	for t in snaps: #draw time snapshots
-		plt.axvline( x=t, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	#interval strings
+	plt.axvline( x=0.5, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	for pos, int_str in enumerate(int_strs): #loop through interval strings
+		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 	#plot time arrow
-	arrow_str = 'time'
+	arrow_str = 'time $t$'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
@@ -150,96 +155,179 @@ if __name__ == "__main__":
 	plt.axis([ -0.02, 1.02, 1-linelen, k+linelen ])
 
 
-	# A2: Time evolution of ego network
+	# A2: Alter ranking time series
+
+	#initialise subplot
+	ax = plt.subplot( subgrid[ 1 ] )
+	sns.despine( ax=ax ) #take out spines
+	plt.xlabel( r'$t/T$', size=plot_props['xylabel'], labelpad=0 )
+	plt.ylabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
+
+	for posj, nodej in enumerate( alters_nodei ): #loop through alters, ranked by activity
+		xplot = events_nodei[ events_nodei.nodej==nodej ].tstamp_norm #get normalised event times
+		yplot = range( 1, len(xplot)+1 ) #and cumulative sum of number of events
+
+		xplot = [0.] + list(xplot) + [1.] #add endpoints
+		yplot = [0.] + list(yplot) + [yplot[-1]]
+
+		plt.plot( xplot, yplot, '-', color=colors[posj], lw=plot_props['linewidth'] ) #plot plot!
+
+	#interval strings
+	plt.axvline( x=0.5, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	for pos, int_str in enumerate(int_strs): #loop through interval strings
+		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+
+	#plot time arrow
+	arrow_str = '$t=T$'
+	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
+	plt.text( 1.2, 0.5, arrow_str, ha='center', va='center', transform=ax.transAxes,
+    size=plot_props['text_size'], bbox=bbox_props )
+
+	#finalise subplot
+	plt.axis([ -0.02, 1.02, 0.8e0, 1.5e2 ])
+	ax.set_yscale('log')
+	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+
+
+	#A3: Final ego network
 
 	#set up ego network
 	graph = nx.generators.classic.star_graph( k ) #ego net as star graph
 	graph = nx.relabel_nodes( graph, {0:'ego'} ) #rename ego
 	positions = nx.spring_layout( graph, seed=2 ) #seed layout for reproducibility
 
-	for post, t in enumerate(snaps): #loop through snapshots of ego net
-		#initialise subplot
-		ax = plt.subplot( subgrid[ 1,post+1 ] )
-		ax.set_axis_off()
+	#initialise subplot
+	ax = plt.subplot( subgrid[ 2 ] )
+	ax.set_axis_off()
 
-		#plot plot nodes! ego, alters, and labels
-		nx.draw_networkx_nodes( graph, positions, nodelist=['ego'], node_size=500, node_color='#ffd92f', margins=0.1 )
-		nx.draw_networkx_nodes( graph, positions, nodelist=list(graph)[1:], node_size=200, node_color=colors, margins=0.1 )
-		nx.draw_networkx_labels( graph, positions )
+	plt.text( -0.35, 0.94, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
-		#set up existing edges at time snapshot
-		weights = events_nodei[ events_nodei.tstamp_norm < t ].groupby("nodej").size()
-		edgelist = [ ('ego', alters_nodei.get_loc(nodej)+1 ) for nodej in weights.index ]
-		width = [edgewid * np.log10(weights[nodej]) / np.log10(egonet_acts[nodei].max()) for nodej in weights.index] #log scaling!
-		edge_color = [ colors[ alters_nodei.get_loc(nodej) ] for nodej in weights.index ]
+	#plot plot nodes! ego, alters, and labels
+	nx.draw_networkx_nodes( graph, positions, nodelist=['ego'], node_size=500, node_color='#ffd92f', margins=0.1 )
+	nx.draw_networkx_nodes( graph, positions, nodelist=list(graph)[1:], node_size=200, node_color=colors, margins=0.1 )
+	nx.draw_networkx_labels( graph, positions )
 
-		#plot plot edges!
-		nx.draw_networkx_edges( graph, positions, edgelist=edgelist, width=width, edge_color=edge_color )
+	#set up existing edges at time snapshot
+	weights = events_nodei.groupby("nodej").size()
+	edgelist = [ ('ego', alters_nodei.get_loc(nodej)+1 ) for nodej in weights.index ]
+	width = [edgewid * np.log10(weights[nodej]) / np.log10(egonet_acts[nodei].max()) for nodej in weights.index] #log scaling!
+	edge_color = [ colors[ alters_nodei.get_loc(nodej) ] for nodej in weights.index ]
+
+	#plot plot edges!
+	nx.draw_networkx_edges( graph, positions, edgelist=edgelist, width=width, edge_color=edge_color )
 
 
-# B: Example of heterogeneous/homogeneous activity distributions and social signatures
+	#A4: Final activity distribution
+
+	#initialise subplot
+	ax = plt.subplot( subgrid[ 3 ] )
+	sns.despine( ax=ax ) #take out spines
+	plt.xlabel( r'$a$', size=plot_props['xylabel'] )
+	plt.ylabel( r'$k p_a$', size=plot_props['xylabel'] )
+
+	#plot plot!
+	sns.histplot( activity, binrange=(activity.min()-0.5, activity.max()+0.5), binwidth=2, color='k' )
+
+	#arrows and notation
+	plt.annotate( text='$a_0$', xy=( activity.min(), 2.2 ), xytext=( activity.min(), 2.7 ), ha='center', va='bottom', arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
+	plt.annotate( text='$\mu$', xy=( activity.mean(), 2.2 ), xytext=( activity.mean(), 2.7 ), ha='center', va='bottom', arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
+	plt.annotate( text='', xy=( activity.mean() + activity.std(), 2.2 ), xytext=( activity.mean(), 2.2 ), arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
+	plt.annotate( text='$\sigma$', xy=( activity.mean() + activity.std() / 2, 2.1 ), ha='center', va='top' )
+
+	#finalise subplot
+	plt.axis([ -5, 150, 0, 2.8 ])
+	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+	ax.locator_params( nbins=3 )
+
+
+# B: Properties of heterogeneous/homogeneous egos
+
+	#dispersion variables
+	filter_prop = 'strength' #selected property and threshold to filter egos
+	filter_thres = 5
 
 	#alpha fit variables
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
+	#kernel variables
+	min_negos = 50 #minimum number of egos in filtered activity group
+
 	#subplot variables
 	dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected
 	labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
 	nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
 
-	colors = sns.color_palette( 'Set2', n_colors=len(labels) ) #colors to plot
+	colors = sns.color_palette( 'Paired', n_colors=3 ) #colors to plot
 
 	print('ACTIVITY')
 	print( 'dataset name: ' + eventname ) #print output
 
 	## DATA ##
 
-	#load ego network properties, alter activities, and alpha fits
+	#load ego network properties, alter activities, alpha fits, and connection kernel
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
 	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
+	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
+
+	#get activity means/variances/minimums per ego
+	act_avgs = egonet_acts.groupby('nodei').mean()
+	act_vars = egonet_acts.groupby('nodei').var() #NOTE: estimated variance (ddof=1)
+	act_mins = egonet_props.act_min
+	#filter by selected property
+	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
+	act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
+	act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
+	#get dispersion index measure per ego (use relative mean!)
+	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
+	act_disps = act_disps.dropna() #drop faulty egos
+
+	disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
+	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
 
 	#filter egos according to fitting results
 	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
 	print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ) ) #print ego properties
+	print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ) )
 	print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ) )
+	print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ) )
 
 
-	# B1: Activity distributions
+	# B1: Activity distribution
 
 	#initialise subplot
-	subgrid = grid[ 0,1 ].subgridspec( 2, 1, hspace=0, height_ratios=[0.06, 1] )
-	ax = plt.subplot( subgrid[ 1 ] )
+	subgrid = grid[ 1,: ].subgridspec( 2, 3, wspace=0.4, hspace=0.4 )
+	ax = plt.subplot( subgrid[ 0,0 ] )
 	sns.despine( ax=ax ) #take out spines
-	plt.xlabel( r'activity', size=plot_props['xylabel'], labelpad=0 )
-	plt.ylabel( r'CCDF of alters', size=plot_props['xylabel'], labelpad=0 )
+	plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
+	plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
 
-	plt.text( -0.24, 0.99, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.34, 1.25, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	for posi, nodei in enumerate(nodei_vals): #loop through selected egos
 		activity = egonet_acts[nodei] #alter activities for selected ego
 
 		#plot plot activity distribution!
 		xplot, yplot = pm.plot_compcum_dist( activity ) #get alter activity CCDF: P[X >= x]
-		plt.loglog( xplot, yplot, 'o', c=colors[posi], ms=plot_props['marker_size'], label=labels[posi] )
+		plt.loglog( xplot, yplot, 'o', c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
 
 	#legend
-	plt.legend( loc='lower center', bbox_to_anchor=(0.5, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
+	plt.legend( loc='lower left', bbox_to_anchor=(-0.31, 1.05), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
 
 	#finalise subplot
-	plt.axis([ 0.8e0, 1e3, 1e-2, 1.2e0 ])
+	plt.axis([ 0.8e0, 2e2, 1e-2, 1.2e0 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
 	#B2: Social signatures
 
-	inax = ax.inset_axes([ 0.6, 0.6, 0.4, 0.4 ])
+	inax = plt.subplot( subgrid[ 1,0 ] )
 	sns.despine( ax=inax ) #take out spines
-	inax.set_xlabel( r'alter rank', size=plot_props['text_size'], labelpad=0 )
-	inax.set_ylabel( r'activity fraction', size=plot_props['text_size'], labelpad=0 )
+	inax.set_xlabel( r'$r$', size=plot_props['xylabel'] )
+	inax.set_ylabel( r'$f_a$', size=plot_props['xylabel'] )
 
 	for posi, nodei in enumerate(nodei_vals): #loop through selected egos
 		activity = egonet_acts[nodei] #alter activities for selected ego
@@ -247,12 +335,100 @@ if __name__ == "__main__":
 		#plot plot social signature!
 		xplot = np.arange( 1, len(activity)+1, dtype=int )
 		yplot = activity.sort_values( ascending=False ) / activity.sum()
-		inax.loglog( xplot, yplot, 'o', c=colors[posi], ms=plot_props['marker_size']-5 )
+		inax.loglog( xplot, yplot, 'o', c=colors[1-posi], ms=plot_props['marker_size'] )
 
 	#finalise inset
 	inax.set_xlim( 0.8e0, 1e2)
 	inax.set_ylim( 0.7e-3, 2.5e-1 )
-	inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['text_size'], length=2, pad=3 )
+	inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+
+
+	# B3: Dispersion distribution
+
+	#initialise subplot
+	ax = plt.subplot( subgrid[ :,1 ] )
+	sns.despine( ax=ax, top=False, bottom=True ) #take out spines
+	plt.xlabel( r'$p_d$', size=plot_props['xylabel'] )
+	plt.ylabel( r'$d$', size=plot_props['xylabel'], labelpad=0 )
+	ax.xaxis.set_label_position('top')
+
+	plt.text( -0.32, 1.1, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+
+	#plot plot!
+	cnts, vals, bars = plt.hist( act_disps, bins=30, density=True, orientation='horizontal' )
+	plt.axhline( act_disps.mean(), ls='--', c='0.5', lw=plot_props['linewidth'] )
+
+	#color histogram!
+	for patch in range( len(bars) ):
+		if vals[patch] > act_disps.mean():
+			bars[patch].set_facecolor( colors[1] )
+		else:
+			bars[patch].set_facecolor( colors[0] )
+
+	#texts
+	plt.text( 1.8, act_disps.mean(), r'$\langle d \rangle$', va='bottom', ha='center', fontsize=plot_props['ticklabel'] )
+
+	#regime arrows
+	plt.annotate( text='', xy=( 0, disp_vals[0] ), xytext=( -0.7, disp_vals[0] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[1], alpha=0.5 ) ) #heterogeneous
+	plt.annotate( text='', xy=( 0, disp_vals[1] ), xytext=( -2.1, disp_vals[1] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[0], alpha=0.5 ) ) #homogeneous
+
+	#plot dispersion equation
+	eq_str = r'$d = \frac{ \sigma^2 - \mu + a_0 }{ \sigma^2 + \mu - a_0 }$'
+	plt.text( 0.95, 0.95, eq_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+
+	#finalise plot
+	plt.axis([ 0, 2, -0.4, 1 ])
+	ax.invert_yaxis()
+	ax.tick_params( labelbottom=False,labeltop=True )
+	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+
+
+	# B4: Connection kernel
+
+	#initialise subplot
+	ax = plt.subplot( subgrid[ :,2 ] )
+	sns.despine( ax=ax ) #take out spines
+	plt.xlabel( r'$a / a_m$', size=plot_props['xylabel'] )
+	plt.ylabel( r'$\pi_a$', size=plot_props['xylabel'] )
+
+	plt.text( -0.3, 1.1, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+
+	for posd in range(2): #loop through regimes
+		print('\t{}:'.format(labels[posd])) #print regime
+
+		#prepare data: apply dispersion / negos filters, group and average
+		if posd == 0: #heterogeneous
+			filt_disp = egonet_kernel[ act_disps[ act_disps > act_disps.mean() ].index ]
+			label=r'$d > \langle d \rangle$'
+		else: #homogeneous
+			filt_disp = egonet_kernel[ act_disps[ act_disps < act_disps.mean() ].index ]
+			label=r'$d < \langle d \rangle$'
+		filt_negos = filt_disp.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
+		data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
+		data_avg = data_grp.mean() #average probs over egos
+
+		#prepare baseline: prob = 1/k for random case
+		if posd == 0: #heterogeneous
+			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps > act_disps.mean() ].index ].degree ).mean()
+		else: #homogeneous
+			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps < act_disps.mean() ].index ].degree ).mean()
+
+		print( '\t{:.2f}% egos after dispersion filter'.format( 100.*filt_disp.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
+
+		#plot plot!
+		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
+		line_data, = plt.plot( xplot, data_avg, '-', c=colors[1-posd], label=label, lw=plot_props['linewidth'], zorder=1 )
+		line_base = plt.axhline( bline_avg, ls='--', c=colors[1-posd], label=None, lw=plot_props['linewidth'], zorder=0 )
+
+	#legend
+	leg1 = plt.legend( loc='lower left', bbox_to_anchor=(0,1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
+	ax.add_artist(leg1)
+	leg2 = plt.legend( (line_data, line_base), ('data', r'$\langle 1/k \rangle$'), loc='upper left', bbox_to_anchor=(0, 1), prop=plot_props['legend_prop'], handlelength=1.7, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+	ax.add_artist(leg2)
+
+	#finalise subplot
+	plt.axis([ 0, 1, 0, 0.6 ])
+	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
 # C: Dispersion index for all datasets
@@ -266,12 +442,13 @@ if __name__ == "__main__":
 	print('DISPERSION INDEX')
 
 	#initialise subplot
-	ax = plt.subplot( grid[ 1,0 ] )
+	subgrid = grid[ 2,0 ].subgridspec( 2, 1, hspace=0, height_ratios=[0.1, 1] )
+	ax = plt.subplot( subgrid[ 1 ] )
 	sns.despine( ax=ax )
-	plt.xlabel( r'activity dispersion', size=plot_props['xylabel'] )
-	plt.ylabel( r'CCDF of egos', size=plot_props['xylabel'] )
+	plt.xlabel( r'$d$', size=plot_props['xylabel'] )
+	plt.ylabel( r"$P[d' \geq d]$", size=plot_props['xylabel'] )
 
-	plt.text( -0.19, 1.15, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.2, 1.2, 'f', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
@@ -308,7 +485,7 @@ if __name__ == "__main__":
 	plt.legend( loc='lower left', bbox_to_anchor=(0.07, 0.99), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=7 )
 
 	#finalise subplot
-	plt.axis([ -0.05, 1.05, -0.05, 1.05 ])
+	plt.axis([ -0.05, 1, 0, 1.05 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 	ax.locator_params( nbins=6 )
 
@@ -322,12 +499,13 @@ if __name__ == "__main__":
 	print('KERNEL')
 
 	#initialise subplot
-	ax = plt.subplot( grid[ 1,1 ] )
+	subgrid = grid[ 2,1 ].subgridspec( 2, 1, hspace=0, height_ratios=[0.1, 1] )
+	ax = plt.subplot( subgrid[ 1 ] )
 	sns.despine( ax=ax )
-	plt.xlabel( r'activity', size=plot_props['xylabel'] )
-	plt.ylabel( r'relative probability of event', size=plot_props['xylabel'] )
+	plt.xlabel( r'$a$', size=plot_props['xylabel'] )
+	plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
-	plt.text( -0.24, 1.15, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.2, 1.2, 'g', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
@@ -374,29 +552,3 @@ if __name__ == "__main__":
 
 
 #DEBUGGIN'
-
-	# nx.draw( graph, positions, node_color='#66c2a5', node_size=200, with_labels=True )
-	#re-draw ego node
-	# options = { 'node_size':500, 'node_color':'#fc8d62' }
-	# nx.draw_networkx_nodes( graph, positions, nodelist=['ego'], **options )
-
-	# xplot = np.arange( activity.min(), activity.max()+1, dtype=int )
-	# yplot, not_used = np.histogram( activity, bins=len(xplot), range=( xplot[0]-0.5, xplot[-1]+0.5 ), density=True )
-	# xplot_binned, yplot_binned = pm.plot_logbinned_dist( activity )
-
-		# plt.loglog( xplot_binned, yplot_binned, '-', lw=plot_props['linewidth'] )
-
-		# #bin data
-		# yplot, bin_edges = np.histogram( act_disps, bins=bins, density=True )
-		# xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]
-		# #mask data
-		# yplot = np.ma.masked_where( yplot < 1e-2, yplot )
-		#
-		# #plot plot!
-		# plt.semilogy( xplot, yplot, '-', c=colors[grid_pos], label=textname, lw=plot_props['linewidth'], ms=plot_props['marker_size']-5 )
-
-		#only plot positive values after thrreshold (for log plotting)
-		# xplot, yplot = xplot_raw[ xplot_raw > 0 ], yplot_raw[ xplot_raw > 0 ]
-
-	# bins = np.linspace( -1, 1, 51 ) #bins for dispersion indes
-	# plt.axis([ -1, 1, 1e-2, 2e1 ])
