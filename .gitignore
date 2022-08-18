@@ -19,6 +19,7 @@
 *_text_*
 egonet_kernel_*
 egonet_ranks_*
+egonet_jaccard_*
 graph_*.pkl
 
 #specific dirs to ignore

@@ -43,3 +43,28 @@ def plot_logbinned_dist( yplot_data, num=30 ):
 	xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]
 
 	return xplot, yplot
+
+def draw_brace(ax, xspan, yy, text):
+    """Draws an annotated brace on the axes"""
+	
+    xmin, xmax = xspan
+    xspan = xmax - xmin
+    ax_xmin, ax_xmax = ax.get_xlim()
+    xax_span = ax_xmax - ax_xmin
+
+    ymin, ymax = ax.get_ylim()
+    yspan = ymax - ymin
+    resolution = int(xspan/xax_span*100)*2+1 # guaranteed uneven
+    beta = 300./xax_span # the higher this is, the smaller the radius
+
+    x = np.linspace(xmin, xmax, resolution)
+    x_half = x[:int(resolution/2)+1]
+    y_half_brace = (1/(1.+np.exp(-beta*(x_half-x_half[0])))
+                    + 1/(1.+np.exp(-beta*(x_half-x_half[-1]))))
+    y = np.concatenate((y_half_brace, y_half_brace[-2::-1]))
+    y = yy + (.05*y - .01)*yspan # adjust vertical position
+
+    ax.autoscale(False)
+    ax.plot(x, y, color='black', lw=1)
+
+    ax.text((xmax+xmin)/2., yy+.07*yspan, text, ha='center', va='bottom')

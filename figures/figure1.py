@@ -226,16 +226,17 @@ if __name__ == "__main__":
 	plt.ylabel( r'$k p_a$', size=plot_props['xylabel'] )
 
 	#plot plot!
-	sns.histplot( activity, binrange=(activity.min()-0.5, activity.max()+0.5), binwidth=2, color='k' )
+	sns.histplot( activity, binrange=(activity.min()-1, activity.max()+1), binwidth=2, element='step', color='k', zorder=1 )
 
-	#arrows and notation
-	plt.annotate( text='$a_0$', xy=( activity.min(), 2.2 ), xytext=( activity.min(), 2.7 ), ha='center', va='bottom', arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
-	plt.annotate( text='$\mu$', xy=( activity.mean(), 2.2 ), xytext=( activity.mean(), 2.7 ), ha='center', va='bottom', arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
-	plt.annotate( text='', xy=( activity.mean() + activity.std(), 2.2 ), xytext=( activity.mean(), 2.2 ), arrowprops=dict(shrink=0.05, width=3, headwidth=10, headlength=5, facecolor='0.5') )
-	plt.annotate( text='$\sigma$', xy=( activity.mean() + activity.std() / 2, 2.1 ), ha='center', va='top' )
+	#lines and notation
+	plt.annotate( text='$a_0$', xy=( activity.min(), 2.8 ), ha='center', va='bottom' )
+	plt.axvline( x=activity.min(), ls='--', c='0.5', lw=1, zorder=0 )
+	plt.annotate( text='$\mu$', xy=( activity.mean(), 2.8 ), ha='center', va='bottom' )
+	plt.axvline( x=activity.mean(), ls='--', c='0.5', lw=1, zorder=0 )
+	pm.draw_brace( ax, ( activity.mean(), activity.mean() + activity.std() ), 2.3, '$\sigma$' )
 
 	#finalise subplot
-	plt.axis([ -5, 150, 0, 2.8 ])
+	plt.axis([ -10, 140, 0, 2.8 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 	ax.locator_params( nbins=3 )
 
@@ -259,7 +260,8 @@ if __name__ == "__main__":
 	labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
 	nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
 
-	colors = sns.color_palette( 'Paired', n_colors=3 ) #colors to plot
+	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
+	symbols = ['o', 's'] #symbols to plot
 
 	print('ACTIVITY')
 	print( 'dataset name: ' + eventname ) #print output
@@ -312,7 +314,7 @@ if __name__ == "__main__":
 
 		#plot plot activity distribution!
 		xplot, yplot = pm.plot_compcum_dist( activity ) #get alter activity CCDF: P[X >= x]
-		plt.loglog( xplot, yplot, 'o', c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
+		plt.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
 
 	#legend
 	plt.legend( loc='lower left', bbox_to_anchor=(-0.31, 1.05), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
@@ -335,7 +337,7 @@ if __name__ == "__main__":
 		#plot plot social signature!
 		xplot = np.arange( 1, len(activity)+1, dtype=int )
 		yplot = activity.sort_values( ascending=False ) / activity.sum()
-		inax.loglog( xplot, yplot, 'o', c=colors[1-posi], ms=plot_props['marker_size'] )
+		inax.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'] )
 
 	#finalise inset
 	inax.set_xlim( 0.8e0, 1e2)
@@ -368,9 +370,8 @@ if __name__ == "__main__":
 	#texts
 	plt.text( 1.8, act_disps.mean(), r'$\langle d \rangle$', va='bottom', ha='center', fontsize=plot_props['ticklabel'] )
 
-	#regime arrows
-	plt.annotate( text='', xy=( 0, disp_vals[0] ), xytext=( -0.7, disp_vals[0] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[1], alpha=0.5 ) ) #heterogeneous
-	plt.annotate( text='', xy=( 0, disp_vals[1] ), xytext=( -2.1, disp_vals[1] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[0], alpha=0.5 ) ) #homogeneous
+	#regime arrows and symbols
+
 
 	#plot dispersion equation
 	eq_str = r'$d = \frac{ \sigma^2 - \mu + a_0 }{ \sigma^2 + \mu - a_0 }$'
@@ -418,7 +419,7 @@ if __name__ == "__main__":
 		#plot plot!
 		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
 		line_data, = plt.plot( xplot, data_avg, '-', c=colors[1-posd], label=label, lw=plot_props['linewidth'], zorder=1 )
-		line_base = plt.axhline( bline_avg, ls='--', c=colors[1-posd], label=None, lw=plot_props['linewidth'], zorder=0 )
+		line_base = plt.hlines( y=bline_avg, xmin=0, xmax=1, ls='--', colors=[colors[1-posd]], label=None, lw=plot_props['linewidth'], zorder=0 )
 
 	#legend
 	leg1 = plt.legend( loc='lower left', bbox_to_anchor=(0,1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
@@ -427,7 +428,7 @@ if __name__ == "__main__":
 	ax.add_artist(leg2)
 
 	#finalise subplot
-	plt.axis([ 0, 1, 0, 0.6 ])
+	plt.axis([ -0.05, 1, 0, 0.6 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
@@ -552,3 +553,9 @@ if __name__ == "__main__":
 
 
 #DEBUGGIN'
+
+	# plt.hlines( y=2.2, xmin=activity.mean(), xmax=activity.mean() + activity.std(), ls='--', colors=['0.5'], lw=1, zorder=0 )
+	# plt.annotate( text='$\sigma$', xy=( activity.mean() + activity.std() / 2, 2.1 ), ha='center', va='top' )
+
+	# plt.annotate( text='', xy=( 0, disp_vals[0] ), xytext=( -0.7, disp_vals[0] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[1], alpha=0.5 ) ) #heterogeneous
+	# plt.annotate( text='', xy=( 0, disp_vals[1] ), xytext=( -2.1, disp_vals[1] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[0], alpha=0.5 ) ) #homogeneous

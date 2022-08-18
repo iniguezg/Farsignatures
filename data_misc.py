@@ -319,6 +319,34 @@ def egonet_kernel( dataname, eventname, root_data, loadflag, saveloc ):
 	return egonet_kernel
 
 
+#function to get Jaccard index between neighbor sets in time periods for egos in all datasets
+def egonet_jaccard( eventname, loadflag, saveloc ):
+	"""Get Jaccard index between neighbor sets in time periods for egos in all datasets"""
+
+	savename = saveloc + 'egonet_jaccard_' + eventname + '.pkl'
+
+	if loadflag == 'y': #load file
+		egonet_jaccard = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute
+
+		#load alter activities for all egos (for both time periods)
+		egonet_acts_pieces = pd.read_pickle( saveloc + 'egonet_acts_pieces_' + eventname + '.pkl' )
+
+		#get ego neighbor sets for both time periods and join
+		egonet_neighs_0 = egonet_acts_pieces[0].groupby('nodei').apply( lambda x : set(x.index.get_level_values('nodej')) )
+		egonet_neighs_1 = egonet_acts_pieces[1].groupby('nodei').apply( lambda x : set(x.index.get_level_values('nodej')) )
+		egonet_neighs = pd.concat( [ egonet_neighs_0.rename('neighs_0'), egonet_neighs_1.rename('neighs_1') ], axis=1, join='inner' )
+
+		#compute Jaccard index of neighbor sets
+		jaccard_func = lambda x : len( x.neighs_0.intersection(x.neighs_1) ) / float(len( x.neighs_0.union(x.neighs_1) ))
+		egonet_jaccard = egonet_neighs.apply( jaccard_func, axis=1 )
+
+		egonet_jaccard.to_pickle( savename ) #save file
+
+	return egonet_jaccard
+
+
 #function to build weighted graph from event list in dataset
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""
