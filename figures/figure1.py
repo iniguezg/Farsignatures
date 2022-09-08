@@ -146,7 +146,7 @@ if __name__ == "__main__":
 		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 	#plot time arrow
-	arrow_str = 'time $t$'
+	arrow_str = r'event time $\tau$'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
@@ -160,7 +160,7 @@ if __name__ == "__main__":
 	#initialise subplot
 	ax = plt.subplot( subgrid[ 1 ] )
 	sns.despine( ax=ax ) #take out spines
-	plt.xlabel( r'$t/T$', size=plot_props['xylabel'], labelpad=0 )
+	plt.xlabel( r'$\tau/T$', size=plot_props['xylabel'], labelpad=0 )
 	plt.ylabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
 
 	for posj, nodej in enumerate( alters_nodei ): #loop through alters, ranked by activity
@@ -178,7 +178,7 @@ if __name__ == "__main__":
 		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 	#plot time arrow
-	arrow_str = '$t=T$'
+	arrow_str = r'$\tau=T$'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 1.2, 0.5, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
@@ -452,6 +452,7 @@ if __name__ == "__main__":
 	plt.text( -0.2, 1.2, 'f', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through considered datasets
+	total_egos_filter = 0 #init counter of all filtered egos
 	for grid_pos, (eventname, textname) in enumerate(datasets):
 		print( 'dataset name: ' + eventname ) #print output
 
@@ -473,8 +474,12 @@ if __name__ == "__main__":
 		act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
 		act_disps = act_disps.dropna() #drop faulty egos
 
+		#print output
 		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
-
+		total_egos_filter += len(act_disps) #filtered egos
+		print( '\tavg disp: {:.2f}'.format( act_disps.mean() ) ) #mean dispersion
+		if grid_pos == len(datasets)-1:
+			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ) )
 
 		## PLOTTING ##
 

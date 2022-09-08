@@ -123,15 +123,14 @@ if __name__ == "__main__":
 	nx.draw_networkx_edge_labels( graph, positions, edge_labels={ edge:'$a_0$' for edge in graph.edges }, rotate=False )
 
 	#plot connection kernel
-	eq_str = r'$\pi_a = \frac{ a + \alpha }{ k (t + \alpha) }$'
+	eq_str = r'$\pi_a = \frac{ a + \alpha }{ \tau + k \alpha }$'
 	plt.text( 0.5, 0.9, eq_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 	#plot time arrow
 	arrow_str = '$t = a_0$'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
-	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes,
-    size=plot_props['text_size'], bbox=bbox_props )
-
+	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes, size=plot_props['text_size'], bbox=bbox_props )
+	plt.text( 0.5, -0.03, 'initial activity', ha='center', va='center', transform=ax.transAxes, size=plot_props['text_size'] )
 
 	# A2: shapes for connection probability
 
@@ -153,7 +152,7 @@ if __name__ == "__main__":
 		plt.plot( xplot, yplot, '-k', lw=plot_props['linewidth'] )
 
 		#finalise subplot
-		plt.axis([ a0, am, 0, 1 ])
+		plt.axis([ a0, am, -0.1, 1 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		plt.xticks([])
 		plt.yticks([])
@@ -184,10 +183,11 @@ if __name__ == "__main__":
 		nx.draw_networkx_edges( graph, positions, width=width, edge_color=colors[1] )
 
 	#plot time arrow
-	arrow_str ='time $t$'
+	arrow_str =r'$t = \tau / k$'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 0.5, -0.23, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
+	plt.text( 0.5, -0.07, 'mean activity', ha='center', va='center', transform=ax.transAxes, size=plot_props['text_size'] )
 
 
 # B: Parameter dependence of activity distribution
@@ -306,12 +306,12 @@ if __name__ == "__main__":
 		plt.plot( xplot, yplot, marker='o', ls='--', c='0.5', ms=6, lw=1, zorder=2 )
 
 	#texts
-	het_str = 'heterogeneous\nregime\n'+r'($\beta \gg 1$)'
+	het_str = 'heterogeneous\nregime\n'+r'($\beta > 1$)'
 	plt.text( 0.4, 0.85, het_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
-	hom_str = 'homogeneous\nregime\n'+r'($\beta \ll 1$)'
+	hom_str = 'homogeneous\nregime\n'+r'($\beta < 1$)'
 	plt.text( 0.6, 0.15, hom_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
-	beta_str = r'$\beta = \frac{t_r}{\alpha_r}$'
-	plt.text( 1, 1.1, beta_str, va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+	beta_str = r'$\beta = \frac{t_r}{\alpha_r} = \frac{t - a_0}{\alpha + a_0}$'
+	plt.text( 1, 1.1, beta_str, va='center', ha='right', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
 
 	#finalise subplot
 	ax.set_xscale('log')
