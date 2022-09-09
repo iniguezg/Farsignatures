@@ -810,6 +810,29 @@ def format_data_CNS( root_data, loadflag ):
 	return events_bt, events_call, events_sms
 
 
+#function to format data (AskUbuntu, MathOverflow, SuperUser) from Q&A websites
+def format_data_QA( root_data ):
+	"""Format data (AskUbuntu, MathOverflow, SuperUser) from Q&A websites"""
+
+	folder = 'QA_nets/' #folder for whole dataset
+
+	#loop through datasets
+	for eventname in [ 'askubuntu', 'mathoverflow', 'superuser' ]:
+		eventname = eventname + '_all' #add bit to remember type of edge (all considered)
+
+		#load raw data: timestamp, # source, target, timestamp
+		events_raw = pd.read_csv( root_data + folder + 'data_original/' + eventname + '/edges.csv' )
+
+		#remove self-loop events with the same user as source/target
+		events = events_raw.drop( events_raw[ events_raw['# source']==events_raw[' target'] ].index )
+		#rename columns and reset index
+		events = events.rename( columns={ '# source' : 'nodei', ' target' : 'nodej', ' timestamp' : 'tstamp' } ).reset_index( drop=True )
+
+		#save event file (no header/index)
+		savename = root_data + folder + 'data_formatted/' + 'QA_' + eventname[:-4] + '.evt'
+		events.to_csv( savename, sep=';', header=False, index=False )
+
+
 #function to fit gamma approx of activity model to all ego networks in dataset
 def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Fit gamma approx of activity model to all ego networks in dataset"""

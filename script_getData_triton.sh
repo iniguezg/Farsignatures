@@ -1,25 +1,39 @@
 #!/bin/bash
-#SBATCH --job-name=egonet_fits_piece
-#SBATCH --output=egonet_fits_piece_%a.out
-#SBATCH --array=1,4-11,13,15,18-25,27
+#SBATCH --job-name=egonet_fits_QA
+#SBATCH --output=egonet_fits_QA_%a.out
+#SBATCH --array=1-3
 #SBATCH --time=05-00
 #SBATCH --mem-per-cpu=2G
 
-#analysis 2
+
+## analysis 2: get ego network properties for all datasets ##
+
 #time=01-00
 #partition=batch
 
 # srun python script_getData.py $1
 
 
-#analysis 3
+## analysis 3: get parameters for all datasets ##
+
 #time=01:00:00
 #partition=short
 
 #srun python script_getData.py
 
 
-#analysis 5
+## analysis 5: fit activity model to ego networks in all datasets ##
+
+#SMALL DATASETS
+case $SLURM_ARRAY_TASK_ID in
+   1)  SEED="QA_nets QA_askubuntu.evt"  ;;
+   2)  SEED="QA_nets QA_mathoverflow.evt"  ;;
+   3)  SEED="QA_nets QA_superuser.evt"  ;;
+esac
+srun python script_getData.py $SEED
+
+
+#LARGE DATASETS
 #--job-name=egonet_fits_text
 #--output=egonet_fits_text_%a.out
 #call: --array=1-895, text: --array=1-409
@@ -31,9 +45,12 @@
 #srun python script_getData.py ${filename}
 
 
-#analysis 12
+## analysis 12: fit activity model to ego networks per time period in all datasets ##
+
+#--job-name=egonet_fits_piece
+#--output=egonet_fits_piece_%a.out
 #--array=1-28
 
-n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_pieces.txt`
-srun python script_getData.py ${filename}
+# n=$SLURM_ARRAY_TASK_ID
+# filename=`sed -n "${n} p" filenames_pieces.txt`
+# srun python script_getData.py ${filename}
