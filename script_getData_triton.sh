@@ -1,7 +1,4 @@
 #!/bin/bash
-#SBATCH --job-name=egonet_fits_QA
-#SBATCH --output=egonet_fits_QA_%a.out
-#SBATCH --array=1-3
 #SBATCH --time=05-00
 #SBATCH --mem-per-cpu=2G
 
@@ -11,7 +8,7 @@
 #time=01-00
 #partition=batch
 
-# srun python script_getData.py $1
+srun python script_getData.py $1
 
 
 ## analysis 3: get parameters for all datasets ##
@@ -25,12 +22,16 @@
 ## analysis 5: fit activity model to ego networks in all datasets ##
 
 #SMALL DATASETS
-case $SLURM_ARRAY_TASK_ID in
-   1)  SEED="QA_nets QA_askubuntu.evt"  ;;
-   2)  SEED="QA_nets QA_mathoverflow.evt"  ;;
-   3)  SEED="QA_nets QA_superuser.evt"  ;;
-esac
-srun python script_getData.py $SEED
+#--job-name=egonet_fits_QA
+#--output=egonet_fits_QA_%a.out
+#--array=1-3
+
+# case $SLURM_ARRAY_TASK_ID in
+#    1)  SEED="QA_nets QA_askubuntu.evt"  ;;
+#    2)  SEED="QA_nets QA_mathoverflow.evt"  ;;
+#    3)  SEED="QA_nets QA_superuser.evt"  ;;
+# esac
+# srun python script_getData.py $SEED
 
 
 #LARGE DATASETS

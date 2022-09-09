@@ -42,20 +42,23 @@ def egonet_props_acts( dataname, eventname, root_data, loadflag, saveloc ):
 		neighbors = events_concat.groupby('nodei')['nodej'].unique()
 		degrees = neighbors.apply( len )
 
-		#mean alter activity: first get number of events per ego (tau)
+		#number of events per ego (tau)
 		num_events = events_concat.groupby('nodei')['tstamp'].size()
-		actmeans = num_events / degrees	#and then mean activity as avg number of events per alter
 
 		#alter activity: count number of events per alter of each ego
 		egonet_acts = events_concat.groupby(['nodei', 'nodej']).size()
+		egonet_acts_grouped = egonet_acts.groupby('nodei')
 
+		#mean/variance of alter activity
+		actmeans = egonet_acts_grouped.mean()
+		actvars = egonet_acts_grouped.var() #NOTE: estimated variance (ddof=1)
 		#min/max activity: get min/max activity across alters for each ego
-		amins = egonet_acts.groupby('nodei').apply( min )
-		amaxs = egonet_acts.groupby('nodei').apply( max )
+		amins = egonet_acts_grouped.apply( min )
+		amaxs = egonet_acts_grouped.apply( max )
 
 		#dataframe with all ego network properties
-		columns = { 'nodej' : 'degree', 'tstamp' : 'strength', 0 : 'act_avg', 1 : 'act_min', 2 : 'act_max' }
-		egonet_props = pd.concat( [ degrees, num_events, actmeans, amins, amaxs ], axis=1 ).rename( columns=columns )
+		columns = { 'nodej' : 'degree', 'tstamp' : 'strength', 0 : 'act_avg', 1 : 'act_var', 2 : 'act_min', 3 : 'act_max' }
+		egonet_props = pd.concat( [ degrees, num_events, actmeans, actvars, amins, amaxs ], axis=1 ).rename( columns=columns )
 
 		#save everything
 		egonet_props.to_pickle( savenames[0] )
@@ -85,20 +88,23 @@ def egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc 
 		neighbors = events.groupby('ego_ID')['alter_ID'].unique()
 		degrees = neighbors.apply( len )
 
-		#mean alter activity: first get number of events per ego_ID (tau)
+		#number of events per ego_ID (tau)
 		num_events = events.groupby('ego_ID')['timestamp'].size()
-		actmeans = num_events / degrees	#and then mean activity as avg number of events per alter
 
 		#alter activity: count number of events per alter of each ego
 		egonet_acts = events.groupby(['ego_ID', 'alter_ID']).size()
+		egonet_acts_grouped = egonet_acts.groupby('ego_ID')
 
+		#mean/variance of alter activity
+		actmeans = egonet_acts_grouped.mean()
+		actvars = egonet_acts_grouped.var() #NOTE: estimated variance (ddof=1)
 		#min/max activity: get min/max activity across alters for each ego
-		amins = egonet_acts.groupby('ego_ID').apply( min )
-		amaxs = egonet_acts.groupby('ego_ID').apply( max )
+		amins = egonet_acts_grouped.apply( min )
+		amaxs = egonet_acts_grouped.apply( max )
 
 		#dataframe with all ego network properties
-		columns = { 'alter_ID' : 'degree', 'timestamp' : 'strength', 0 : 'act_avg', 1 : 'act_min', 2 : 'act_max' }
-		egonet_props = pd.concat( [ degrees, num_events, actmeans, amins, amaxs ], axis=1 ).rename( columns=columns )
+		columns = { 'alter_ID' : 'degree', 'timestamp' : 'strength', 0 : 'act_avg', 1 : 'act_var', 2 : 'act_min', 3 : 'act_max' }
+		egonet_props = pd.concat( [ degrees, num_events, actmeans, actvars, amins, amaxs ], axis=1 ).rename( columns=columns )
 
 		#save everything
 		egonet_props.to_pickle( savenames[0] )

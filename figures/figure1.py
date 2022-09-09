@@ -275,8 +275,8 @@ if __name__ == "__main__":
 	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
 	#get activity means/variances/minimums per ego
-	act_avgs = egonet_acts.groupby('nodei').mean()
-	act_vars = egonet_acts.groupby('nodei').var() #NOTE: estimated variance (ddof=1)
+	act_avgs = egonet_props.act_avg
+	act_vars = egonet_props.act_var
 	act_mins = egonet_props.act_min
 	#filter by selected property
 	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
@@ -458,13 +458,12 @@ if __name__ == "__main__":
 
 		## DATA ##
 
-		#prepare ego network properties and alter activities
+		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-		egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
 
 		#get activity means/variances/minimums per ego
-		act_avgs = egonet_acts.groupby('nodei').mean()
-		act_vars = egonet_acts.groupby('nodei').var() #NOTE: estimated variance (ddof=1)
+		act_avgs = egonet_props.act_avg
+		act_vars = egonet_props.act_var
 		act_mins = egonet_props.act_min
 		#filter by selected property
 		act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
