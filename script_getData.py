@@ -48,22 +48,22 @@ if __name__ == "__main__":
 	#
 	# 	#prepare ego network properties / alter activities
 	# 	egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-
-	#LARGE DATASETS
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
-	# datasets = [ ('MPC_UEu_sample', 'text') ]
-	for dataname, eventname in datasets: #loop through datasets
-		print( 'dataset name: ' + eventname, flush=True ) #print output
-		fileloc = root_data + dataname +'/'+ eventname + '/'
-		filelist = os.listdir( fileloc )
-		# filelist = [ '1020407_1039726.txt' ]
-		filecount = 1 #initialise counter
-		for filename in filelist: #loop through files in data directory
-			print( 'progress: {:.2f}%, filename: {}'.format( 100*filecount/float(len(filelist)), filename ), flush=True )
-			filecount += 1 #update counter
-
-			#prepare ego network properties / alter activities
-			egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, loadflag, saveloc )
+	#
+	# #LARGE DATASETS
+	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
+	# # datasets = [ ('MPC_UEu_sample', 'text') ]
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
+	# 	fileloc = root_data + dataname +'/'+ eventname + '/'
+	# 	filelist = os.listdir( fileloc )
+	# 	# filelist = [ '1020407_1039726.txt' ]
+	# 	filecount = 1 #initialise counter
+	# 	for filename in filelist: #loop through files in data directory
+	# 		print( 'progress: {:.2f}%, filename: {}'.format( 100*filecount/float(len(filelist)), filename ), flush=True )
+	# 		filecount += 1 #update counter
+	#
+	# 		#prepare ego network properties / alter activities
+	# 		egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
 
 
 	## analysis 3: get parameters for all datasets ##
@@ -109,11 +109,11 @@ if __name__ == "__main__":
 	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=300 )
 
 
-	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
-	#
-	# for dataname, eventname in datasets: #loop through datasets
-	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
-	# 	egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
+	## analysis 6: join ego network properties and fits for large dataset separated into several files
+
+	for dataname, eventname in datasets: #loop through datasets
+		print( 'dataset name: ' + eventname, flush=True ) #print output
+		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##
