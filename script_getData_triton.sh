@@ -8,7 +8,7 @@
 #time=01-00
 #partition=batch
 
-srun python script_getData.py $1
+# srun python script_getData.py $1
 
 
 ## analysis 3: get parameters for all datasets ##
@@ -44,6 +44,11 @@ srun python script_getData.py $1
 #n=$SLURM_ARRAY_TASK_ID
 #filename=`sed -n "${n} p" filenames_text.txt`
 #srun python script_getData.py ${filename}
+
+
+## analysis 9: compute connection kernel for all ego networks in all datasets ##
+
+srun python script_getData.py $1
 
 
 ## analysis 12: fit activity model to ego networks per time period in all datasets ##

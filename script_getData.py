@@ -109,11 +109,11 @@ if __name__ == "__main__":
 	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=300 )
 
 
-	## analysis 6: join ego network properties and fits for large dataset separated into several files
-
-	for dataname, eventname in datasets: #loop through datasets
-		print( 'dataset name: ' + eventname, flush=True ) #print output
-		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
+	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
+	#
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
+	# 	egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##
@@ -142,11 +142,20 @@ if __name__ == "__main__":
 	# 	graph_props = dm.graph_props( eventname[:-4], loadflag, saveloc, max_iter=max_iter )
 
 
-	# ## analysis 9: compute connection kernel for all ego networks in all datasets
-	#
+	## analysis 9: compute connection kernel for all ego networks in all datasets
+
+	# #SMALL DATASETS
 	# for dataname, eventname in datasets: #loop through datasets
 	# 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
 	# 	egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )
+
+	#LARGE DATASETS
+	dataname = 'divided_to_roughly_40_mb_files_30_march'
+	eventname = sys.argv[1] #considered dataset
+	print( 'event name: ' + eventname, flush=True ) #print output
+
+	#fit activity model to all ego networks in dataset
+	egonet_kernel = dm.egonet_kernel_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# # ## analysis 10: perform node percolation by property on all datasets
