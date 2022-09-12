@@ -373,7 +373,7 @@ def egonet_kernel_parallel( dataname, eventname, root_data, loadflag, saveloc ):
 
 				#store kernel as multi-index series
 				index_arrs = [ nodei*np.ones(len(act_counts), dtype=int), np.arange(len(act_counts), dtype=int) ]
-				egonet_kernel = egonet_kernel.append( pd.Series( act_counts / act_options.astype(float), index=index_arrs ) )
+				egonet_kernel = pd.concat([ egonet_kernel, pd.Series( act_counts / act_options.astype(float), index=index_arrs ) ])
 
 		egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
 		egonet_kernel.to_pickle( savename ) #save file
