@@ -9,7 +9,6 @@
 !*.slurm
 !filenames*.txt
 !files/data/*.pkl
-!files/model/*.npy
 
 #specific files to ignore
 *.out
@@ -20,6 +19,7 @@
 egonet_kernel_*
 egonet_ranks_*
 egonet_jaccard_*
+egonet_fits_*
 graph_*.pkl
 
 #specific dirs to ignore
