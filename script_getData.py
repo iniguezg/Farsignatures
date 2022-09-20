@@ -153,7 +153,7 @@ if __name__ == "__main__":
 	dataname = 'divided_to_roughly_40_mb_files_30_march/'
 	eventname = 'text' #considered dataset
 #	filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
-	filename = '2367333_2387126'
+	filename = '2367333_2387126.txt'
 	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
 
 	#fit activity model to all ego networks in dataset

@@ -330,9 +330,9 @@ def egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc ):
 	"""Compute connection kernel for all ego networks in large dataset separated into several files"""
 
 	egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel for all egos
-	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' ) #prepare ego network properties
+	egonet_props = pd.read_pickle( saveloc+'egonet_props_'+eventname+'_'+filename[:-4]+'.pkl' ) #prepare ego network properties
 	#load event list: ego_ID alter_ID timestamp comunication_type duration
-	events = pd.read_csv( root_data + dataname + eventname + '/' + filename, sep=' ' )
+	events = pd.read_csv( root_data+dataname+eventname+'/'+filename, sep=' ' )
 
 	#compute connection kernel for each ego network
 	for pos, (nodei, events_nodei) in enumerate( events.groupby('ego_ID') ): #loop through egos
@@ -364,7 +364,7 @@ def egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc ):
 		egonet_kernel = pd.concat([ egonet_kernel, pd.Series( act_counts / act_options.astype(float), index=index_arrs ) ])
 
 	egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
-	egonet_kernel.to_pickle( saveloc + 'egonet_kernel_' + eventname +'_'+ filename[:-4] + '.pkl' ) #save file
+	egonet_kernel.to_pickle( saveloc+'egonet_kernel_'+eventname+'_'+filename[:-4]+'.pkl' ) #save file
 
 
 #function to join connection kernel files for all ego networks in large dataset separated into several files
