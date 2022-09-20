@@ -329,7 +329,7 @@ def egonet_kernel( dataname, eventname, root_data, loadflag, saveloc ):
 def egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc ):
 	"""Compute connection kernel for all ego networks in large dataset separated into several files"""
 
-	egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel for all egos
+	egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel
 	egonet_props = pd.read_pickle( saveloc+'egonet_props_'+eventname+'_'+filename[:-4]+'.pkl' ) #prepare ego network properties
 	#load event list: ego_ID alter_ID timestamp comunication_type duration
 	events = pd.read_csv( root_data+dataname+eventname+'/'+filename, sep=' ' )
@@ -377,6 +377,7 @@ def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
 		egonet_kernel = pd.read_pickle( savename )
 
 	elif loadflag == 'n': #or else, compute them
+		egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel
 
 		#loop through files in data directory
 		fileloc = root_data + dataname + eventname + '/'
@@ -390,11 +391,8 @@ def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
 				egonet_kernel_piece = pd.read_pickle( saveloc + 'egonet_kernel_' + fnamend )
 			except FileNotFoundError:
 				print( 'file not found: {}'.format( fnamend ) )
-			else:
-				if filepos: #accumulate pieces of large dataset
-					egonet_kernel = pd.concat([ egonet_kernel, egonet_kernel_piece ])
-				else: #and initialise dataframe
-					egonet_kernel = egonet_kernel_piece
+			else: #accumulate pieces of large dataset
+				egonet_kernel = pd.concat([ egonet_kernel, egonet_kernel_piece ])
 
 		egonet_kernel.sort_index() #sort ego indices
 		egonet_kernel.to_pickle( savename ) #save dataframe
