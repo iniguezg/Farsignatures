@@ -326,8 +326,50 @@ def egonet_kernel( dataname, eventname, root_data, loadflag, saveloc ):
 
 
 #function to compute connection kernel for all ego networks in large dataset separated into several files
-def egonet_kernel_parallel( dataname, eventname, root_data, loadflag, saveloc ):
+def egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc ):
 	"""Compute connection kernel for all ego networks in large dataset separated into several files"""
+
+	egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel for all egos
+	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' ) #prepare ego network properties
+	#load event list: ego_ID alter_ID timestamp comunication_type duration
+	events = pd.read_csv( root_data + dataname + eventname + '/' + filename, sep=' ' )
+
+	#compute connection kernel for each ego network
+	for pos, (nodei, events_nodei) in enumerate( events.groupby('ego_ID') ): #loop through egos
+		if pos % 100 == 0: #to know where we stand
+			print( 'ego {} out of {}'.format( pos, len(egonet_props) ), flush=True )
+
+		events_nodei = events_nodei.sort_values('timestamp') #sort by timestamp!
+
+		#get alter list and initialise their activities
+		neighs_nodei = events_nodei.alter_ID.unique()
+		alter_acts = pd.Series( np.zeros(len(neighs_nodei)), index=neighs_nodei, dtype=int )
+
+		#initialise kernel arrays
+		act_max = egonet_props.loc[nodei, 'act_max'] #max alter activity
+		act_counts = np.zeros( act_max+1, dtype=int ) #no. connections at given activity
+		act_options = np.zeros( act_max+1, dtype=int ) #no. potential alters at given activity
+
+		for nodej in events_nodei.alter_ID: #loop through (ordered) events
+			act_options += np.bincount( alter_acts, minlength=act_max+1 ) #update no. potential alters at each activity
+			act_counts[ alter_acts[nodej] ] += 1 #add connection to alter with given activity
+			alter_acts[nodej] += 1 #increase activity of selected alter
+
+		if act_options[-1] == 0: #remove last activity point if not neccesary...
+			act_counts = act_counts[:-1]
+			act_options = act_options[:-1]
+
+		#store kernel as multi-index series
+		index_arrs = [ nodei*np.ones(len(act_counts), dtype=int), np.arange(len(act_counts), dtype=int) ]
+		egonet_kernel = pd.concat([ egonet_kernel, pd.Series( act_counts / act_options.astype(float), index=index_arrs ) ])
+
+	egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
+	egonet_kernel.to_pickle( saveloc + 'egonet_kernel_' + eventname +'_'+ filename[:-4] + '.pkl' ) #save file
+
+
+#function to join connection kernel files for all ego networks in large dataset separated into several files
+def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
+	"""Join connection kernel files for all ego networks in large dataset separated into several files"""
 
 	savename = saveloc + 'egonet_kernel_' + eventname + '.pkl'
 
@@ -335,48 +377,27 @@ def egonet_kernel_parallel( dataname, eventname, root_data, loadflag, saveloc ):
 		egonet_kernel = pd.read_pickle( savename )
 
 	elif loadflag == 'n': #or else, compute them
-		egonet_kernel = pd.Series( dtype=float ) #initialise connection kernel for all egos
-
-		#prepare ego network properties
-		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
 		#loop through files in data directory
-		fileloc = root_data + dataname +'/'+ eventname + '/'
+		fileloc = root_data + dataname + eventname + '/'
 		filelist = sorted( os.listdir( fileloc ) )
 		for filepos, filename in enumerate( filelist ):
 			print( 'file {} out of {}'.format( filepos, len(filelist) ), flush=True )
+			fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
 
-			#load event list: ego_ID alter_ID timestamp comunication_type duration
-			events = pd.read_csv( fileloc + filename, sep=' ' )
+			#prepare ego network kernels (for piece of large dataset!)
+			try: #handling missing kernel data...
+				egonet_kernel_piece = pd.read_pickle( saveloc + 'egonet_kernel_' + fnamend )
+			except FileNotFoundError:
+				print( 'file not found: {}'.format( fnamend ) )
+			else:
+				if filepos: #accumulate pieces of large dataset
+					egonet_kernel = pd.concat([ egonet_kernel, egonet_kernel_piece ])
+				else: #and initialise dataframe
+					egonet_kernel = egonet_kernel_piece
 
-			#compute connection kernel for each ego network
-			for pos, (nodei, events_nodei) in enumerate( events.groupby('ego_ID') ): #loop through egos
-				events_nodei = events_nodei.sort_values('timestamp') #sort by timestamp!
-
-				#get alter list and initialise their activities
-				neighs_nodei = events_nodei.alter_ID.unique()
-				alter_acts = pd.Series( np.zeros(len(neighs_nodei)), index=neighs_nodei, dtype=int )
-
-				#initialise kernel arrays
-				act_max = egonet_props.loc[nodei, 'act_max'] #max alter activity
-				act_counts = np.zeros( act_max+1, dtype=int ) #no. connections at given activity
-				act_options = np.zeros( act_max+1, dtype=int ) #no. potential alters at given activity
-
-				for nodej in events_nodei.alter_ID: #loop through (ordered) events
-					act_options += np.bincount( alter_acts, minlength=act_max+1 ) #update no. potential alters at each activity
-					act_counts[ alter_acts[nodej] ] += 1 #add connection to alter with given activity
-					alter_acts[nodej] += 1 #increase activity of selected alter
-
-				if act_options[-1] == 0: #remove last activity point if not neccesary...
-					act_counts = act_counts[:-1]
-					act_options = act_options[:-1]
-
-				#store kernel as multi-index series
-				index_arrs = [ nodei*np.ones(len(act_counts), dtype=int), np.arange(len(act_counts), dtype=int) ]
-				egonet_kernel = pd.concat([ egonet_kernel, pd.Series( act_counts / act_options.astype(float), index=index_arrs ) ])
-
-		egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
-		egonet_kernel.to_pickle( savename ) #save file
+		egonet_kernel.sort_index() #sort ego indices
+		egonet_kernel.to_pickle( savename ) #save dataframe
 
 	return egonet_kernel
 
