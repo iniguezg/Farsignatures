@@ -1,7 +1,7 @@
 #!/bin/bash
-#SBATCH --job-name=egonet_kernel_test
-#SBATCH --output=egonet_kernel_test_%a.out
-#SBATCH --array=1-2
+#SBATCH --job-name=egonet_kernel_text
+#SBATCH --output=egonet_kernel_text_%a.out
+#SBATCH --array=1-409
 #SBATCH --time=05-00
 #SBATCH --mem-per-cpu=2G
 
@@ -52,7 +52,7 @@
 ## analysis 9: compute connection kernel for all ego networks in all datasets ##
 
 n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_test.txt`
+filename=`sed -n "${n} p" filenames_text.txt`
 srun python script_getData.py ${filename}
 
 
