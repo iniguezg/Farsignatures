@@ -1,9 +1,8 @@
 #!/bin/bash
-#SBATCH --job-name=egonet_kernel_call
-#SBATCH --output=egonet_kernel_call_%a.out
-#SBATCH --array=1-895
-#SBATCH --time=05-00
-#SBATCH --mem-per-cpu=2G
+#SBATCH --time=2:00:00
+#SBATCH --mem-per-cpu=20G
+#--time=05-00
+#--mem-per-cpu=2G
 
 
 ## analysis 2: get ego network properties for all datasets ##
@@ -51,9 +50,15 @@
 
 ## analysis 9: compute connection kernel for all ego networks in all datasets ##
 
-n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_call.txt`
-srun python script_getData.py ${filename}
+#--job-name=egonet_kernel_call
+#--output=egonet_kernel_call_%a.out
+#--array=1-895
+
+# n=$SLURM_ARRAY_TASK_ID
+# filename=`sed -n "${n} p" filenames_call.txt`
+# srun python script_getData.py ${filename}
+
+srun python script_getData.py $1
 
 
 ## analysis 12: fit activity model to ego networks per time period in all datasets ##

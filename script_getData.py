@@ -151,15 +151,18 @@ if __name__ == "__main__":
 
 	#LARGE DATASETS
 	dataname = 'divided_to_roughly_40_mb_files_30_march/'
-	eventname = 'call' #considered dataset
-	filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
-#	filename = '2367333_2387126.txt'
-	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
 
-	#fit activity model to all ego networks in dataset
-	dm.egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc )
+# 	eventname = 'call' #considered dataset
+# 	filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
+# #	filename = '2367333_2387126.txt'
+# 	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
+# 	#fit activity model to all ego networks in dataset
+# 	dm.egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc )
+
+	eventname = sys.argv[1] #considered dataset
+	print( 'eventname: {}'.format( eventname ), flush=True ) #print output
 	#join connection kernels for all ego networks in dataset
-	#egonet_kernel = dm.egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc )
+	egonet_kernel = dm.egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# # ## analysis 10: perform node percolation by property on all datasets
