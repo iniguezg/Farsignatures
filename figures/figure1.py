@@ -17,6 +17,37 @@ import data_misc as dm
 import plot_misc as pm
 
 
+## PLOTTING FUNCTION ##
+
+#function to plot kernel curve according to filter
+def plot_kernel_filter( egonet_kernel, eventname, filt_rule='', filt_obj=None, filt_params={}, load=False ):
+	"""Plot kernel curve according to filter"""
+
+	savename = 'figure1_data/kernel_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+str(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
+
+	if load:
+		data_avg = pd.read_pickle(savename) #load file
+	else:
+		#filter egos by selected filter property
+		if filt_rule == 'large_disp': #large dispersion
+			filter = egonet_kernel[ filt_obj[ filt_obj > filt_obj.mean() ].index ]
+		elif filt_rule == 'small_disp': #small dispersion
+			filter = egonet_kernel[ filt_obj[ filt_obj < filt_obj.mean() ].index ]
+		elif filt_rule == 'degree': #large enough degree
+			filter = egonet_kernel[ filt_obj[ filt_obj.degree >= filt_params['min_degree'] ].index ]
+		else: #no filter
+			filter = egonet_kernel
+
+		#get filtered activity groups
+		filt_negos = filter.groupby( level=1 ).filter( lambda x : len(x) >= filt_params['min_negos'] )
+		data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
+		data_avg = data_grp.mean() #average probs over egos
+
+		data_avg.to_pickle(savename) #save file
+
+	return data_avg
+
+
 ## RUNNING FIGURE SCRIPT ##
 
 if __name__ == "__main__":
@@ -399,22 +430,17 @@ if __name__ == "__main__":
 
 		#prepare data: apply dispersion / negos filters, group and average
 		if posd == 0: #heterogeneous
-			filt_disp = egonet_kernel[ act_disps[ act_disps > act_disps.mean() ].index ]
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=True )
 			label=r'$d > \langle d \rangle$'
 		else: #homogeneous
-			filt_disp = egonet_kernel[ act_disps[ act_disps < act_disps.mean() ].index ]
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=True )
 			label=r'$d < \langle d \rangle$'
-		filt_negos = filt_disp.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
-		data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
-		data_avg = data_grp.mean() #average probs over egos
 
 		#prepare baseline: prob = 1/k for random case
 		if posd == 0: #heterogeneous
 			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps > act_disps.mean() ].index ].degree ).mean()
 		else: #homogeneous
 			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps < act_disps.mean() ].index ].degree ).mean()
-
-		print( '\t{:.2f}% egos after dispersion filter'.format( 100.*filt_disp.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
 
 		#plot plot!
 		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
@@ -541,15 +567,10 @@ if __name__ == "__main__":
 		egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
 		#prepare data: apply degree / negos filters, group and average
-		filt_degree = egonet_kernel[ egonet_props[ egonet_props.degree >= min_degree ].index ]
-		filt_negos = filt_degree.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
-		data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
-		data_avg = data_grp.mean() #average probs over egos
+		data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=True )
 
 		#prepare baseline: prob = 1/k for random case
 		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
-
-		print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
 
 
 		## PLOTTING ##
@@ -581,3 +602,16 @@ if __name__ == "__main__":
 
 	# plt.annotate( text='', xy=( 0, disp_vals[0] ), xytext=( -0.7, disp_vals[0] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[1], alpha=0.5 ) ) #heterogeneous
 	# plt.annotate( text='', xy=( 0, disp_vals[1] ), xytext=( -2.1, disp_vals[1] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[0], alpha=0.5 ) ) #homogeneous
+
+			# filt_disp = egonet_kernel[ act_disps[ act_disps > act_disps.mean() ].index ]
+			# filt_disp = egonet_kernel[ act_disps[ act_disps < act_disps.mean() ].index ]
+		# filt_negos = filt_disp.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
+		# data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
+		# data_avg = data_grp.mean() #average probs over egos
+		# print( '\t{:.2f}% egos after dispersion filter'.format( 100.*filt_disp.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
+
+		# filt_degree = egonet_kernel[ egonet_props[ egonet_props.degree >= min_degree ].index ]
+		# filt_negos = filt_degree.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
+		# data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
+		# data_avg = data_grp.mean() #average probs over egos
+		# print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
