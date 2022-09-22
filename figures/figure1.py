@@ -430,10 +430,10 @@ if __name__ == "__main__":
 
 		#prepare data: apply dispersion / negos filters, group and average
 		if posd == 0: #heterogeneous
-			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=True )
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
 			label=r'$d > \langle d \rangle$'
 		else: #homogeneous
-			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=True )
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
 			label=r'$d < \langle d \rangle$'
 
 		#prepare baseline: prob = 1/k for random case
@@ -567,7 +567,7 @@ if __name__ == "__main__":
 		egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
 		#prepare data: apply degree / negos filters, group and average
-		data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=True )
+		data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=False )
 
 		#prepare baseline: prob = 1/k for random case
 		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
