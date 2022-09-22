@@ -394,7 +394,7 @@ def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
 			else: #accumulate pieces of large dataset
 				egonet_kernel = pd.concat([ egonet_kernel, egonet_kernel_piece ])
 
-		egonet_kernel.sort_index() #sort ego indices
+		egonet_kernel.index = pd.MultiIndex.from_tuples( egonet_kernel.index ) #format multi-index
 		egonet_kernel.to_pickle( savename ) #save dataframe
 
 	return egonet_kernel

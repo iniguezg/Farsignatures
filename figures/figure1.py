@@ -460,8 +460,6 @@ if __name__ == "__main__":
 	plt.text( -0.3, 1.1, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	for posd in range(2): #loop through regimes
-		print('\t{}:'.format(labels[posd])) #print regime
-
 		#prepare data: apply dispersion / negos filters, group and average
 		if posd == 0: #heterogeneous
 			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
@@ -469,6 +467,7 @@ if __name__ == "__main__":
 		else: #homogeneous
 			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
 			label=r'$d < \langle d \rangle$'
+		print('\t{}:'.format(label)) #print regime
 
 		#prepare baseline: prob = 1/k for random case
 		if posd == 0: #heterogeneous

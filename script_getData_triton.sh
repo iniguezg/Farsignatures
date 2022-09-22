@@ -58,7 +58,10 @@
 # filename=`sed -n "${n} p" filenames_call.txt`
 # srun python script_getData.py ${filename}
 
-srun python script_getData.py $1
+#--time=2:00:00
+#--mem-per-cpu=20G
+
+# srun python script_getData.py $1
 
 
 ## analysis 12: fit activity model to ego networks per time period in all datasets ##
@@ -70,3 +73,8 @@ srun python script_getData.py $1
 # n=$SLURM_ARRAY_TASK_ID
 # filename=`sed -n "${n} p" filenames_pieces.txt`
 # srun python script_getData.py ${filename}
+
+
+## plot figure 1 ##
+
+srun python figures/figure1.py
