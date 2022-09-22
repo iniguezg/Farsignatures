@@ -411,9 +411,6 @@ if __name__ == "__main__":
 	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
 	act_disps = act_disps.dropna() #drop faulty egos
 
-	disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
-	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
-
 	## PLOTTING ##
 
 	# C1: Dispersion distribution
