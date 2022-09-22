@@ -275,7 +275,7 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=3 )
 
 
-# B: Properties of heterogeneous/homogeneous egos
+# B: Activity distribution and social signatures of heterogeneous/homogeneous egos
 
 	#dispersion variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
@@ -286,18 +286,15 @@ if __name__ == "__main__":
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
-	#kernel variables
-	min_negos = 50 #minimum number of egos in filtered activity group
-
 	#subplot variables
-	dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected
+	dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected dataset
 	labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
 	nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
 
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 	symbols = ['o', 's'] #symbols to plot
 
-	print('ACTIVITY')
+	print('ACTIVITY REGIMES')
 	print( 'dataset name: ' + eventname ) #print output
 
 	## DATA ##
@@ -306,7 +303,6 @@ if __name__ == "__main__":
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
 	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
-	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
 	#get activity means/variances/minimums per ego
 	act_avgs = egonet_props.act_avg
@@ -331,6 +327,7 @@ if __name__ == "__main__":
 	print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ) )
 	print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ) )
 
+	## PLOTTING ##
 
 	# B1: Activity distribution
 
@@ -379,7 +376,47 @@ if __name__ == "__main__":
 	inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
-	# B3: Dispersion distribution
+# C: Dispersion distribution and connection kernel of heterogeneous/homogeneous egos
+
+	#dispersion variables
+	filter_prop = 'strength' #selected property and threshold to filter egos
+	filter_thres = 5
+
+	#kernel variables
+	min_negos = 50 #minimum number of egos in filtered activity group
+
+	#subplot variables
+	eventname, textname = 'call', 'Mobile (call)' #selected dataset
+
+	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
+
+	print('DISPERSION/KERNEL REGIMES')
+	print( 'dataset name: ' + eventname ) #print output
+
+	## DATA ##
+
+	#load ego network properties, alter activities, alpha fits, and connection kernel
+	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
+
+	#get activity means/variances/minimums per ego
+	act_avgs = egonet_props.act_avg
+	act_vars = egonet_props.act_var
+	act_mins = egonet_props.act_min
+	#filter by selected property
+	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
+	act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
+	act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
+	#get dispersion index measure per ego (use relative mean!)
+	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
+	act_disps = act_disps.dropna() #drop faulty egos
+
+	disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
+	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
+
+	## PLOTTING ##
+
+	# C1: Dispersion distribution
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ :,1 ] )
@@ -404,9 +441,6 @@ if __name__ == "__main__":
 	#texts
 	plt.text( 1.8, act_disps.mean(), r'$\langle d \rangle$', va='bottom', ha='center', fontsize=plot_props['ticklabel'] )
 
-	#regime arrows and symbols
-
-
 	#plot dispersion equation
 	eq_str = r'$d = \frac{ \sigma^2 - \mu + a_0 }{ \sigma^2 + \mu - a_0 }$'
 	plt.text( 0.95, 0.95, eq_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
@@ -418,7 +452,7 @@ if __name__ == "__main__":
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
-	# B4: Connection kernel
+	# C2: Connection kernel
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ :,2 ] )
@@ -461,7 +495,7 @@ if __name__ == "__main__":
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
-# C: Dispersion index for all datasets
+# D: Dispersion index for all datasets
 
 	#subplot variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
@@ -524,27 +558,27 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=6 )
 
 
-# D: Connection kernel for all datasets
+# E: Connection kernel for all datasets
 
 	#subplot variables
 	min_degree = 2 #minimum degree of filtered egos
 	min_negos = 50 #minimum number of egos in filtered activity group
 
-	#TEMPORARY: used datasets
-	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
-				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 # ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
-				 ( 'fb', 'Facebook'),
-				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
-				 ( 'pok', 'Dating'),
-				 # ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
-				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)') ]
+	# #TEMPORARY: used datasets
+	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	# 			 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+	# 			 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+	# 			 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+	# 			 # ( 'sexcontact_events', 'Contact'),
+	# 			 ( 'email', 'Email 1'),
+	# 			 ( 'eml2', 'Email 2'),
+	# 			 ( 'fb', 'Facebook'),
+	# 			 ( 'messages', 'Messages'),
+	# 			 ( 'forum', 'Forum'),
+	# 			 ( 'pok', 'Dating'),
+	# 			 # ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+	# 			 ( 'CNS_calls', 'CNS (call)'),
+	# 			 ( 'CNS_sms', 'CNS (sms)') ]
 
 	colors = sns.color_palette( 'Set2', n_colors=len(datasets) ) #colors to plot
 
