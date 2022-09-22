@@ -54,11 +54,13 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#locations
-	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	root_code = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/'
-	saveloc = root_code+'files/data/' #location of output files
+	#root locations of data/code
+	#LOCAL
+	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/'
+	# saveloc = expanduser('~') + '/prg/xocial/Farsignatures/files/data/'
+	#TRITON
+	root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
+	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
 
 	#dataset list: eventname, textname
 	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
