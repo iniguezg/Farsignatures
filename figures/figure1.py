@@ -56,7 +56,8 @@ if __name__ == "__main__":
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	root_code = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
