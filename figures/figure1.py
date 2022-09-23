@@ -124,8 +124,8 @@ if __name__ == "__main__":
 	int_strs = [ 0.25, 0.75 ] #locations of interval strings
 	edgewid = 5 #edge width
 
-	print('DIAGRAM')
-	print( 'dataset name: ' + eventname ) #print output
+	print('DIAGRAM', flush=True)
+	print( 'dataset name: ' + eventname, flush=True ) #print output
 
 	## DATA ##
 
@@ -294,8 +294,8 @@ if __name__ == "__main__":
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 	symbols = ['o', 's'] #symbols to plot
 
-	print('ACTIVITY REGIMES')
-	print( 'dataset name: ' + eventname ) #print output
+	print('ACTIVITY REGIMES', flush=True)
+	print( 'dataset name: ' + eventname, flush=True ) #print output
 
 	## DATA ##
 
@@ -317,15 +317,15 @@ if __name__ == "__main__":
 	act_disps = act_disps.dropna() #drop faulty egos
 
 	disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
-	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
+	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
 
 	#filter egos according to fitting results
 	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
-	print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ) ) #print ego properties
-	print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ) )
-	print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ) )
-	print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ) )
+	print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ), flush=True ) #print ego properties
+	print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ), flush=True )
+	print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ), flush=True )
+	print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ), flush=True )
 
 	## PLOTTING ##
 
@@ -390,8 +390,8 @@ if __name__ == "__main__":
 
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 
-	print('DISPERSION/KERNEL REGIMES')
-	print( 'dataset name: ' + eventname ) #print output
+	print('DISPERSION/KERNEL REGIMES', flush=True)
+	print( 'dataset name: ' + eventname, flush=True ) #print output
 
 	## DATA ##
 
@@ -467,7 +467,7 @@ if __name__ == "__main__":
 		else: #homogeneous
 			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
 			label=r'$d < \langle d \rangle$'
-		print('\t{}:'.format(label)) #print regime
+		print('\t{}:'.format(label), flush=True) #print regime
 
 		#prepare baseline: prob = 1/k for random case
 		if posd == 0: #heterogeneous
@@ -499,7 +499,7 @@ if __name__ == "__main__":
 
 	colors = sns.color_palette( 'Set2', n_colors=len(datasets) ) #colors to plot
 
-	print('DISPERSION INDEX')
+	print('DISPERSION INDEX', flush=True)
 
 	#initialise subplot
 	subgrid = grid[ 2,0 ].subgridspec( 2, 1, hspace=0, height_ratios=[0.1, 1] )
@@ -513,7 +513,7 @@ if __name__ == "__main__":
 	#loop through considered datasets
 	total_egos_filter = 0 #init counter of all filtered egos
 	for grid_pos, (eventname, textname) in enumerate(datasets):
-		print( 'dataset name: ' + eventname ) #print output
+		print( 'dataset name: ' + eventname, flush=True ) #print output
 
 		## DATA ##
 
@@ -533,11 +533,11 @@ if __name__ == "__main__":
 		act_disps = act_disps.dropna() #drop faulty egos
 
 		#print output
-		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ) ) #filtered egos
+		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
 		total_egos_filter += len(act_disps) #filtered egos
-		print( '\tavg disp: {:.2f}'.format( act_disps.mean() ) ) #mean dispersion
+		print( '\tavg disp: {:.2f}'.format( act_disps.mean() ), flush=True ) #mean dispersion
 		if grid_pos == len(datasets)-1:
-			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ) )
+			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ), flush=True )
 
 		## PLOTTING ##
 
@@ -578,7 +578,7 @@ if __name__ == "__main__":
 
 	colors = sns.color_palette( 'Set2', n_colors=len(datasets) ) #colors to plot
 
-	print('KERNEL')
+	print('KERNEL', flush=True)
 
 	#initialise subplot
 	subgrid = grid[ 2,1 ].subgridspec( 2, 1, hspace=0, height_ratios=[0.1, 1] )
@@ -591,7 +591,7 @@ if __name__ == "__main__":
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
-		print( 'dataset name: ' + eventname ) #print output
+		print( 'dataset name: ' + eventname, flush=True ) #print output
 
 		## DATA ##
 
