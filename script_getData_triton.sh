@@ -1,9 +1,9 @@
 #!/bin/bash
 #SBATCH --time=1:00:00
 #SBATCH --mem-per-cpu=2G
-#SBATCH --job-name=egonet_pieces_text
-#SBATCH --output=egonet_pieces_text_%a.out
-#SBATCH --array=1-409
+#SBATCH --job-name=egonet_pieces_call
+#SBATCH --output=egonet_pieces_call_%a.out
+#SBATCH --array=1-895
 #--time=05-00
 
 
@@ -69,7 +69,7 @@
 ## analysis 11 : get ego network properties per time period in all datasets ##
 
 n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_text.txt`
+filename=`sed -n "${n} p" filenames_call.txt`
 srun python script_getData.py ${filename}
 
 
