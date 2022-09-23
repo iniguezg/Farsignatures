@@ -149,20 +149,20 @@ if __name__ == "__main__":
 	# 	print( 'dataset name: ' + eventname[:-4], flush=True ) #print output
 	# 	egonet_kernel = dm.egonet_kernel( dataname, eventname[:-4], root_data, loadflag, saveloc )
 
-	#LARGE DATASETS
-	dataname = 'divided_to_roughly_40_mb_files_30_march/'
-
-# 	eventname = 'call' #considered dataset
-# 	filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
-# #	filename = '2367333_2387126.txt'
-# 	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
-# 	#fit activity model to all ego networks in dataset
-# 	dm.egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc )
-
-	eventname = sys.argv[1] #considered dataset
-	print( 'eventname: {}'.format( eventname ), flush=True ) #print output
-	#join connection kernels for all ego networks in dataset
-	egonet_kernel = dm.egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc )
+	# #LARGE DATASETS
+	# dataname = 'divided_to_roughly_40_mb_files_30_march/'
+	#
+	# eventname = 'call' #considered dataset
+	# filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
+	# #filename = '2367333_2387126.txt'
+	# print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
+	# #fit activity model to all ego networks in dataset
+	# dm.egonet_kernel_parallel( filename, dataname, eventname, root_data, saveloc )
+	#
+	# eventname = sys.argv[1] #considered dataset
+	# print( 'eventname: {}'.format( eventname ), flush=True ) #print output
+	# #join connection kernels for all ego networks in dataset
+	# egonet_kernel = dm.egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# # ## analysis 10: perform node percolation by property on all datasets
@@ -180,14 +180,24 @@ if __name__ == "__main__":
 	# 	graph_percs = dm.graph_percs( eventname[:-4], loadflag, saveloc, prop_names=prop_names, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres, ntimes=ntimes )
 
 
-	# ## analysis 11: get ego network properties per time period in all datasets ##
-	#
+	## analysis 11: get ego network properties per time period in all datasets ##
+
+	# #SMALL DATASETS
 	# # datasets = [ ('Copenhagen_nets', 'CNS_calls.evt') ]
 	# for dataname, eventname in datasets: #loop through considered datasets
 	# 	print( 'dataset name: ' + eventname[:-4] ) #print output
 	#
 	# 	#prepare ego network properties / alter activities
 	# 	egonet_props_pieces, egonet_acts_pieces = dm.egonet_props_acts_pieces( dataname, eventname, root_data, loadflag, saveloc )
+
+	#LARGE DATASETS
+	dataname = 'divided_to_roughly_40_mb_files_30_march/'
+	eventname = 'text' #considered dataset
+	# filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
+	filename = '2367333_2387126.txt'
+	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
+	#fit activity model to all ego networks in dataset
+	dm.egonet_props_acts_pieces_parallel( filename, dataname, eventname, root_data, saveloc )
 
 
 	# ## analysis 12: fit activity model to ego networks per time period in all datasets ##

@@ -181,6 +181,58 @@ def egonet_props_acts_pieces( dataname, eventname, root_data, loadflag, saveloc 
 	return egonet_props_pieces, egonet_acts_pieces
 
 
+#function to get ego network properties and alter activities per time period in large dataset separated into several files
+def egonet_props_acts_pieces_parallel( filename, dataname, eventname, root_data, saveloc ):
+	"""Get ego network properties and alter activities per time period in large dataset separated into several files"""
+
+	#load event list: ego_ID alter_ID timestamp comunication_type duration
+	events = pd.read_csv( root_data+dataname+eventname+'/'+filename, sep=' ' )
+	events_grouped = events.groupby('ego_ID') #group events by ego
+
+	#group events by ego and separate into two (equal-sized) time periods
+	events_pieces = [
+	events_grouped.apply( lambda x : x.iloc[ :int(np.ceil(len(x)/2)) ,:] ).reset_index(drop=True),
+	events_grouped.apply( lambda x : x.iloc[ len(x) - int(np.floor(len(x)/2)): ,:] ).reset_index(drop=True)
+					]
+
+	#initialise dframes and columns
+	egonet_props_pieces, egonet_acts_pieces = [], []
+	columns = { 'alter_ID' : 'degree', 'timestamp' : 'strength', 0 : 'act_avg', 1 : 'act_var', 2 : 'act_min', 3 : 'act_max' }
+
+	for pos, events_period in enumerate(events_pieces): #loop through time periods
+		events_period_grouped = events_period.groupby('ego_ID') #group events by ego (in period)
+
+		#ego degrees: get neighbor lists (grouping by node i and getting unique nodes j)
+		neighbors = events_period_grouped['alter_ID'].unique()
+		degrees = neighbors.apply( len )
+
+		#mean alter activity: first get number of events per ego (tau)
+		num_events = events_period_grouped['timestamp'].size()
+
+		#alter activity: count number of events per alter of each ego
+		egonet_acts = events_period.groupby(['ego_ID', 'alter_ID']).size()
+		egonet_acts_grouped = egonet_acts.groupby('ego_ID')
+
+		#mean/variance of alter activity
+		actmeans = egonet_acts_grouped.mean()
+		actvars = egonet_acts_grouped.var() #NOTE: estimated variance (ddof=1)
+		#min/max activity: get min/max activity across alters for each ego
+		amins = egonet_acts_grouped.apply( min )
+		amaxs = egonet_acts_grouped.apply( max )
+
+		#dataframe with all ego network properties
+		egonet_props = pd.concat( [ degrees, num_events, actmeans, actvars, amins, amaxs ], axis=1 ).rename( columns=columns )
+
+		egonet_props_pieces.append( egonet_props ) #store results
+		egonet_acts_pieces.append( egonet_acts )
+
+	#save all to file
+	with open( saveloc+'egonet_props_pieces_'+eventname+'_'+filename[:-4]+'.pkl', 'wb' ) as file:
+		pk.dump( egonet_props_pieces, file )
+	with open( saveloc+'egonet_acts_pieces_'+eventname+'_'+filename[:-4]+'.pkl', 'wb' ) as file:
+		pk.dump( egonet_acts_pieces, file )
+
+
 #function to get parameters for all datasets
 def data_params( datasets, root_data, loadflag, saveloc ):
 	"""Get parameters for all datasets"""
