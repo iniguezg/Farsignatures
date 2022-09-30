@@ -86,8 +86,8 @@
 
 #LARGE DATASETS
 n=$SLURM_ARRAY_TASK_ID
-# filename=`sed -n "${n} p" filenames_$1.txt`
-filename=`sed -n "${n} p" filenames_test.txt`
+filename=`sed -n "${n} p" filenames_$1.txt`
+# filename=`sed -n "${n} p" filenames_test.txt`
 srun python script_getData.py $1 $2 $3 ${filename}
 
 
