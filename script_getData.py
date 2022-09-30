@@ -189,24 +189,34 @@ if __name__ == "__main__":
 	#
 	# 	#prepare ego network properties / alter activities
 	# 	egonet_props_pieces, egonet_acts_pieces = dm.egonet_props_acts_pieces( dataname, eventname, root_data, loadflag, saveloc )
-
-	#LARGE DATASETS
-	dataname = 'divided_to_roughly_40_mb_files_30_march/'
-	eventname = 'call' #considered dataset
-	filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
-	# filename = '2367333_2387126.txt'
-	print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
-	#fit activity model to all ego networks in dataset
-	dm.egonet_props_acts_pieces_parallel( filename, dataname, eventname, root_data, saveloc )
-
-
-	# ## analysis 12: fit activity model to ego networks per time period in all datasets ##
 	#
+	# #LARGE DATASETS
+	# dataname = 'divided_to_roughly_40_mb_files_30_march/'
+	# eventname = 'call' #considered dataset
+	# filename = sys.argv[1][20:-4]+'.txt' #i.e. '1000_1020405.txt'
+	# # filename = '2367333_2387126.txt'
+	# print( 'eventname: {}, filename: {}'.format( eventname, filename ), flush=True ) #print output
+	# #fit activity model to all ego networks in dataset
+	# dm.egonet_props_acts_pieces_parallel( filename, dataname, eventname, root_data, saveloc )
+
+
+	## analysis 12: fit activity model to ego networks per time period in all datasets ##
+
+	# #SMALL DATASETS
 	# dataname = sys.argv[1]
 	# eventname = sys.argv[2]
 	# piece = int( sys.argv[3] ) #chosen time period (=0,1)
 	# nsims = int( sys.argv[4] ) #realizations for fit bootstrapping
 	# print( 'event name: {}, time period (0/1): {}'.format( eventname, piece ), flush=True ) #print output
-	#
 	# #fit activity model to all ego networks (for selected time period) in dataset
 	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
+
+	#LARGE DATASETS
+	dataname = '' #not needed for loading
+	# eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
+	eventname = 'text_2367333_2387126.txt'
+	piece = int( sys.argv[2] ) #chosen time period (=0,1)
+	nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
+	print( 'eventname: {}'.format(eventname), flush=True ) #print output
+	#fit activity model to all ego networks (for selected time period) in dataset
+	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
