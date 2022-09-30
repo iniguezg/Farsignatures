@@ -213,8 +213,8 @@ if __name__ == "__main__":
 
 	#LARGE DATASETS
 	dataname = '' #not needed for loading
-	# eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
-	eventname = 'text_2367333_2387126.txt'
+	eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
+	# eventname = 'text_2367333_2387126.txt'
 	piece = int( sys.argv[2] ) #chosen time period (=0,1)
 	nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
 	print( 'eventname: {}'.format(eventname), flush=True ) #print output
