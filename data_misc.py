@@ -690,6 +690,52 @@ def egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, savelo
 	return egonet_props, egonet_fits
 
 
+#function to join ego network properties and fits for all time periods in large dataset separated into several files
+def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc ):
+	"""Join ego network properties and fits for all time periods in large dataset separated into several files"""
+
+	#list of files in data directory
+	fileloc = root_data + dataname +'/'+ eventname + '/'
+	filelist = sorted( os.listdir( fileloc ) )
+
+	#ego network properties
+
+	for filepos, filename in enumerate( filelist ): #loop through files in data directory
+		fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+
+		#prepare ego network properties in individual file
+		egonet_props_pieces_file = pd.read_pickle( saveloc + 'egonet_props_pieces_' + fnamend )
+		if filepos: #accumulate pieces of large dataset
+			for period in range(2): #loop through time periods
+				egonet_props_pieces[period] = pd.concat([ egonet_props_pieces[period], egonet_props_pieces_file[period] ])
+		else: #and initialise dataframes
+			egonet_props_pieces = egonet_props_pieces_file
+
+	for period in range(2): #loop through time periods
+		egonet_props_pieces[period].sort_index() #sort ego indices
+	egonet_props_pieces.to_pickle( saveloc + 'egonet_props_pieces_' + eventname + '.pkl' ) #save to file
+
+	#ego network fits
+
+	for period in range(2): #loop through time periods
+		for filepos, filename in enumerate( filelist ): #loop through files in data directory
+			fnamend = 'piece_' + period + '_' eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+
+			#prepare ego network fits (for piece of large dataset!)
+			try: #handling missing fit data...
+				egonet_fits_piece_file = pd.read_pickle( saveloc + 'egonet_fits_' + fnamend )
+			except FileNotFoundError:
+				print( 'file not found: {}'.format( fnamend ) )
+			else:
+				if filepos: #accumulate pieces of large dataset
+					egonet_fits_piece = pd.concat([ egonet_fits_piece, egonet_fits_piece_file ])
+				else: #and initialise dataframes
+					egonet_fits_piece = egonet_fits_piece_file
+
+		egonet_fits_piece.sort_index() #sort ego indices
+		egonet_fits_piece.to_pickle( saveloc + 'egonet_fits_piece_' + period + '_' + eventname + '.pkl' ) #save file
+
+
 #function to fit activity model to all ego networks in selected time period in dataset
 def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
 	"""Fit activity model to all ego networks per time period in dataset"""

@@ -85,6 +85,8 @@
 # srun python script_getData.py ${filename}
 
 #LARGE DATASETS
+#grep --include=\*.out -rnw './' -e 'error'
+
 n=$SLURM_ARRAY_TASK_ID
 filename=`sed -n "${n} p" filenames_$1.txt`
 # filename=`sed -n "${n} p" filenames_test.txt`
