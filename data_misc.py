@@ -719,7 +719,7 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 
 	for period in range(2): #loop through time periods
 		for filepos, filename in enumerate( filelist ): #loop through files in data directory
-			fnamend = 'piece_' + period + '_' eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+			fnamend = 'piece_' + period +'_'+ eventname +'_'+ filename[:-4] + '.pkl' #end of filename
 
 			#prepare ego network fits (for piece of large dataset!)
 			try: #handling missing fit data...
