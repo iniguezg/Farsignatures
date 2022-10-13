@@ -702,6 +702,8 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 
 	for filepos, filename in enumerate( filelist ): #loop through files in data directory
 		fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+		if filepos % 10 == 0: #to know where we stand
+			print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
 
 		#prepare ego network properties in individual file
 		egonet_props_pieces_file = pd.read_pickle( saveloc + 'egonet_props_pieces_' + fnamend )
@@ -713,13 +715,16 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 
 	for period in range(2): #loop through time periods
 		egonet_props_pieces[period].sort_index() #sort ego indices
-	egonet_props_pieces.to_pickle( saveloc + 'egonet_props_pieces_' + eventname + '.pkl' ) #save to file
+	with open( saveloc + 'egonet_props_pieces_' + eventname + '.pkl', 'wb' ) as file: #save to file
+		pk.dump( egonet_props_pieces, file )
 
 	#ego network fits
 
 	for period in range(2): #loop through time periods
 		for filepos, filename in enumerate( filelist ): #loop through files in data directory
 			fnamend = 'piece_' + period +'_'+ eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+			if filepos % 10 == 0: #to know where we stand
+				print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
 
 			#prepare ego network fits (for piece of large dataset!)
 			try: #handling missing fit data...
