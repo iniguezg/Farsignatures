@@ -453,7 +453,7 @@ def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
 
 
 #function to get Jaccard index between neighbor sets in time periods for egos in dataset
-def egonet_jaccard( eventname, loadflag, saveloc, saveflag=True ):
+def egonet_jaccard( eventname, loadflag, saveloc, nodei='nodei', nodej='nodej', saveflag=True ):
 	"""Get Jaccard index between neighbor sets in time periods for egos in dataset"""
 
 	savename = saveloc + 'egonet_jaccard_' + eventname + '.pkl'
@@ -467,8 +467,8 @@ def egonet_jaccard( eventname, loadflag, saveloc, saveflag=True ):
 		egonet_acts_pieces = pd.read_pickle( saveloc + 'egonet_acts_pieces_' + eventname + '.pkl' )
 
 		#get ego neighbor sets for both time periods and join
-		egonet_neighs_0 = egonet_acts_pieces[0].groupby('nodei').apply( lambda x : set(x.index.get_level_values('nodej')) )
-		egonet_neighs_1 = egonet_acts_pieces[1].groupby('nodei').apply( lambda x : set(x.index.get_level_values('nodej')) )
+		egonet_neighs_0 = egonet_acts_pieces[0].groupby(nodei).apply( lambda x : set(x.index.get_level_values(nodej)) )
+		egonet_neighs_1 = egonet_acts_pieces[1].groupby(nodei).apply( lambda x : set(x.index.get_level_values(nodej)) )
 		egonet_neighs = pd.concat( [ egonet_neighs_0.rename('neighs_0'), egonet_neighs_1.rename('neighs_1') ], axis=1, join='inner' )
 
 		#compute Jaccard index of neighbor sets
@@ -494,7 +494,7 @@ def egonet_jaccard_parallel( dataname, eventname, root_data, saveloc ):
 		if filepos % 10 == 0: #to know where we stand
 			print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
 
-		egonet_jaccard_piece = egonet_jaccard( fnamend[:-4], 'n', saveloc, saveflag=False )
+		egonet_jaccard_piece = egonet_jaccard( fnamend[:-4], 'n', saveloc, nodei='ego_ID', nodej='alter_ID', saveflag=False )
 		if filepos: #accumulate pieces of large dataset
 			egonet_jaccard_joined = pd.concat([ egonet_jaccard_joined, egonet_jaccard_piece ])
 		else: #and initialise dataframes
