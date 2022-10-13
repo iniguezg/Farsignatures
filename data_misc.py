@@ -738,7 +738,7 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 					egonet_fits_piece = egonet_fits_piece_file
 
 		egonet_fits_piece.sort_index() #sort ego indices
-		egonet_fits_piece.to_pickle( saveloc + 'egonet_fits_piece_' + period + '_' + eventname + '.pkl' ) #save file
+		egonet_fits_piece.to_pickle( saveloc + 'egonet_fits_piece_' + str(period) + '_' + eventname + '.pkl' ) #save file
 
 
 #function to fit activity model to all ego networks in selected time period in dataset
