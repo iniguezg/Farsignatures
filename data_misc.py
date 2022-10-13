@@ -496,13 +496,11 @@ def egonet_jaccard_parallel( dataname, eventname, root_data, saveloc ):
 
 		egonet_jaccard_piece = egonet_jaccard( fnamend[:-4], 'n', saveloc, saveflag=False )
 		if filepos: #accumulate pieces of large dataset
-			egonet_jaccard = pd.concat([ egonet_jaccard, egonet_jaccard_piece ])
+			egonet_jaccard_joined = pd.concat([ egonet_jaccard_joined, egonet_jaccard_piece ])
 		else: #and initialise dataframes
-			egonet_jaccard = egonet_jaccard_piece
+			egonet_jaccard_joined = egonet_jaccard_piece
 
-	egonet_jaccard.to_pickle( saveloc + 'egonet_jaccard_' + eventname + '.pkl' ) #save file
-
-	return egonet_jaccard
+	egonet_jaccard_joined.to_pickle( saveloc + 'egonet_jaccard_' + eventname + '.pkl' ) #save file
 
 
 #function to build weighted graph from event list in dataset
