@@ -452,9 +452,9 @@ def egonet_kernel_join( dataname, eventname, root_data, loadflag, saveloc ):
 	return egonet_kernel
 
 
-#function to get Jaccard index between neighbor sets in time periods for egos in all datasets
-def egonet_jaccard( eventname, loadflag, saveloc ):
-	"""Get Jaccard index between neighbor sets in time periods for egos in all datasets"""
+#function to get Jaccard index between neighbor sets in time periods for egos in dataset
+def egonet_jaccard( eventname, loadflag, saveloc, saveflag=True ):
+	"""Get Jaccard index between neighbor sets in time periods for egos in dataset"""
 
 	savename = saveloc + 'egonet_jaccard_' + eventname + '.pkl'
 
@@ -475,7 +475,32 @@ def egonet_jaccard( eventname, loadflag, saveloc ):
 		jaccard_func = lambda x : len( x.neighs_0.intersection(x.neighs_1) ) / float(len( x.neighs_0.union(x.neighs_1) ))
 		egonet_jaccard = egonet_neighs.apply( jaccard_func, axis=1 )
 
-		egonet_jaccard.to_pickle( savename ) #save file
+		if saveflag:
+			egonet_jaccard.to_pickle( savename ) #save file
+
+	return egonet_jaccard
+
+
+#function to get Jaccard index between neighbor sets in time periods for egos in large dataset separated into several files
+def egonet_jaccard_parallel( dataname, eventname, root_data, saveloc ):
+	"""Get Jaccard index between neighbor sets in time periods for egos in large dataset separated into several files"""
+
+	#list of files in data directory
+	fileloc = root_data + dataname +'/'+ eventname + '/'
+	filelist = sorted( os.listdir( fileloc ) )
+
+	for filepos, filename in enumerate( filelist ): #loop through files in data directory
+		fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+		if filepos % 10 == 0: #to know where we stand
+			print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
+
+		egonet_jaccard_piece = egonet_jaccard( fnamend[:-4], 'n', saveloc, saveflag=False )
+		if filepos: #accumulate pieces of large dataset
+			egonet_jaccard = pd.concat([ egonet_jaccard, egonet_jaccard_piece ])
+		else: #and initialise dataframes
+			egonet_jaccard = egonet_jaccard_piece
+
+	egonet_jaccard.to_pickle( saveloc + 'egonet_jaccard_' + eventname + '.pkl' ) #save file
 
 	return egonet_jaccard
 

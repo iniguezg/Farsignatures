@@ -222,9 +222,9 @@ if __name__ == "__main__":
 	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
 
 
-	# ## analysis 13: join ego network properties and fits for all time periods in large dataset separated into several files
+	# ## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files
 
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 	for dataname, eventname in datasets: #loop through datasets
 		print( 'dataset name: ' + eventname, flush=True ) #print output
-		dm.egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
+		# dm.egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
+		egonet_jaccard = dm.egonet_jaccard_parallel( dataname, eventname, root_data, saveloc )
