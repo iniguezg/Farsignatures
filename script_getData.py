@@ -224,6 +224,7 @@ if __name__ == "__main__":
 
 	# ## analysis 13: join ego network properties and fits for all time periods in large dataset separated into several files
 
+	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ) ]
 	for dataname, eventname in datasets: #loop through datasets
 		print( 'dataset name: ' + eventname, flush=True ) #print output
 		dm.egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
