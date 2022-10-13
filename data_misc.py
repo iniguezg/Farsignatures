@@ -700,23 +700,23 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 
 	#ego network properties
 
-	# for filepos, filename in enumerate( filelist ): #loop through files in data directory
-	# 	fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
-	# 	if filepos % 10 == 0: #to know where we stand
-	# 		print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
-	#
-	# 	#prepare ego network properties in individual file
-	# 	egonet_props_pieces_file = pd.read_pickle( saveloc + 'egonet_props_pieces_' + fnamend )
-	# 	if filepos: #accumulate pieces of large dataset
-	# 		for period in range(2): #loop through time periods
-	# 			egonet_props_pieces[period] = pd.concat([ egonet_props_pieces[period], egonet_props_pieces_file[period] ])
-	# 	else: #and initialise dataframes
-	# 		egonet_props_pieces = egonet_props_pieces_file
-	#
-	# for period in range(2): #loop through time periods
-	# 	egonet_props_pieces[period].sort_index() #sort ego indices
-	# with open( saveloc + 'egonet_props_pieces_' + eventname + '.pkl', 'wb' ) as file: #save to file
-	# 	pk.dump( egonet_props_pieces, file )
+	for filepos, filename in enumerate( filelist ): #loop through files in data directory
+		fnamend = eventname +'_'+ filename[:-4] + '.pkl' #end of filename
+		if filepos % 10 == 0: #to know where we stand
+			print( '\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
+
+		#prepare ego network properties in individual file
+		egonet_props_pieces_file = pd.read_pickle( saveloc + 'egonet_props_pieces_' + fnamend )
+		if filepos: #accumulate pieces of large dataset
+			for period in range(2): #loop through time periods
+				egonet_props_pieces[period] = pd.concat([ egonet_props_pieces[period], egonet_props_pieces_file[period] ])
+		else: #and initialise dataframes
+			egonet_props_pieces = egonet_props_pieces_file
+
+	for period in range(2): #loop through time periods
+		egonet_props_pieces[period].sort_index() #sort ego indices
+	with open( saveloc + 'egonet_props_pieces_' + eventname + '.pkl', 'wb' ) as file: #save to file
+		pk.dump( egonet_props_pieces, file )
 
 	#ego network fits
 
