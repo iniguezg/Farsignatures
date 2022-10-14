@@ -93,6 +93,13 @@ filename=`sed -n "${n} p" filenames_$1.txt`
 srun python script_getData.py $1 $2 $3 ${filename}
 
 
+## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files
+
+#--time=01-00
+
+# srun python script_getData.py
+
+
 ## plot figure 1 ##
 
 #--time=05-00

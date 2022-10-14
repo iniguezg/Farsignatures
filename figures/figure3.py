@@ -314,12 +314,13 @@ if __name__ == "__main__":
 # D1: Correlation between persistence and turnover
 
 	#subplot variables
-	eventname, textname = ( 'messages', 'Messages') #selected dset
+	# eventname, textname = ( 'messages', 'Messages') #selected dset
+	eventname, textname = ( 'call', 'Mobile (call)')
 
-	gridsize = 40 #grid size for hex bin
-	vmax = 1e3 #max value in colorbar
+	gridsize = (40, 60) #grid size for hex bin
+	vmax = 1e6 #max value in colorbar
 	bins = 31 #number of bins in histograms
-	range_beta_diff = (-11, 11) #ranges for data
+	range_beta_diff = (-31, 31) #ranges for data
 	range_jaccard = (0, 1)
 
 	colors = sns.color_palette( 'GnBu', n_colors=3 ) #colors to plot
@@ -371,7 +372,7 @@ if __name__ == "__main__":
 	plt.ylabel( r'$\Delta \beta / \beta$', size=plot_props['xylabel'] )
 
 	#plot plot!
-	hexbin = plt.hexbin( 'jaccard', 'beta_diff', data=plot_data, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=(gridsize,gridsize), cmap='GnBu' )
+	hexbin = plt.hexbin( 'jaccard', 'beta_diff', data=plot_data, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu' )
 
 	#finalise plot
 	plt.axis([ *range_jaccard, *range_beta_diff ])
@@ -397,7 +398,7 @@ if __name__ == "__main__":
 	plt.hist( plot_data.jaccard, bins=bins, range=range_jaccard, log=True, histtype='stepfilled', color=colors[0] )
 
 	#finalise subplot
-	plt.axis([ *range_jaccard, 1e0, 1e3 ])
+	plt.axis([ *range_jaccard, 1e0, vmax ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['text_size'], length=2, pad=4 )
 	plt.xticks([])
 
@@ -412,7 +413,7 @@ if __name__ == "__main__":
 	plt.hist( plot_data.beta_diff, bins=bins, range=range_beta_diff, log=True, histtype='stepfilled', color=colors[0], orientation='horizontal' )
 
 	#finalise subplot
-	plt.axis([ 1e0, 1e3, *range_beta_diff ])
+	plt.axis([ 1e0, vmax, *range_beta_diff ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['text_size'], length=2, pad=4 )
 	plt.yticks([])
 
@@ -424,7 +425,8 @@ if __name__ == "__main__":
 	bins = 31
 
 	#TEMPORARY: used datasets
-	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	datasets = [ # ( 'call', 'Mobile (call)'),
+				 # ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -437,7 +439,8 @@ if __name__ == "__main__":
 				 ( 'pok', 'Dating'),
 				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
 				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)') ]
+				 ( 'CNS_sms', 'CNS (sms)')
+				]
 
 	colors = sns.color_palette( 'Set2', n_colors=len(datasets) ) #colors to plot
 

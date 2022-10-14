@@ -226,5 +226,5 @@ if __name__ == "__main__":
 
 	# for dataname, eventname in datasets: #loop through datasets
 	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
-	# 	# dm.egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
+	# 	dm.egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 	# 	dm.egonet_jaccard_parallel( dataname, eventname, root_data, saveloc )
