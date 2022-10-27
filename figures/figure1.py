@@ -389,8 +389,8 @@ if __name__ == "__main__":
 	min_negos = 50 #minimum number of egos in filtered activity group
 
 	#subplot variables
-	# eventname, textname = 'forum', 'Forum'
-	eventname, textname = 'call', 'Mobile (call)' #selected dataset
+	eventname, textname = 'forum', 'Forum'
+	# eventname, textname = 'call', 'Mobile (call)' #selected dataset
 
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 
