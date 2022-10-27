@@ -20,10 +20,10 @@ import plot_misc as pm
 ## PLOTTING FUNCTION ##
 
 #function to plot kernel curve according to filter
-def plot_kernel_filter( egonet_kernel, eventname, filt_rule='', filt_obj=None, filt_params={}, load=False ):
+def plot_kernel_filter( egonet_kernel, eventname, filt_rule='', filt_obj=None, filt_params={}, load=False, saveloc='' ):
 	"""Plot kernel curve according to filter"""
 
-	savename = 'figure1_data/kernel_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+str(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
+	savename = saveloc+'kernel_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+str(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
 
 	if load:
 		data_avg = pd.read_pickle(savename) #load file
@@ -58,14 +58,16 @@ if __name__ == "__main__":
 	#LOCAL
 	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/'
 	# saveloc = expanduser('~') + '/prg/xocial/Farsignatures/files/data/'
+	# saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
 	#TRITON
 	root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#dataset list: eventname, textname
-	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	# datasets = [ ( 'call', 'Mobile (call)'),
+	# 			 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -386,7 +388,8 @@ if __name__ == "__main__":
 	min_negos = 50 #minimum number of egos in filtered activity group
 
 	#subplot variables
-	eventname, textname = 'call', 'Mobile (call)' #selected dataset
+	eventname, textname = 'forum', 'Forum'
+	# eventname, textname = 'call', 'Mobile (call)' #selected dataset
 
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 
@@ -462,10 +465,10 @@ if __name__ == "__main__":
 	for posd in range(2): #loop through regimes
 		#prepare data: apply dispersion / negos filters, group and average
 		if posd == 0: #heterogeneous
-			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False, saveloc=saveloc_fig )
 			label=r'$d > \langle d \rangle$'
 		else: #homogeneous
-			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False )
+			data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=False, saveloc=saveloc_fig )
 			label=r'$d < \langle d \rangle$'
 		print('\t{}:'.format(label), flush=True) #print regime
 
@@ -600,7 +603,7 @@ if __name__ == "__main__":
 		egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
 		#prepare data: apply degree / negos filters, group and average
-		data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=False )
+		data_avg = plot_kernel_filter( egonet_kernel, eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=False, saveloc=saveloc_fig )
 
 		#prepare baseline: prob = 1/k for random case
 		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
