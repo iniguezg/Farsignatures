@@ -91,7 +91,7 @@ if __name__ == "__main__":
 	propx = ('gamma', r'\alpha_r')
 	propy = ('act_avg_rel', 't_r')
 	gridsize = 40 #grid size for hex bins
-	vmax = 3e6 #max value in colorbar (larger than [filtered] N in any dataset!)
+	vmax = 1e6 #max value in colorbar (larger than [filtered] N in any dataset!)
 
 	print('PHASE DIAGRAM')
 
@@ -126,7 +126,7 @@ if __name__ == "__main__":
 	## PLOTTING ##
 
 	#plot plot!
-	hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0), mincnt=1, gridsize=gridsize, cmap='GnBu', zorder=0 )
+	hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu', zorder=0 )
 
 	#colorbar
 	cbar = plt.colorbar( hexbin, ax=ax, fraction=0.05 )
@@ -317,10 +317,10 @@ if __name__ == "__main__":
 	# eventname, textname = ( 'messages', 'Messages') #selected dset
 	eventname, textname = ( 'call', 'Mobile (call)')
 
-	gridsize = (40, 60) #grid size for hex bin
+	gridsize = 41 #grid size for hex bin
 	vmax = 1e6 #max value in colorbar
 	bins = 31 #number of bins in histograms
-	range_beta_diff = (-31, 31) #ranges for data
+	range_beta_diff = (-35, 35) #ranges for data
 	range_jaccard = (0, 1)
 
 	colors = sns.color_palette( 'GnBu', n_colors=3 ) #colors to plot
@@ -372,7 +372,7 @@ if __name__ == "__main__":
 	plt.ylabel( r'$\Delta \beta / \beta$', size=plot_props['xylabel'] )
 
 	#plot plot!
-	hexbin = plt.hexbin( 'jaccard', 'beta_diff', data=plot_data, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu' )
+	hexbin = plt.hexbin( 'jaccard', 'beta_diff', data=plot_data, norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, extent=[*range_jaccard, *range_beta_diff], cmap='GnBu' )
 
 	#finalise plot
 	plt.axis([ *range_jaccard, *range_beta_diff ])
@@ -423,24 +423,6 @@ if __name__ == "__main__":
 	#subplot variables
 	binrange = (-4, 4) #for histogram
 	bins = 31
-
-	#TEMPORARY: used datasets
-	datasets = [ # ( 'call', 'Mobile (call)'),
-				 # ( 'text', 'Mobile (sms)'),
-				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
-				 ( 'fb', 'Facebook'),
-				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
-				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
-				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)')
-				]
 
 	colors = sns.color_palette( 'Set2', n_colors=len(datasets) ) #colors to plot
 
