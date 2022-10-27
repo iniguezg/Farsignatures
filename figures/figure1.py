@@ -65,9 +65,10 @@ if __name__ == "__main__":
 	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#dataset list: eventname, textname
+	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
 	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
-	# datasets = [ ( 'call', 'Mobile (call)'),
-	# 			 ( 'text', 'Mobile (sms)'),
+				 ( 'call', 'Mobile (call)'),
+				 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -388,8 +389,8 @@ if __name__ == "__main__":
 	min_negos = 50 #minimum number of egos in filtered activity group
 
 	#subplot variables
-	eventname, textname = 'forum', 'Forum'
-	# eventname, textname = 'call', 'Mobile (call)' #selected dataset
+	# eventname, textname = 'forum', 'Forum'
+	eventname, textname = 'call', 'Mobile (call)' #selected dataset
 
 	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
 

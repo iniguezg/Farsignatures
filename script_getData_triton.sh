@@ -1,7 +1,7 @@
 #!/bin/bash
 #SBATCH --time=05-00
-#SBATCH --mem-per-cpu=2G
-
+#SBATCH --mem-per-cpu=20G
+#--mem-per-cpu=2G
 
 ## analysis 2: get ego network properties for all datasets ##
 
@@ -87,10 +87,10 @@
 #LARGE DATASETS
 #grep --include=\*.out -rnw './' -e 'error'
 
-n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_$1.txt`
-# filename=`sed -n "${n} p" filenames_test.txt`
-srun python script_getData.py $1 $2 $3 ${filename}
+# n=$SLURM_ARRAY_TASK_ID
+# filename=`sed -n "${n} p" filenames_$1.txt`
+# # filename=`sed -n "${n} p" filenames_test.txt`
+# srun python script_getData.py $1 $2 $3 ${filename}
 
 
 ## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files
@@ -105,4 +105,4 @@ srun python script_getData.py $1 $2 $3 ${filename}
 #--time=05-00
 #--mem-per-cpu=20G
 
-# srun python figures/figure1.py
+srun python figures/figure1.py
