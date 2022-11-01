@@ -8,7 +8,7 @@
 !*.sh
 !*.slurm
 !filenames*.txt
-!files/data/*.pkl
+#!files/data/*.pkl
 
 #specific files to ignore
 *.out

@@ -1017,6 +1017,27 @@ def format_data_CNS( root_data, loadflag ):
 	return events_bt, events_call, events_sms
 
 
+#function to format SMS data (from Wu et al. study)
+def format_data_SMS( root_data ):
+	"""Format SMS data (from Wu et al. study)"""
+
+	folder = 'SMS_net/' #folder for whole dataset
+
+	#loop through datasets
+	for eventname in [ 'MPC_Wu_SD01', 'MPC_Wu_SD02', 'MPC_Wu_SD03' ]:
+		eventname = eventname + '_htnet.evt' #follow filename convention
+
+		#load raw data: source, target, timestamp
+		events = pd.read_csv( root_data+folder+'data_original/marton/'+eventname, sep=';', names=['nodei', 'nodej', 'tstamp'] ) #rename columns too
+
+		#remove self-loop events, sort by timestamp and reset index
+		events = events.drop( events[ events.nodei==events.nodej ].index ).sort_values( by='tstamp' ).reset_index(drop=True)
+
+		#save event file (no header/index)
+		savename = root_data+folder+'/data_formatted/'+eventname[:-10]+'.evt'
+		events.to_csv( savename, sep=';', header=False, index=False )
+
+
 #function to format data (AskUbuntu, MathOverflow, SuperUser) from Q&A websites
 def format_data_QA( root_data ):
 	"""Format data (AskUbuntu, MathOverflow, SuperUser) from Q&A websites"""
@@ -1027,7 +1048,7 @@ def format_data_QA( root_data ):
 	for eventname in [ 'askubuntu', 'mathoverflow', 'superuser' ]:
 		eventname = eventname + '_all' #add bit to remember type of edge (all considered)
 
-		#load raw data: timestamp, # source, target, timestamp
+		#load raw data: # source, target, timestamp
 		events_raw = pd.read_csv( root_data + folder + 'data_original/' + eventname + '/edges.csv' )
 
 		#remove self-loop events with the same user as source/target
@@ -1038,6 +1059,40 @@ def format_data_QA( root_data ):
 		#save event file (no header/index)
 		savename = root_data + folder + 'data_formatted/' + 'QA_' + eventname[:-4] + '.evt'
 		events.to_csv( savename, sep=';', header=False, index=False )
+
+
+#function to format txt-based data (email and college data from SNAP)
+def format_data_txt( root_data ):
+	"""Format txt-based data (email and college data from SNAP)"""
+
+	folder = 'SNAP/' #folder for whole dataset
+
+	#loop through datasets
+	for eventname in [ 'email_Eu_core', 'CollegeMsg' ]:
+		#load raw data: source, target, timestamp
+		events = pd.read_csv( root_data+folder+'data_original/'+eventname+'.txt', sep=' ', names=['nodei', 'nodej', 'tstamp'] ) #rename columns too
+
+		#remove self-loop events, sort by timestamp and reset index
+		events = events.drop( events[ events.nodei==events.nodej ].index ).sort_values( by='tstamp' ).reset_index(drop=True)
+
+		#save event file (no header/index)
+		savename = root_data+folder+'/data_formatted/'+eventname+'.evt'
+		events.to_csv( savename, sep=';', header=False, index=False )
+
+
+#function to format Enron data (from KONECT repository)
+def format_data_Enron( root_data ):
+	"""Format Enron data (from KONECT repository)"""
+
+	filename = root_data+'Enron/data_original/out.enron' #filename
+	#load raw data: source, target, (weight), timestamp
+	events = pd.read_csv( filename, sep=' ', header=0, names=['nodei', 'nodej', 'tstamp'], usecols=[0,1,3] )
+
+	#remove self-loop events, sort by timestamp and reset index
+	events = events.drop( events[ events.nodei==events.nodej ].index ).sort_values( by='tstamp' ).reset_index(drop=True)
+
+	#save event file (no header/index)
+	events.to_csv( root_data+'Enron/data_formatted/Enron.evt', sep=';', header=False, index=False )
 
 
 #function to fit gamma approx of activity model to all ego networks in dataset

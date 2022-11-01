@@ -19,35 +19,40 @@ if __name__ == "__main__":
 	#input arguments
 	loadflag = 'n' #load flag ( 'y', 'n' )
 
-	# #SMALL DATASETS
-	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	# saveloc = root_code+'files/data/' #location of output files
-	# # saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt'), ('QA_nets', 'QA_askubuntu.evt'), ('QA_nets', 'QA_mathoverflow.evt'), ('QA_nets', 'QA_superuser.evt') ]
+	#SMALL DATASETS
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	saveloc = root_code+'files/data/' #location of output files
+	# datasets = [ ('Copenhagen_nets', 'CNS_bt_symmetric.evt'), ('Copenhagen_nets', 'CNS_calls.evt'), ('Copenhagen_nets', 'CNS_sms.evt'), ('greedy_walk_nets', 'email.evt'), ('greedy_walk_nets', 'eml2.evt'), ('greedy_walk_nets', 'fb.evt'), ('greedy_walk_nets', 'forum.evt'), ('greedy_walk_nets', 'messages.evt'), ('MPC_UEu_net', 'MPC_UEu.evt'), ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('greedy_walk_nets', 'pok.evt'), ('sex_contacts_net', 'sexcontact_events.evt'), ('QA_nets', 'QA_askubuntu.evt'), ('QA_nets', 'QA_mathoverflow.evt'), ('QA_nets', 'QA_superuser.evt'), ('SNAP', 'email_Eu_core.evt'), ('SNAP', 'CollegeMsg.evt'), ('Enron', 'Enron.evt') ]
+	datasets = [ ('SMS_net', 'MPC_Wu_SD01.evt'), ('SMS_net', 'MPC_Wu_SD02.evt'), ('SMS_net', 'MPC_Wu_SD03.evt'), ('SNAP', 'email_Eu_core.evt'), ('SNAP', 'CollegeMsg.evt'), ('Enron', 'Enron.evt') ]
 
-	#LARGE DATASETS
-	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	# #LARGE DATASETS
+	# root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
-	# ## analysis 1: format data ##
-	#
-	# # #(Bluetooth, Call, SMS) from Copenhagen Networks Study
+	## analysis 1: format data ##
+
+	#(Bluetooth, Call, SMS) from Copenhagen Networks Study
 	# events_bt, events_call, events_sms = dm.format_data_CNS( root_data, loadflag )
-	# #(AskUbuntu, MathOverflow, SuperUser) from Q&A websites
+	#SMS data (from Wu et al. study)
+	# dm.format_data_SMS( root_data )
+	#(AskUbuntu, MathOverflow, SuperUser) from Q&A websites
 	# dm.format_data_QA( root_data )
-
+	#txt-based datasets (email and college data from SNAP)
+	# dm.format_data_txt( root_data )
+	#Enron data (from KONECT repository)
+	# dm.format_data_Enron( root_data )
 
 	## analysis 2: get ego network properties for all datasets ##
 
-	# #SMALL DATASETS
-	# for dataname, eventname in datasets: #loop through considered datasets
-	# 	print( 'dataset name: ' + eventname[:-4] ) #print output
-	#
-	# 	#prepare ego network properties / alter activities
-	# 	egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+	#SMALL DATASETS
+	for dataname, eventname in datasets: #loop through considered datasets
+		print( 'dataset name: ' + eventname[:-4] ) #print output
+
+		#prepare ego network properties / alter activities
+		egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'n', saveloc )
 	#
 	# #LARGE DATASETS
 	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', sys.argv[1] ) ]
@@ -210,16 +215,16 @@ if __name__ == "__main__":
 	# print( 'event name: {}, time period (0/1): {}'.format( eventname, piece ), flush=True ) #print output
 	# #fit activity model to all ego networks (for selected time period) in dataset
 	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
-
-	#LARGE DATASETS
-	dataname = '' #not needed for loading
-	eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
-	# eventname = 'text_2367333_2387126.txt'
-	piece = int( sys.argv[2] ) #chosen time period (=0,1)
-	nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
-	print( 'eventname: {}'.format(eventname), flush=True ) #print output
-	#fit activity model to all ego networks (for selected time period) in dataset
-	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
+	#
+	# #LARGE DATASETS
+	# dataname = '' #not needed for loading
+	# eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
+	# # eventname = 'text_2367333_2387126.txt'
+	# piece = int( sys.argv[2] ) #chosen time period (=0,1)
+	# nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
+	# print( 'eventname: {}'.format(eventname), flush=True ) #print output
+	# #fit activity model to all ego networks (for selected time period) in dataset
+	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
 
 
 	## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files
