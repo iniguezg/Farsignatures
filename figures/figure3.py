@@ -106,7 +106,7 @@ if __name__ == "__main__":
 
 	## DATA ##
 
-	#load ego network properties, alter activities, and alpha fits
+	#load ego network properties and alpha fits
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
