@@ -5,6 +5,7 @@
 #import modules
 import os, sys
 import numpy as np
+import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
@@ -23,20 +24,24 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	bounds = (0, 1000) #bounds for alpha MLE fit
-	nsims = 100 #number of syntethic datasets used to calculate p-value
-	amax = 10000 #maximum activity for theoretical activity distribution
+	#properties to correlate
+	propx = ('degree', 'k')
+	propy = ('act_avg', 't')
 
-	pval_thres = 0.1 #threshold above which alphas are considered
-	alpha_min, alpha_max = 1e-4, 1e2 #extreme values for alpha (to avoid num errors)
+	#alpha fit variables
+	alphamax = 1000 #maximum alpha for MLE fit
+	pval_thres = 0.1 #threshold above which alpha MLEs are considered
+	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+
+	frac_sel = 0.1 #fraction of egos selected to plot
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
 
-	#selected dataset: dataname, eventname, textname
-	dataname, eventname, textname = ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)')
+	#selected dataset: eventname, textname
+	eventname, textname = ( 'forum', 'Forum')
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -64,36 +69,33 @@ if __name__ == "__main__":
 
 	## DATA ##
 
-	print( 'dataset name: ' + eventname[:-4] ) #print output
+	print( 'dataset name: ' + eventname ) #print output
 
-	#prepare ego network properties
-	egonet_props, egonet_acts = dm.egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+	#prepare ego network properties, alter activties, and alpha fits
+	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
+	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, 'y', saveloc, bounds=bounds, nsims=nsims, amax=amax )
+	#filter egos according to fitting results
+	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
 
-	#get activity CCDFs for all egos
-	CCDFs = egonet_acts.groupby('nodei').apply( pm.plot_compcum_dist )
+	#select only egos with largest values of chosen properties:
+	#statistically significant betas (filter)
+	# egonet_selected = egonet_filter.sort_values( by=[propx[0], propy[0]], ascending=False ).iloc[:int(frac_sel*len(egonet_filter)),:]
+	#rejected betas (null)
+	egonet_selected = egonet_null.sort_values( by=[propx[0], propy[0]], ascending=False ).iloc[:int(frac_sel*len(egonet_null)),:]
 
-	#filtering process
-	#step 1: egos with t > a_0
-	egonet_fits_filter = egonet_fits[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
-	#step 2: egos with pvalue > threshold
-	egonet_fits_filter = egonet_fits_filter[ egonet_fits_filter.pvalue > pval_thres ]
-	#step 3: alphas between extreme values (numerical errors)
-	egonet_fits_filter = egonet_fits_filter[ egonet_fits_filter.alpha.between( alpha_min, alpha_max ) ]
-	egonet_fits_filter.sort_values( by='alpha', inplace=True ) #sort by alpha (increasing)
-
-	#filter CCDFs
-	CCDFs_filter = CCDFs[ egonet_fits_filter.index ]
+	#get activity CCDFs for selected egos (keeping ranked order!)
+	CCDFs = egonet_acts.loc[egonet_selected.index,:].groupby('nodei').apply( pm.plot_compcum_dist )[egonet_selected.index]
 
 
-	## PLOTTING ##
+	# PLOTTING ##
 
-	with PdfPages( 'figure_activity_CCDF_{}.pdf'.format( eventname[:-4] ) ) as pdf:
+	# with PdfPages( 'figure_activity_CCDF_{}_filter.pdf'.format( eventname ) ) as pdf:
+	with PdfPages( 'figure_activity_CCDF_{}_null.pdf'.format( eventname ) ) as pdf:
 
 		#loop through selected egos
-		for pos_ego, nodei in enumerate( CCDFs_filter.index ):
+		for pos_ego, nodei in enumerate( CCDFs.index ):
 			if pos_ego % 100 == 0:
 				print( 'pos_ego = {}, nodei = {}'.format( pos_ego, nodei ) )
 
@@ -106,9 +108,10 @@ if __name__ == "__main__":
 
 			#prepare model
 
-			#ego parameters, fitted alpha, and activity array
-			t, a0, amax = egonet_props.act_avg[nodei], egonet_props.act_min[nodei], egonet_props.act_max[nodei] #ego parameters
-			alpha = egonet_fits.alpha[nodei] #fitted alpha
+			#ego parameters, fitted alpha/beta, and activity array
+			t, a0, amax = egonet_selected.act_avg[nodei], egonet_selected.act_min[nodei], egonet_selected.act_max[nodei] #ego parameters
+			alpha = egonet_selected.alpha[nodei] #fitted alpha/beta
+			beta = (t - a0) / (alpha + a0)
 			a_vals = np.arange( a0, amax+1, dtype=int ) #activity range
 
 			#model activity dist and cumulative
@@ -135,7 +138,7 @@ if __name__ == "__main__":
 					yplot, not_used = np.histogram( egonet_acts[ nodei ], bins=len(xplot), range=( xplot.min()-0.5, xplot.max()+0.5 ), density=True )
 					symbol = 'o'
 				else:
-					xplot, yplot = CCDFs_filter[ nodei ]
+					xplot, yplot = CCDFs[ nodei ]
 					symbol = '--'
 
 				plt.loglog( xplot, yplot, symbol, c=colors[0], label='data', lw=plot_props['linewidth']-1, ms=plot_props['marker_size'], zorder=0 )
@@ -157,7 +160,7 @@ if __name__ == "__main__":
 					plt.text( 1.1, 1.05, 'nodei = {}'.format( nodei ), va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 				if grid_pos == 1:
-					param_str = '$k =$ {}\n'.format( egonet_props.degree[nodei] )+r'$\tau =$ {}'.format( egonet_props.strength[nodei] )+'\n$t =$ {:.2f}\n$a_0 =$ {}\n$a_m =$ {}\n\n'.format( t, a0, amax )+r'$\alpha =$ {:.4f}'.format( alpha )+'\nKS stat = {:.2f}\np-val = {:.2f}'.format( egonet_fits.statistic[nodei], egonet_fits.pvalue[nodei] )
+					param_str = '$k =$ {}\n'.format( egonet_selected.degree[nodei] )+r'$\tau =$ {}'.format( egonet_selected.strength[nodei] )+'\n$t =$ {:.2f}\n$a_0 =$ {}\n$a_m =$ {}\n\n'.format( t, a0, amax )+r'$\beta =$ {:.4f}'.format( beta )+'\nKS stat = {:.3f}\np-val = {:.3f}'.format( egonet_selected.statistic[nodei], egonet_selected.pvalue[nodei] )
 
 					plt.text( 1, 0.7, param_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
@@ -165,7 +168,7 @@ if __name__ == "__main__":
 					plt.legend( loc='upper right', bbox_to_anchor=(1, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )
 
 				#finalise subplot
-				plt.axis([ 1e0, egonet_props.act_max[ egonet_fits_filter.index ].max()+1, 1./( egonet_props.degree[ egonet_fits_filter.index ].max()+1 ), 1e0 ])
+				plt.axis([ 1e0, egonet_props.act_max[ egonet_selected.index ].max()+1, 1./( egonet_props.degree[ egonet_selected.index ].max()+1 ), 1e0 ])
 				ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 			#finalise plot
@@ -174,12 +177,3 @@ if __name__ == "__main__":
 
 
 #DEBUGGIN'
-
-#	degrees, num_events, actmeans, amins, amaxs = egonet_props['degree'], egonet_props['strength'], egonet_props['act_avg'], egonet_props['act_min'], egonet_props['act_max'] #unpack props
-
-#			if fig_props['savename'] != '':
-#				plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-#	#join files at the end and delete temp files
-#	os.system( 'pdfunite temp_*.pdf figure_activity_CCDF_{}.pdf'.format( eventname[:-4] ) )
-#	os.system( 'rm temp_*.pdf' )
