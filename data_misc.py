@@ -7,6 +7,7 @@ import os
 import numpy as np
 import pandas as pd
 import pickle as pk
+import scipy.stats as ss
 # import graph_tool.all as gt
 
 import model_misc as mm
@@ -599,9 +600,81 @@ def graph_props( eventname, loadflag, saveloc, max_iter=1000 ):
 	return graph_props
 
 
-#function to fit activity model to all ego networks in dataset
-def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=None, alphamax=1000, nsims=2500, amax=10000 ):
-	"""Fit activity model to all ego networks in dataset"""
+#function to fit activity model (test statistics and bootstrapped p-values) to all ego networks in dataset
+def egonet_fits( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=None, alpha_bounds=(1e-4, 1e3), nsims=2500 ):
+	"""Fit activity model (test statistics and bootstrapped p-values) to all ego networks in dataset"""
+
+	if egonet_tuple: #when analyzing selected time period
+		savename = saveloc + 'egonet_fits_piece_{}_{}'.format( egonet_tuple[2], eventname[:-4] ) + '.pkl'
+	else: #or the full dataset
+		savename = saveloc + 'egonet_fits_' + eventname[:-4] + '.pkl'
+
+	if loadflag == 'y': #load files
+		egonet_fits = pd.read_pickle( savename )
+
+	elif loadflag == 'n': #or else, compute everything
+
+		rng = np.random.default_rng() #initialise random number generator
+
+		#prepare ego network properties
+		if egonet_tuple: #load directly from tuple
+			egonet_props, egonet_acts, piece = egonet_tuple
+		else: #or from function
+			egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+		num_egos = len(egonet_props) #number of egos
+
+		#initialise dataframe of alpha fits, statistics and related p-values (to NaNs!)
+		columns = ['alpha', 'KS_stat', 'KS_pval', 'W2_stat', 'W2_pval', 'U2_stat', 'U2_pval', 'A2_stat', 'A2_pval']
+		egonet_fits = pd.DataFrame( np.zeros( ( num_egos, len(columns) ) )*np.nan, index=egonet_props.index, columns=pd.Series( columns, name='measure' ) )
+
+		for pos, nodei in enumerate( egonet_props.index ): #loop through egos
+			if pos % 10 == 0: #to know where we stand
+				print( 'ego {} out of {}'.format( pos, num_egos ), flush=True )
+
+			#parameters in data
+			k = egonet_props.loc[nodei, 'degree'] #degree
+			tau = egonet_props.loc[nodei, 'strength'] #strength (number of events)
+			t = egonet_props.loc[nodei, 'act_avg'] #mean alter activity
+			a0 = egonet_props.loc[nodei, 'act_min'] #min/max alter activity
+			amax = egonet_props.loc[nodei, 'act_max']
+
+			#only do fitting for egos with t > a_0
+			if k * a0 < tau:
+				#alter activity in data
+				activity = egonet_acts[nodei]
+
+				#alpha fit and test statistics for data
+				alpha, stats = mm.alpha_stats( activity, alpha_bounds=alpha_bounds )
+
+				a_vals = range(a0, amax+1) #activity values
+				#theo activity dist in range a=[a0, amax] (i.e. inclusive)
+				act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in a_vals ])
+				act_dist_theo /= act_dist_theo.sum() #normalise (due to finite activity range in data)
+
+				#simulations of alter activity from data fit: nsims sims of size k in range a_vals with dist p
+				activity_sims = rng.choice( a_vals, size=(nsims, k), p=act_dist_theo )
+
+				#test statistics of alpha fit for simulated activity (get their own alpha but leave out!)
+				stats_sims = np.array([ mm.alpha_stats( act, alpha_bounds=alpha_bounds )[1] for act in activity_sims ])
+
+				#get p-values as fraction of sim test stats LARGER than data test stat
+				comp_arr = stats_sims > stats #comparison array
+				pvals = comp_arr.sum(axis=0) / (~np.isnan(comp_arr)).sum(axis=0).astype(float) #normalise (& disregard NaNs!)
+
+				egonet_fits.loc[ nodei, 'alpha' ] = alpha
+				egonet_fits.loc[ nodei, ['KS_stat', 'W2_stat', 'U2_stat', 'A2_stat'] ] = stats
+				egonet_fits.loc[ nodei, ['KS_pval', 'W2_pval', 'U2_pval', 'A2_pval'] ] = pvals
+
+			if pos % 10 == 0: #every once in a while...
+				egonet_fits.to_pickle( savename ) #save dataframe to file
+		egonet_fits.to_pickle( savename ) #and again (just in case)
+
+	return egonet_fits
+
+
+#function to fit activity model to all ego networks in dataset (MP implementation)
+def egonet_fits_MP( dataname, eventname, root_data, loadflag, saveloc, egonet_tuple=None, alphamax=1000, nsims=2500, amax=10000 ):
+	"""Fit activity model to all ego networks in dataset (MP implementation)"""
 
 	if egonet_tuple: #when analyzing selected time period
 		savename = saveloc + 'egonet_fits_piece_{}_{}'.format( egonet_tuple[2], eventname[:-4] ) + '.pkl'
@@ -1340,3 +1413,20 @@ def egonet_gammas( dataname, eventname, root_data, loadflag, saveloc ):
 		# #save all to file
 		# with open( savename, 'wb' ) as file:
 		# 	pk.dump( egonet_fits_pieces, file )
+
+			# KS, CvM, MWU = np.zeros(2), np.zeros(2), np.zeros(2) #initialise test statistics and p-values
+			# for act in activity_sims:
+			# 	KS += np.array(ss.ks_2samp( activity, act )) #Kolmogorov-Smirnov
+			#
+			# 	CvM_res = ss.cramervonmises_2samp( activity, act ) #Cramer-von Mises
+			# 	CvM += np.array([CvM_res.statistic, CvM_res.pvalue])
+			#
+			# 	MWU_res = ss.mannwhitneyu( activity, act ) #Mann-Whitney U rank
+			# 	MWU += np.array([MWU_res.statistic, MWU_res.pvalue])
+			# KS /= nsims #average values
+			# CvM /= nsims
+			# MWU /= nsims
+			#
+			# egonet_stats.loc[ nodei, ['KS_stat', 'KS_pval'] ] = KS
+			# egonet_stats.loc[ nodei, ['CvM_stat', 'CvM_pval'] ] = CvM
+			# egonet_stats.loc[ nodei, ['MWU_stat', 'MWU_pval'] ] = MWU

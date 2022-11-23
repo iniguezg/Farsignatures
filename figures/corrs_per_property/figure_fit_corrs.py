@@ -22,35 +22,32 @@ if __name__ == "__main__":
 	## CONF ##
 
 #	fit/data properties to correlate
-	properties_x = [ ('gamma', r'\hat{\alpha}_r'),
-	 				 ('gamma', r'\hat{\alpha}_r'),
-					 ('act_avg_rel', 't_r'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta')
-					]
-	properties_y = [ ('act_avg_rel', 't_r'),
-					 ('beta', r'\beta'),
-					 ('beta', r'\beta'),
-					 ('degree', 'k'),
-					 ('str_rel', r'\tau_r'),
-					 ('act_min', r'a_0'),
-					 ('act_max', r'a_m'),
-					]
-	# properties_x = [ ('gamma', r'\hat{\alpha}_r') ]
-	# properties_y = [ ('act_avg_rel', 't_r') ]
+	# properties_x = [ ('gamma', r'\hat{\alpha}_r'),
+	#  				 ('gamma', r'\hat{\alpha}_r'),
+	# 				 ('act_avg_rel', 't_r'),
+	# 				 ('beta', r'\beta'),
+	# 				 ('beta', r'\beta'),
+	# 				 ('beta', r'\beta'),
+	# 				 ('beta', r'\beta')
+	# 				]
+	# properties_y = [ ('act_avg_rel', 't_r'),
+	# 				 ('beta', r'\beta'),
+	# 				 ('beta', r'\beta'),
+	# 				 ('degree', 'k'),
+	# 				 ('str_rel', r'\tau_r'),
+	# 				 ('act_min', r'a_0'),
+	# 				 ('act_max', r'a_m'),
+	# 				]
+	properties_x = [ ('gamma', r'\hat{\alpha}_r') ]
+	properties_y = [ ('act_avg_rel', 't_r') ]
 
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
-	# max_iter = 1000 #max number of iteration for centrality calculations
-	# nsims = 1000 #number of syntethic datasets used to calculate p-value
-	# amax = 10000 #maximum activity for theoretical activity distribution
 
 	#plotting variables
 	gridsize = 40 #grid size for hex bins
-	vmax = 4e6 #max value in colorbar (larger than [filtered] N in any dataset!)
+	vmax = 1e6 #max value in colorbar (larger than [filtered] N in any dataset!)
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -64,14 +61,17 @@ if __name__ == "__main__":
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
+				 # ( 'sexcontact_events', 'Contact'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
+				 ( 'Enron', 'Email (Enron)'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
 				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'CollegeMsg', 'College'),
+				 # ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
 				 ( 'CNS_calls', 'CNS (call)'),
 				 ( 'CNS_sms', 'CNS (sms)') ]
 
@@ -98,8 +98,7 @@ if __name__ == "__main__":
 		fig_props = { 'fig_num' : 1,
 		'fig_size' : (10, 8),
 		'aspect_ratio' : (4, 4),
-		'grid_params' : dict( left=0.08, bottom=0.08, right=0.98, top=0.97, wspace=0.2, hspace=0.4 ),
-		'width_ratios' : [1, 1, 1, 1.2],
+		'grid_params' : dict( left=0.075, bottom=0.08, right=0.98, top=0.97, wspace=0.2, hspace=0.4 ),
 		'dpi' : 300,
 		'savename' : 'figure_fit_corrs_{}_{}'.format( propx[0], propy[0] ) }
 
@@ -107,7 +106,7 @@ if __name__ == "__main__":
 		sns.set( style='ticks' ) #set fancy fancy plot
 		fig = plt.figure( fig_props['fig_num'], figsize=fig_props['fig_size'] )
 		plt.clf()
-		grid = gridspec.GridSpec( *fig_props['aspect_ratio'], width_ratios=fig_props['width_ratios'] )
+		grid = gridspec.GridSpec( *fig_props['aspect_ratio'] )
 		grid.update( **fig_props['grid_params'] )
 
 		#loop through considered datasets
@@ -135,19 +134,19 @@ if __name__ == "__main__":
 			#initialise subplot
 			ax = plt.subplot( grid[ grid_pos] )
 			sns.despine( ax=ax ) #take out spines
-			if grid_pos in [11, 12, 13, 14]:
+			if grid_pos in [12, 13, 14, 15]:
 				plt.xlabel( '$'+propx[1]+'$', size=plot_props['xylabel'] )
 			if grid_pos in [0, 4, 8, 12]:
 				plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
 			#plot plot!
-			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='copper_r', zorder=0 )
+			vmax = len(egonet_filter) #max value in colorbar (total number of egos in filtered dataset)
+			hexbin = plt.hexbin( propx[0], propy[0], data=egonet_filter, xscale='log', yscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=1, gridsize=gridsize, cmap='GnBu', zorder=0 )
 
 			#colorbar
-			if grid_pos in [3, 7, 11]:
-				cbar = plt.colorbar( hexbin, ax=ax )
-				cbar.ax.set_title( r'$N_{'+propx[1]+','+propy[1]+'}$' )
-				cbar.ax.minorticks_off()
+			cbar = plt.colorbar( hexbin, ax=ax )
+			cbar.ax.set_title( r'$N_{'+propx[1]+','+propy[1]+'}$' )
+			cbar.ax.minorticks_off()
 
 			#lines
 
@@ -181,7 +180,7 @@ if __name__ == "__main__":
 				plt.axis([ 1e-4, 1e5, 1e0, 1e5 ])
 			ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 			ax.locator_params( numticks=5 )
-			if grid_pos not in [11, 12, 13, 14]:
+			if grid_pos not in [12, 13, 14, 15]:
 				ax.tick_params(labelbottom=False)
 			if grid_pos not in [0, 4, 8, 12]:
 				ax.tick_params(labelleft=False)
@@ -189,3 +188,9 @@ if __name__ == "__main__":
 		#finalise plot
 		if fig_props['savename'] != '':
 			plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
+
+#DEBUGGIN'
+
+	# max_iter = 1000 #max number of iteration for centrality calculations
+	# nsims = 1000 #number of syntethic datasets used to calculate p-value
+	# amax = 10000 #maximum activity for theoretical activity distribution

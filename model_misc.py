@@ -6,6 +6,7 @@
 import numpy as np
 import pandas as pd
 import scipy.stats as ss
+import scipy.special as sps
 import scipy.optimize as spo
 from mpmath import mp
 
@@ -99,8 +100,80 @@ def model_activity( params, loadflag='n', saveloc='files/model/', saveflag=True,
 
 
 #function to compute MLE optimal alpha from activity array
-def alpha_MLE_fit( activity, bounds ):
+def alpha_MLE_fit( activity, bracket ):
 	"""Compute MLE optimal alpha from activity array"""
+
+	k = activity.size #degree
+	tau = activity.sum() #strength (number of events)
+	t = activity.mean() #mean alter activity
+	a0 = activity.min() #min alter activity
+
+	if k * a0 < tau: #solving alpha trascendental equation in non-trivial case
+		#MLE functions
+		digamma_avg = lambda alpha : sps.digamma( alpha+activity ).mean() - sps.digamma( alpha+a0 )
+		beta = lambda alpha : ( t - a0 ) / ( alpha + a0 )
+		alpha_func = lambda alpha : digamma_avg(alpha) - np.log( 1 + beta(alpha) )
+
+		#look for alpha root numerically (within given bounds via bracket method)
+		if np.sign(alpha_func(bracket[0])) != np.sign(alpha_func(bracket[1])):
+			#if bracket limits have opposite signs
+			alpha_res = spo.root_scalar( alpha_func, bracket=bracket )
+			alpha = alpha_res.root
+		else:
+			alpha = bracket[1] #else, root diverges to infinity
+
+	else: #if we cannot do MLE
+		alpha = np.nan
+
+	return alpha
+
+
+#function to get MLE optimal alpha (optional) and test statistics from activity array
+def alpha_stats( activity, alpha=None, alpha_bounds=(1e-4, 1e3) ):
+	"""Get MLE optimal alpha (optional) and test statistics from activity array"""
+
+	k = activity.size #degree
+	t = activity.mean() #mean alter activity
+	a0 = activity.min() #min/max alter activity
+	amax = activity.max()
+
+	if alpha == None:
+		alpha = alpha_MLE_fit( activity, ( -a0+alpha_bounds[0], alpha_bounds[1] ) ) #alpha fit
+
+	#only consider alphas in non-trivial case t > a_0
+	if np.isnan( alpha ) == False:
+
+		a_vals = range(a0, amax+1) #activity values
+		#cumulative dist of alter activity in range a=[a0, amax] (i.e. inclusive)
+		act_cumdist = ss.cumfreq( activity, defaultreallimits=( a_vals[0]-0.5, a_vals[-1]+0.5 ), numbins=len(a_vals) ).cumcount / k
+
+		#theo activity dist in range a=[a0, amax] (i.e. inclusive)
+		act_dist_theo = np.array([ activity_dist( a, t, alpha, a0 ) for a in a_vals ])
+		act_dist_theo /= act_dist_theo.sum() #normalise (due to finite activity range in data)
+		#theo cumulative dist
+		act_cumdist_theo = np.cumsum( act_dist_theo )
+		#related quantities: difference between cum dists, its average, and theo cum dist product
+		cumdist_diff = act_cumdist - act_cumdist_theo
+		cumdist_diff_avg = ( cumdist_diff * act_dist_theo ).sum()
+		cumdist_theo_prod = act_cumdist_theo * ( 1 - act_cumdist_theo )
+		#fix (small) numerical errors
+		cumdist_diff[-1], cumdist_theo_prod[-1] = 0., 0.
+
+		#Kolmogorov-Smirnov and Cramer-von Mises statistics
+		KS = np.abs( cumdist_diff ).max() #Kolmogorov-Smirnov
+		W2 = k*( cumdist_diff**2 * act_dist_theo ).sum() #Cramer-von Mises
+		U2 = k*( ( cumdist_diff - cumdist_diff_avg )**2 * act_dist_theo ).sum() #Watson
+		A2 = k*( cumdist_diff[:-1]**2 * act_dist_theo[:-1] / cumdist_theo_prod[:-1] ).sum() #Anderson-Darling (last term is 0/0=0)
+
+	else:
+		KS, W2, U2, A2 = np.nan, np.nan, np.nan, np.nan
+
+	return alpha, [KS, W2, U2, A2]
+
+
+#function to compute MLE optimal alpha from activity array (MP implementation)
+def alpha_MLE_fit_MP( activity, bounds ):
+	"""Compute MLE optimal alpha from activity array (MP implementation)"""
 
 	a0 = min( activity ) #minimum alter activity
 	t = np.mean( activity ) #mean alter activity
@@ -145,7 +218,8 @@ def alpha_KSstat( activity, alphamax=1000 ):
 	#only consider alphas in non-trivial case t > a_0
 	if np.isnan( alpha ) == False:
 		#theo activity dist in range a=[0, amax] (i.e. inclusive)
-		act_dist_theo = [ activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ]
+		act_dist_theo = np.array([ activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
+		act_dist_theo /= act_dist_theo.sum() #normalise (due to finite activity range in data)
 		#cumulative dist
 		act_cumdist_theo = np.cumsum( act_dist_theo )
 

@@ -7,6 +7,7 @@ import os, sys
 import numpy as np
 import pandas as pd
 import seaborn as sns
+import scipy.stats as ss
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 from os.path import expanduser
@@ -106,18 +107,38 @@ if __name__ == "__main__":
 			grid = gridspec.GridSpec( *fig_props['aspect_ratio'] )
 			grid.update( **fig_props['grid_params'] )
 
-			#prepare model
+			#prepare data
 
-			#ego parameters, fitted alpha/beta, and activity array
-			t, a0, amax = egonet_selected.act_avg[nodei], egonet_selected.act_min[nodei], egonet_selected.act_max[nodei] #ego parameters
+			#alter activities of selected ego
+			activity = egonet_acts.loc[nodei,:]
+
+			#ego parameters
+			k = activity.size #degree
+			t = activity.mean() #mean alter activity
+			a0 = activity.min() #min/max alter activity
+			amax = activity.max()
+
+			#fitted alpha/beta, and activity array
 			alpha = egonet_selected.alpha[nodei] #fitted alpha/beta
 			beta = (t - a0) / (alpha + a0)
 			a_vals = np.arange( a0, amax+1, dtype=int ) #activity range
 
-			#model activity dist and cumulative
-			act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in a_vals ])
-			act_cumdist_theo = np.cumsum( act_dist_theo )
+			#cumulative dist of alter activity in range a=[a0, amax] (i.e. inclusive)
+			act_cumdist = ss.cumfreq( activity, defaultreallimits=( a_vals[0]-0.5, a_vals[-1]+0.5 ), numbins=len(a_vals) ).cumcount / k
 
+			#prepare model
+
+			#theo activity dist in range a=[a0, amax] (i.e. inclusive)
+			act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in a_vals ])
+			act_dist_theo /= act_dist_theo.sum() #normalise (due to finite activity range in data)
+			#theo cumulative dist
+			act_cumdist_theo = np.cumsum( act_dist_theo )
+			#difference between cum dists
+			cumdist_diff = act_cumdist - act_cumdist_theo
+
+			#Kolmogorov-Smirnov statistic
+			KS = np.abs( cumdist_diff ).max()
+			KS_aval = a_vals[ np.abs( cumdist_diff ).argmax() ] #activity value where KS statistic appears
 
 			#plot activity dist (0) and associated CCDF (1)
 			for grid_pos in range(2):
@@ -131,7 +152,7 @@ if __name__ == "__main__":
 				else:
 					plt.ylabel( r"CCDF $P[ a' \geq a ]$", size=plot_props['xylabel'] )
 
-				#plot activity CCDF
+				#plot activity DF/CCDF
 
 				if grid_pos == 0:
 					xplot = a_vals
@@ -141,9 +162,9 @@ if __name__ == "__main__":
 					xplot, yplot = CCDFs[ nodei ]
 					symbol = '--'
 
-				plt.loglog( xplot, yplot, symbol, c=colors[0], label='data', lw=plot_props['linewidth']-1, ms=plot_props['marker_size'], zorder=0 )
+				plt.loglog( xplot, yplot, symbol, c=colors[0], label='data', lw=plot_props['linewidth']-1, ms=plot_props['marker_size'], zorder=1 )
 
-				#plot model CCDF
+				#plot model DF/CCDF
 
 				xplot = a_vals
 				if grid_pos == 0:
@@ -152,7 +173,11 @@ if __name__ == "__main__":
 					yplot = np.ones(len( xplot ))
 					yplot[1:] = 1 - act_cumdist_theo[:-1] #get activity CCDF P[X >= x]
 
-				plt.loglog( xplot, yplot, '-', c=colors[1], label='model', lw=plot_props['linewidth'], zorder=1 )
+				plt.loglog( xplot, yplot, '-', c=colors[1], label='model', lw=plot_props['linewidth'], zorder=2 )
+
+				#plot KS line
+				if grid_pos == 1:
+					plt.axvline( x=KS_aval, ls='--', c='0.5', lw=plot_props['linewidth']-1, zorder=0 )
 
 				#texts
 
