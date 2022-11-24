@@ -311,7 +311,7 @@ def data_params_parallel( datasets, root_data, loadflag, saveloc ):
 
 			#dataset parameters (all egos)
 			params_data.at[ eventname, 'num_all' ] = len( egonet_props )
-			params_data.at[ eventname, 'num_events' ] = egonet_props.strength.sum() / 2. #events are counted twice per ego/alter pair!
+			params_data.at[ eventname, 'num_events' ] = egonet_props.strength.sum() #events are only counted once per ego/alter pair!
 			#dataset parameters (filtered egos only!)
 			params_data.at[ eventname, 'num_egos' ] = len( egonet_props_filter )
 			params_data.at[ eventname, 'avg_degree' ] = egonet_props_filter.degree.mean()
