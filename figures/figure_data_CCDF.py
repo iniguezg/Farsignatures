@@ -31,20 +31,20 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
-#	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
 				 ( 'CNS_calls', 'CNS (call)'),
 				 ( 'CNS_sms', 'CNS (sms)') ]
 
@@ -87,13 +87,15 @@ if __name__ == "__main__":
 
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		#filter egos by t > a0 condition
+		egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 
 		## PLOTTING ##
 
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		if grid_pos in [11, 12, 13, 14]:
+		if grid_pos in [12, 13, 14, 15]:
 			plt.xlabel( r'property $\bullet$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"CCDF $P[ \bullet' \geq \bullet ]$", size=plot_props['xylabel'] )
@@ -102,7 +104,7 @@ if __name__ == "__main__":
 		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
 
 			#prepare data
-			yplot_data = egonet_props[ prop_name ]
+			yplot_data = egonet_props_filter[ prop_name ]
 			xplot, yplot = pm.plot_compcum_dist( yplot_data ) #complementary cumulative dist
 
 			#plot plot!
@@ -120,7 +122,7 @@ if __name__ == "__main__":
 		plt.axis([ 1e0, 1e5, 1e-5, 2e0 ])
 		ax.tick_params( axis='both', which='major', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=6 )
-		if grid_pos not in [11, 12, 13, 14]:
+		if grid_pos not in [12, 13, 14, 15]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)

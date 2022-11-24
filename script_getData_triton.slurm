@@ -10,8 +10,8 @@ module load anaconda
 # sbatch -J params_data_parallel -o params_data_parallel.out script_getData_triton.sh
 
 #analysis 5
-sbatch -J egonet_fits -o egonet_fits_%a.out --array=1-14 script_getData_triton.sh
-#sbatch -J egonet_fits -o egonet_fits_%a.out --array=6 script_getData_triton.sh
+# sbatch -J egonet_fits -o egonet_fits_%a.out --array=1-14 script_getData_triton.sh
+sbatch -J egonet_fits_test -o egonet_fits_test_%a.out --array=1-2 script_getData_triton.sh
 
 #analysis 9/11/12
 # sbatch script_getData_triton.sh

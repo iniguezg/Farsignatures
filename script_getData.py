@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	#LARGE DATASETS
 	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	## analysis 1: format data ##
@@ -91,14 +91,14 @@ if __name__ == "__main__":
 	# 		egonet_props, egonet_acts = dm.egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
 
 
-	## analysis 3: get parameters for all datasets ##
-
+	# ## analysis 3: get parameters for all datasets ##
+	#
 	# #SMALL DATASETS
 	# params_data = dm.data_params( datasets, root_data, loadflag, saveloc )
-
-	#LARGE DATASETS
+	#
+	# LARGE DATASETS
 	# datasets = [ ('MPC_UEu_sample', 'text') ]
-	params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
+	# params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
 
 
 	# ## analysis 4: get number of egos with dynamics (t > a_0) for all datasets ##
@@ -125,14 +125,15 @@ if __name__ == "__main__":
 	# dataname = sys.argv[1]
 	# eventname = sys.argv[2]
 	# nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
-	# # #LARGE DATASETS
-	# # dataname = '' #not needed for loading
-	# # eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
-	#
-	# print( 'event name: ' + eventname, flush=True ) #print output
-	#
-	# #fit activity model to all ego networks in dataset
-	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
+	#LARGE DATASETS
+	dataname = '' #not needed for loading
+	eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
+	nsims = int( sys.argv[2] ) #realizations for fit bootstrapping
+
+	print( 'event name: ' + eventname, flush=True ) #print output
+
+	#fit activity model to all ego networks in dataset
+	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
 
 
 	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
