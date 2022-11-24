@@ -246,26 +246,31 @@ def data_params( datasets, root_data, loadflag, saveloc ):
 	elif loadflag == 'n': #or else, compute parameters
 
 		#initialise dataframe of parameters for datasets
-		params_data = pd.DataFrame( np.zeros( ( len(datasets), 7 ) ), index=pd.Series( [ dset[1][:-4] for dset in datasets ], name='dataset') , columns=pd.Series( [ 'num_egos', 'num_events', 'avg_degree', 'avg_strength', 'avg_activity', 'avg_actmin', 'avg_actmax' ], name='parameter' ) )
+		columns = [ 'num_all', 'num_events', 'num_egos', 'avg_degree', 'avg_strength', 'avg_actavg', 'avg_actvar', 'avg_actmin', 'avg_actmax' ]
+		params_data = pd.DataFrame( np.zeros( ( len(datasets), len(columns) ) ), index=pd.Series( [ dset[1][:-4] for dset in datasets ], name='dataset') , columns=pd.Series( columns, name='parameter' ) )
 
 		for dataname, eventname in datasets: #loop through considered datasets
 			print( 'dataset name: ' + eventname[:-4] ) #print output
 
 			#prepare ego network properties
-			egonet_props, egonet_acts = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
-#			degrees, actmeans = egonet_props['degree'], egonet_props['act_avg']
+			egonet_props, not_used = egonet_props_acts( dataname, eventname, root_data, 'y', saveloc )
+			#filter egos by t > a0 condition
+			egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 
-			#save dataset parameters
-			params_data.at[ eventname[:-4], 'num_egos' ] = len( egonet_props )
-			params_data.at[ eventname[:-4], 'num_events' ] = ( egonet_props.degree * egonet_props.act_avg ).sum() / 2 #divide by 2 (since events are counted twice per ego/alter pair)
-			params_data.at[ eventname[:-4], 'avg_degree' ] = egonet_props.degree.mean()
-			params_data.at[ eventname[:-4], 'avg_strength' ] = ( egonet_props.degree * egonet_props.act_avg ).mean()
-			params_data.at[ eventname[:-4], 'avg_activity' ] = egonet_props.act_avg.mean()
-			params_data.at[ eventname[:-4], 'avg_actmin' ] = egonet_props.act_min.mean()
-			params_data.at[ eventname[:-4], 'avg_actmax' ] = egonet_props.act_max.mean()
+			#dataset parameters (all egos)
+			params_data.at[ eventname[:-4], 'num_all' ] = len( egonet_props )
+			params_data.at[ eventname[:-4], 'num_events' ] = egonet_props.strength.sum() / 2. #events are counted twice per ego/alter pair!
+			#dataset parameters (filtered egos only!)
+			params_data.at[ eventname[:-4], 'num_egos' ] = len( egonet_props_filter )
+			params_data.at[ eventname[:-4], 'avg_degree' ] = egonet_props_filter.degree.mean()
+			params_data.at[ eventname[:-4], 'avg_strength' ] = egonet_props_filter.strength.mean()
+			params_data.at[ eventname[:-4], 'avg_actavg' ] = egonet_props_filter.act_avg.mean()
+			params_data.at[ eventname[:-4], 'avg_actvar' ] = egonet_props_filter.act_var.mean()
+			params_data.at[ eventname[:-4], 'avg_actmin' ] = egonet_props_filter.act_min.mean()
+			params_data.at[ eventname[:-4], 'avg_actmax' ] = egonet_props_filter.act_max.mean()
 
 			#fix dtypes
-			params_data = params_data.astype({ 'num_egos' : int, 'num_events' : int })
+			params_data = params_data.astype({ 'num_all' : int, 'num_events' : int, 'num_egos' : int })
 
 		params_data.to_pickle( savename ) #save dataframe to file
 
@@ -284,7 +289,8 @@ def data_params_parallel( datasets, root_data, loadflag, saveloc ):
 	elif loadflag == 'n': #or else, compute parameters
 
 		#initialise dataframe of parameters for large datasets
-		params_data = pd.DataFrame( np.zeros( ( len(datasets), 7 ) ), index=pd.Series( [ dset[1] for dset in datasets ], name='dataset') , columns=pd.Series( [ 'num_egos', 'num_events', 'avg_degree', 'avg_strength', 'avg_activity', 'avg_actmin', 'avg_actmax' ], name='parameter' ) )
+		columns = [ 'num_all', 'num_events', 'num_egos', 'avg_degree', 'avg_strength', 'avg_actavg', 'avg_actvar', 'avg_actmin', 'avg_actmax' ]
+		params_data = pd.DataFrame( np.zeros( ( len(datasets), len(columns) ) ), index=pd.Series( [ dset[1] for dset in datasets ], name='dataset') , columns=pd.Series( columns, name='parameter' ) )
 
 		for dataname, eventname in datasets: #loop through considered large datasets
 			print( 'dataset name: ' + eventname, flush=True ) #print output
@@ -300,18 +306,23 @@ def data_params_parallel( datasets, root_data, loadflag, saveloc ):
 				else: #and initialise dataframe
 					egonet_props = egonet_props_piece
 			egonet_props.sort_index() #sort ego indices
+			#filter egos by t > a0 condition
+			egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 
-			#save dataset parameters
-			params_data.at[ eventname, 'num_egos' ] = len( egonet_props )
-			params_data.at[ eventname, 'num_events' ] = egonet_props.strength.sum() #events are only counted once per ego/alter pair!
-			params_data.at[ eventname, 'avg_degree' ] = egonet_props.degree.mean()
-			params_data.at[ eventname, 'avg_strength' ] = egonet_props.strength.mean()
-			params_data.at[ eventname, 'avg_activity' ] = egonet_props.act_avg.mean()
-			params_data.at[ eventname, 'avg_actmin' ] = egonet_props.act_min.mean()
-			params_data.at[ eventname, 'avg_actmax' ] = egonet_props.act_max.mean()
+			#dataset parameters (all egos)
+			params_data.at[ eventname, 'num_all' ] = len( egonet_props )
+			params_data.at[ eventname, 'num_events' ] = egonet_props.strength.sum() / 2. #events are counted twice per ego/alter pair!
+			#dataset parameters (filtered egos only!)
+			params_data.at[ eventname, 'num_egos' ] = len( egonet_props_filter )
+			params_data.at[ eventname, 'avg_degree' ] = egonet_props_filter.degree.mean()
+			params_data.at[ eventname, 'avg_strength' ] = egonet_props_filter.strength.mean()
+			params_data.at[ eventname, 'avg_actavg' ] = egonet_props_filter.act_avg.mean()
+			params_data.at[ eventname, 'avg_actvar' ] = egonet_props_filter.act_var.mean()
+			params_data.at[ eventname, 'avg_actmin' ] = egonet_props_filter.act_min.mean()
+			params_data.at[ eventname, 'avg_actmax' ] = egonet_props_filter.act_max.mean()
 
 			#fix dtypes
-			params_data = params_data.astype({ 'num_egos' : int, 'num_events' : int })
+			params_data = params_data.astype({ 'num_all' : int, 'num_events' : int, 'num_egos' : int })
 
 		params_data.to_pickle( savename ) #save dataframe to file
 

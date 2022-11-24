@@ -27,6 +27,7 @@ if __name__ == "__main__":
 	# 			 ('Copenhagen_nets', 'CNS_bt_symmetric.evt'),
 	# 			 ('Copenhagen_nets', 'CNS_calls.evt'),
 	# 			 ('Copenhagen_nets', 'CNS_sms.evt'),
+	# 			 ('Enron', 'Enron.evt'),
 	# 			 ('greedy_walk_nets', 'email.evt'),
 	# 			 ('greedy_walk_nets', 'eml2.evt'),
 	# 			 ('greedy_walk_nets', 'fb.evt'),
@@ -37,19 +38,18 @@ if __name__ == "__main__":
 	# 			 ('SMS_net', 'MPC_Wu_SD01.evt'),
 	# 			 ('SMS_net', 'MPC_Wu_SD02.evt'),
 	# 			 ('SMS_net', 'MPC_Wu_SD03.evt'),
+	# 			 ('SNAP', 'email_Eu_core.evt'),
+	# 			 ('SNAP', 'CollegeMsg.evt'),
 	# 			 ('sex_contacts_net', 'sexcontact_events.evt'),
 	# 			 ('QA_nets', 'QA_askubuntu.evt'),
 	# 			 ('QA_nets', 'QA_mathoverflow.evt'),
-	# 			 ('QA_nets', 'QA_superuser.evt'),
-	# 			 ('SNAP', 'email_Eu_core.evt'),
-	# 			 ('SNAP', 'CollegeMsg.evt'),
-	# 			 ('Enron', 'Enron.evt')
+	# 			 ('QA_nets', 'QA_superuser.evt')
 	# 			]
 
 	#LARGE DATASETS
 	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	## analysis 1: format data ##
@@ -95,10 +95,10 @@ if __name__ == "__main__":
 
 	# #SMALL DATASETS
 	# params_data = dm.data_params( datasets, root_data, loadflag, saveloc )
-	#
-	# #LARGE DATASETS
-	# # datasets = [ ('MPC_UEu_sample', 'text') ]
-	# params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
+
+	#LARGE DATASETS
+	# datasets = [ ('MPC_UEu_sample', 'text') ]
+	params_data = dm.data_params_parallel( datasets, root_data, loadflag, saveloc )
 
 
 	# ## analysis 4: get number of egos with dynamics (t > a_0) for all datasets ##
@@ -121,18 +121,18 @@ if __name__ == "__main__":
 
 	# ## analysis 5: fit activity model to ego networks in all datasets ##
 	#
-	#SMALL DATASETS
-	dataname = sys.argv[1]
-	eventname = sys.argv[2]
-	nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
+	# #SMALL DATASETS
+	# dataname = sys.argv[1]
+	# eventname = sys.argv[2]
+	# nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
 	# # #LARGE DATASETS
 	# # dataname = '' #not needed for loading
 	# # eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
-
-	print( 'event name: ' + eventname, flush=True ) #print output
-
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
+	#
+	# print( 'event name: ' + eventname, flush=True ) #print output
+	#
+	# #fit activity model to all ego networks in dataset
+	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
 
 
 	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
