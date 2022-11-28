@@ -30,9 +30,9 @@
 #nsims:400, extra:300
 #find . ! -name . -prune -type f -name 'egonet_props_text_*' > filenames_text.txt
 
-n=$SLURM_ARRAY_TASK_ID
-filename=`sed -n "${n} p" filenames_test.txt`
-srun python script_getData.py ${filename} 2500
+# n=$SLURM_ARRAY_TASK_ID
+# filename=`sed -n "${n} p" filenames_test.txt`
+# srun python script_getData.py ${filename} 2500
 
 
 ## analysis 9: compute connection kernel for all ego networks in all datasets ##
@@ -66,12 +66,9 @@ srun python script_getData.py ${filename} 2500
 ## analysis 12: fit activity model to ego networks per time period in all datasets ##
 
 #SMALL DATASETS
-#--job-name=egonet_fits_piece
-#--output=egonet_fits_piece_%a.out
-#--array=1-28
-# n=$SLURM_ARRAY_TASK_ID
-# filename=`sed -n "${n} p" filenames_pieces.txt`
-# srun python script_getData.py ${filename}
+n=$SLURM_ARRAY_TASK_ID
+filename=`sed -n "${n} p" filenames_pieces.txt`
+srun python script_getData.py ${filename}
 
 #LARGE DATASETS
 #grep --include=\*.out -rnw './' -e 'error'
@@ -112,3 +109,7 @@ srun python script_getData.py ${filename} 2500
 
 #--job-name=egonet_fits_text
 #--output=egonet_fits_text_%a.out
+
+#--job-name=egonet_fits_piece
+#--output=egonet_fits_piece_%a.out
+#--array=1-28

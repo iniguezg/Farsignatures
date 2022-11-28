@@ -849,7 +849,7 @@ def egonet_props_fits_pieces_parallel( dataname, eventname, root_data, saveloc )
 
 
 #function to fit activity model to all ego networks in selected time period in dataset
-def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, alphamax=1000, nsims=2500, amax=10000 ):
+def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, alpha_bounds=(1e-4, 1e3), nsims=2500 ):
 	"""Fit activity model to all ego networks per time period in dataset"""
 
 	savename = saveloc + 'egonet_fits_piece_{}_{}'.format( piece, eventname[:-4] ) + '.pkl'
@@ -864,7 +864,7 @@ def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc,
 		egonet_tuple = ( egonet_props_pieces[piece], egonet_acts_pieces[piece], piece )
 
 		#fit activity model to all ego networks (and save it)
-		egonet_fits_piece = egonet_fits( dataname, eventname, root_data, 'n', saveloc, egonet_tuple=egonet_tuple, alphamax=alphamax, nsims=nsims, amax=amax )
+		egonet_fits_piece = egonet_fits( dataname, eventname, root_data, 'n', saveloc, egonet_tuple=egonet_tuple, alpha_bounds=alpha_bounds, nsims=nsims )
 
 	return egonet_fits_piece
 
