@@ -870,7 +870,7 @@ def egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc,
 
 
 #function to filter egos according to fitting results
-def egonet_filter( egonet_props, egonet_fits, graph_props=None, alphamax=1000, pval_thres=0.1, alph_thres=1 ):
+def egonet_filter( egonet_props, egonet_fits, stat='KS', pval_thres=0.1, alphamax=1000, alph_thres=1, graph_props=None ):
 	"""Filter egos according to fitting results"""
 
 	#join (ego) properties and fits
@@ -880,8 +880,8 @@ def egonet_filter( egonet_props, egonet_fits, graph_props=None, alphamax=1000, p
 
 	#step 1: egos with t > a_0
 	egonet_filter = props_fits[ props_fits.degree * props_fits.act_min < props_fits.strength ]
-	#step 2: egos with pvalue > threshold
-	egonet_filter = egonet_filter[ egonet_filter.pvalue > pval_thres ]
+	#step 2: egos with pvalue > threshold (according to selected statistic!)
+	egonet_filter = egonet_filter[ egonet_filter[stat+'_pval'] > pval_thres ]
 	#step 3 egos with alpha < alphamax (within tolerance threshold)
 	egonet_filter = egonet_filter[ egonet_filter.alpha < alphamax - alph_thres ]
 

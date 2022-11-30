@@ -48,7 +48,7 @@ Mobile (Wu 3)~\cite{wu2010evidence} & Short messages &"""
 # Contact~\cite{rocha2010information,rocha2011simulated} & Reported sexual contacts &"""
 # +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'sexcontact_events', 'num_all' ], params_data.at[ 'sexcontact_events', 'num_events' ], params_data.at[ 'sexcontact_events', 'num_egos' ], params_data.at[ 'sexcontact_events', 'avg_degree' ], params_data.at[ 'sexcontact_events', 'avg_strength' ], params_data.at[ 'sexcontact_events', 'avg_actavg' ], params_data.at[ 'sexcontact_events', 'avg_actmin' ], params_data.at[ 'sexcontact_events', 'avg_actmax' ] )+
 r"""
-Email (Enron)~\cite{} & Emails &"""
+Email (Enron)~\cite{klimt2004enron,kunegis2013konect} & Emails &"""
 +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'Enron', 'num_all' ], params_data.at[ 'Enron', 'num_events' ], params_data.at[ 'Enron', 'num_egos' ], params_data.at[ 'Enron', 'avg_degree' ], params_data.at[ 'Enron', 'avg_strength' ], params_data.at[ 'Enron', 'avg_actavg' ], params_data.at[ 'Enron', 'avg_actmin' ], params_data.at[ 'Enron', 'avg_actmax' ] )+
 r"""
 Email (Kiel)~\cite{ebel2002scale,saramaki2015exploring} & Emails &"""
@@ -57,7 +57,7 @@ r"""
 Email (Uni)~\cite{eckmann2004entropy,saramaki2015exploring} & Emails &"""
 +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'eml2', 'num_all' ], params_data.at[ 'eml2', 'num_events' ], params_data.at[ 'eml2', 'num_egos' ], params_data.at[ 'eml2', 'avg_degree' ], params_data.at[ 'eml2', 'avg_strength' ], params_data.at[ 'eml2', 'avg_actavg' ], params_data.at[ 'eml2', 'avg_actmin' ], params_data.at[ 'eml2', 'avg_actmax' ] )+
 r"""
-Email (EU)~\cite{} & Emails &"""
+Email (EU)~\cite{leskovec2007graph,paranjape2017motifs} & Emails &"""
 +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'email_Eu_core', 'num_all' ], params_data.at[ 'email_Eu_core', 'num_events' ], params_data.at[ 'email_Eu_core', 'num_egos' ], params_data.at[ 'email_Eu_core', 'avg_degree' ], params_data.at[ 'email_Eu_core', 'avg_strength' ], params_data.at[ 'email_Eu_core', 'avg_actavg' ], params_data.at[ 'email_Eu_core', 'avg_actmin' ], params_data.at[ 'email_Eu_core', 'avg_actmax' ] )+
 r"""
 Facebook~\cite{viswanath2009evolution,saramaki2015exploring} & Online messages &"""
@@ -72,7 +72,7 @@ r"""
 Forum~\cite{said2010social,karimi2014structural,saramaki2015exploring} & Online messages &"""
 +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'forum', 'num_all' ], params_data.at[ 'forum', 'num_events' ], params_data.at[ 'forum', 'num_egos' ], params_data.at[ 'forum', 'avg_degree' ], params_data.at[ 'forum', 'avg_strength' ], params_data.at[ 'forum', 'avg_actavg' ], params_data.at[ 'forum', 'avg_actmin' ], params_data.at[ 'forum', 'avg_actmax' ] )+
 r"""
-College~\cite{} & Online messages &"""
+College~\cite{opsahl2009clustering,panzarasa2009patterns} & Online messages &"""
 +r' {} & {} & {} & {:.2f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( params_data.at[ 'CollegeMsg', 'num_all' ], params_data.at[ 'CollegeMsg', 'num_events' ], params_data.at[ 'CollegeMsg', 'num_egos' ], params_data.at[ 'CollegeMsg', 'avg_degree' ], params_data.at[ 'CollegeMsg', 'avg_strength' ], params_data.at[ 'CollegeMsg', 'avg_actavg' ], params_data.at[ 'CollegeMsg', 'avg_actmin' ], params_data.at[ 'CollegeMsg', 'avg_actmax' ] )+
 # r"""
 # CNS (bluetooth)~\cite{stopczynski2014measuring,sapiezynski2019interaction} & Proximity via Bluetooth &"""

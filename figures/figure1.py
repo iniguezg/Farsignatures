@@ -71,23 +71,22 @@ if __name__ == "__main__":
 	load = True
 
 	#dataset list: eventname, textname
-	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 # ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 # ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
 				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)')
-				]
+				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 13,
@@ -107,7 +106,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (10, 10),
 	'aspect_ratio' : (3, 2),
-	'grid_params' : dict( left=0.085, bottom=0.055, right=0.98, top=0.975, wspace=0.3, hspace=0.45 ),
+	'grid_params' : dict( left=0.085, bottom=0.05, right=0.98, top=0.975, wspace=0.3, hspace=0.45 ),
 	'dpi' : 300,
 	'savename' : 'figure1' }
 
@@ -329,7 +328,7 @@ if __name__ == "__main__":
 	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
 
 	#filter egos according to fitting results
-	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
 
 	print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ), flush=True ) #print ego properties
 	print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ), flush=True )
@@ -556,7 +555,7 @@ if __name__ == "__main__":
 		plt.plot( xplot, yplot, '-', c=colors[grid_pos], label=textname, lw=plot_props['linewidth'] )
 
 	#legend
-	plt.legend( loc='lower left', bbox_to_anchor=(0.07, 0.99), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=7 )
+	plt.legend( loc='lower left', bbox_to_anchor=(0, 0.99), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=8 )
 
 	#finalise subplot
 	plt.axis([ -0.05, 1, 0, 1.05 ])

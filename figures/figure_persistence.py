@@ -26,6 +26,7 @@ if __name__ == "__main__":
 	binrange = (-4, 4) #for histogram
 	bins = 31
 
+	stat = 'KS' #selected test statistic
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alphas are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
@@ -36,20 +37,20 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
-	# datasets = [ ( 'call', 'Mobile (call)'),
-	# 			 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
 				 ( 'CNS_calls', 'CNS (call)'),
 				 ( 'CNS_sms', 'CNS (sms)') ]
 
@@ -98,9 +99,9 @@ if __name__ == "__main__":
 		egonet_fits_piece_1 = pd.read_pickle( saveloc + 'egonet_fits_piece_1_' + eventname + '.pkl' )
 
 		#filter egos according to fitting results
-		egonet_filt, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
-		egonet_filt_piece_0, egonet_inf_piece_0, egonet_null_piece_0 = dm.egonet_filter( egonet_props_pieces[0], egonet_fits_piece_0, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
-		egonet_filt_piece_1, egonet_inf_piece_1, egonet_null_piece_1 = dm.egonet_filter( egonet_props_pieces[1], egonet_fits_piece_1, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+		egonet_filt, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, stat=stat, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
+		egonet_filt_piece_0, egonet_inf_piece_0, egonet_null_piece_0 = dm.egonet_filter( egonet_props_pieces[0], egonet_fits_piece_0, stat=stat, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
+		egonet_filt_piece_1, egonet_inf_piece_1, egonet_null_piece_1 = dm.egonet_filter( egonet_props_pieces[1], egonet_fits_piece_1, stat=stat, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
 
 		print( 'N = {}'.format( len(egonet_props) ) )
 		print( 'full net -> N_alpha = {}, N_inf = {}, N_null = {}'.format( len(egonet_filt), len(egonet_inf), len(egonet_null) ) )
