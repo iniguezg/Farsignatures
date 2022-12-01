@@ -1,6 +1,6 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR PLOTTING FIGURE (CONNECTION KERNEL) IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR PLOTTING FIGURE (ACTIVITY DISPERSION) IN FARSIGNATURES PROJECT ###
 
 #import modules
 import os, sys
@@ -23,18 +23,14 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#plotting variables
-	min_degree = 2 #minimum degree of filtered egos
-	min_negos = 50 #minimum number of egos in filtered activity group
+	#subplot variables
+	filter_prop = 'strength' #selected property and threshold to filter egos
+	filter_thres = 10
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
 	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
 	saveloc = root_code+'files/data/' #location of output files
-	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
-
-	#flags
-	load = True
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
@@ -74,7 +70,7 @@ if __name__ == "__main__":
 	'aspect_ratio' : (4, 4),
 	'grid_params' : dict( left=0.07, bottom=0.06, right=0.98, top=0.97, wspace=0.25, hspace=0.3 ),
 	'dpi' : 300,
-	'savename' : 'figure_kernel' }
+	'savename' : 'figure_dispersion' }
 
 	colors = sns.color_palette( 'Paired', n_colors=1 ) #colors to plot
 
@@ -86,20 +82,36 @@ if __name__ == "__main__":
 	grid.update( **fig_props['grid_params'] )
 
 	#loop through considered datasets
+	total_egos_filter = 0 #init counter of all filtered egos
 	for grid_pos, (eventname, textname) in enumerate(datasets):
-	# for grid_pos, (eventname, textname) in enumerate([ ( 'MPC_UEu', 'Mobile (call)') ]):
+	# for grid_pos, (eventname, textname) in enumerate([ ( 'CNS_calls', 'CNS (call)') ]):
 		print( 'dataset name: ' + eventname ) #print output
 
 		## DATA ##
 
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		#filter egos by t > a0 condition
+		egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 
-		#prepare data: apply degree / negos filters, group and average
-		data_avg = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		#get activity means/variances/minimums per ego
+		act_avgs = egonet_props_filter.act_avg
+		act_vars = egonet_props_filter.act_var
+		act_mins = egonet_props_filter.act_min
+		#filter by selected property
+		act_avgs = act_avgs[ egonet_props_filter[filter_prop] > filter_thres ]
+		act_vars = act_vars[ egonet_props_filter[filter_prop] > filter_thres ]
+		act_mins = act_mins[ egonet_props_filter[filter_prop] > filter_thres ]
+		#get dispersion index measure per ego (use relative mean!)
+		act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
+		act_disps = act_disps.dropna() #drop faulty egos
 
-		#prepare baseline: prob = 1/k for random case
-		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
+		#print output
+		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
+		total_egos_filter += len(act_disps) #filtered egos
+		print( '\tavg disp: {:.2f}'.format( act_disps.mean() ), flush=True ) #mean dispersion
+		if grid_pos == len(datasets)-1:
+			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ), flush=True )
 
 
 		## PLOTTING ##
@@ -108,22 +120,24 @@ if __name__ == "__main__":
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
 		if grid_pos in [12, 13, 14, 15]:
-			plt.xlabel( r'$a$', size=plot_props['xylabel'] )
+			plt.xlabel( r'$d$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r"$\langle \pi_a \rangle$", size=plot_props['xylabel'] )
+			plt.ylabel( r"CCDF $P[ d' \geq d ]$", size=plot_props['xylabel'] )
 
-		#plot plot kernel mean!
-		plt.plot( data_avg, '-', c=colors[0], lw=plot_props['linewidth'], zorder=1 )
-		#plot plot baseline!
-		plt.axhline( bline_avg, xmax=0.75, ls='--', c='0.7', lw=plot_props['linewidth']-1, zorder=0 )
+		#plot plot activity dispersion!
+		xplot, yplot = pm.plot_CCDF_cont( act_disps ) #get dispersion CCDF: P[X >= x]
+		plt.plot( xplot, yplot, '-', c=colors[0], lw=plot_props['linewidth'], zorder=1 )
+		#plot plot average dispersion!
+		plt.axvline( act_disps.mean(), ls='--', c='0.5', lw=plot_props['linewidth']-1, zorder=0 )
 
 		#texts
 		plt.text( 1, 1.1, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['text_size'] )
-		plt.text( 80, bline_avg, r'$\langle 1/k \rangle$', va='center', ha='left', fontsize=plot_props['ticklabel'] )
+		plt.text( act_disps.mean()-0.05, 0.05, r'$\langle d \rangle$', va='bottom', ha='right', fontsize=plot_props['ticklabel'] )
 
 		#finalise subplot
-		plt.axis([ 0, 100, -0.05, 1.05 ])
+		plt.axis([ -0.05, 1, 0, 1.05 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
+		ax.locator_params( nbins=4 )
 		if grid_pos not in [12, 13, 14, 15]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
@@ -133,17 +147,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-		# data_CI = 0.99 * data_grp.std() / np.sqrt( data_grp.size() ) #(Gaussian) confidence interval
-		# plt.fill_between( data_avg.index, data_avg - data_CI, data_avg + data_CI, color=colors[0], alpha=0.5, zorder=1 )
-
-	# gridsize = 40 #grid size for hex bins
-	# vmax = 8e4 #max value in colorbar (larger than N in any dataset!)
-	# 	data_sct = filt_negos[ filt_negos.index.get_level_values(1) != 0 ]
-	# 	#plot plot scatterplot of probabilities!
-	# 	plt.hexbin( data_sct.index.get_level_values(1), data_sct.values, xscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=10, gridsize=gridsize, cmap='copper_r', zorder=1 )
-
-		# print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
