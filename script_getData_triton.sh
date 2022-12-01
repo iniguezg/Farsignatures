@@ -30,8 +30,8 @@
 
 n=$SLURM_ARRAY_TASK_ID
 # filename=`sed -n "${n} p" filenames_test.txt`
-filename=`sed -n "${n} p" filenames_text.txt`
-# filename=`sed -n "${n} p" filenames_call.txt`
+# filename=`sed -n "${n} p" filenames_text.txt`
+filename=`sed -n "${n} p" filenames_call.txt`
 srun python script_getData.py ${filename} 2500
 
 
