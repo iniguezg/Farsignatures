@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	#LARGE DATASETS
 	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	## analysis 1: format data ##
@@ -136,11 +136,11 @@ if __name__ == "__main__":
 	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
 
 
-	## analysis 6: join ego network properties and fits for large dataset separated into several files
-
-	for dataname, eventname in datasets: #loop through datasets
-		print( 'dataset name: ' + eventname, flush=True ) #print output
-		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
+	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
+	#
+	# for dataname, eventname in datasets: #loop through datasets
+	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
+	# 	egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##
@@ -238,16 +238,16 @@ if __name__ == "__main__":
 	# print( 'event name: {}, time period (0/1): {}'.format( eventname, piece ), flush=True ) #print output
 	# #fit activity model to all ego networks (for selected time period) in dataset
 	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
-	#
-	# #LARGE DATASETS
-	# dataname = '' #not needed for loading
-	# eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
-	# # eventname = 'text_2367333_2387126.txt'
-	# piece = int( sys.argv[2] ) #chosen time period (=0,1)
-	# nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
-	# print( 'eventname: {}'.format(eventname), flush=True ) #print output
-	# #fit activity model to all ego networks (for selected time period) in dataset
-	# egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
+
+	#LARGE DATASETS
+	dataname = '' #not needed for loading
+	eventname = sys.argv[1] + '_' + sys.argv[4][20:-4]+'.txt' #i.e. 'text_1000_1020405.txt'
+	# eventname = 'text_2367333_2387126.txt'
+	piece = int( sys.argv[2] ) #chosen time period (=0,1)
+	nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
+	print( 'eventname: {}'.format(eventname), flush=True ) #print output
+	#fit activity model to all ego networks (for selected time period) in dataset
+	egonet_fits_piece = dm.egonet_fits_piece( dataname, eventname, piece, root_data, loadflag, saveloc, nsims=nsims )
 
 
 	## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files

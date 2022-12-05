@@ -94,7 +94,7 @@ r"""
 \small
 \noindent\makebox[\textwidth]{ \begin{tabular}{l r | r r r r}
 \toprule
-Dataset & $N$ & $n_{KS}$ & $n_{W2}$ & $n_{U2}$ & $n_{A2}$ \\
+Dataset & $N$ & $n_{KS}$ & $n_{W^2}$ & $n_{U^2}$ & $n_{A^2}$ \\
 \midrule"""+'\n'
 # +
 # r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[0][1], *params_stats.loc[ 'call' ] )+'\n'

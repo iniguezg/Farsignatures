@@ -28,11 +28,11 @@
 #LARGE DATASETS
 #find . ! -name . -prune -type f -name 'egonet_props_text_*' > filenames_text.txt
 
-n=$SLURM_ARRAY_TASK_ID
-# filename=`sed -n "${n} p" filenames_test.txt`
-# filename=`sed -n "${n} p" filenames_text.txt`
-filename=`sed -n "${n} p" filenames_call.txt`
-srun python script_getData.py ${filename} 2500
+# n=$SLURM_ARRAY_TASK_ID
+# # filename=`sed -n "${n} p" filenames_test.txt`
+# # filename=`sed -n "${n} p" filenames_text.txt`
+# filename=`sed -n "${n} p" filenames_call.txt`
+# srun python script_getData.py ${filename} 2500
 
 
 ## analysis 9: compute connection kernel for all ego networks in all datasets ##
@@ -73,10 +73,10 @@ srun python script_getData.py ${filename} 2500
 #LARGE DATASETS
 #grep --include=\*.out -rnw './' -e 'error'
 
-# n=$SLURM_ARRAY_TASK_ID
-# filename=`sed -n "${n} p" filenames_$1.txt`
-# # filename=`sed -n "${n} p" filenames_test.txt`
-# srun python script_getData.py $1 $2 $3 ${filename}
+n=$SLURM_ARRAY_TASK_ID
+filename=`sed -n "${n} p" filenames_$1.txt`
+# filename=`sed -n "${n} p" filenames_test.txt`
+srun python script_getData.py $1 $2 $3 ${filename}
 
 
 ## analysis 13: join ego network properties / fits / Jaccard indices for periods in large dataset separated into several files
