@@ -49,7 +49,7 @@ if __name__ == "__main__":
 	#LARGE DATASETS
 	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
 	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	# datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
+	datasets = [ ( 'divided_to_roughly_40_mb_files_30_march', 'call' ), ( 'divided_to_roughly_40_mb_files_30_march', 'text' ) ]
 
 
 	## analysis 1: format data ##
@@ -126,21 +126,21 @@ if __name__ == "__main__":
 	# eventname = sys.argv[2]
 	# nsims = int( sys.argv[3] ) #realizations for fit bootstrapping
 	# #LARGE DATASETS
-	dataname = '' #not needed for loading
-	eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
-	nsims = int( sys.argv[2] ) #realizations for fit bootstrapping
-
-	print( 'event name: ' + eventname, flush=True ) #print output
-
-	#fit activity model to all ego networks in dataset
-	egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
-
-
-	# ## analysis 6: join ego network properties and fits for large dataset separated into several files
+	# dataname = '' #not needed for loading
+	# eventname = sys.argv[1][15:] #i.e. 'text_1000_1020405.pkl'
+	# nsims = int( sys.argv[2] ) #realizations for fit bootstrapping
 	#
-	# for dataname, eventname in datasets: #loop through datasets
-	# 	print( 'dataset name: ' + eventname, flush=True ) #print output
-	# 	egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
+	# print( 'event name: ' + eventname, flush=True ) #print output
+	#
+	# #fit activity model to all ego networks in dataset
+	# egonet_fits = dm.egonet_fits( dataname, eventname, root_data, loadflag, saveloc, nsims=nsims )
+
+
+	## analysis 6: join ego network properties and fits for large dataset separated into several files
+
+	for dataname, eventname in datasets: #loop through datasets
+		print( 'dataset name: ' + eventname, flush=True ) #print output
+		egonet_props, egonet_fits = dm.egonet_props_fits_parallel( dataname, eventname, root_data, loadflag, saveloc )
 
 
 	# ## analysis 7: fit gamma approx of activity model to all ego networks in all datasets ##

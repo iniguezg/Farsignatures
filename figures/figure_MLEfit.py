@@ -6,12 +6,11 @@
 import os, sys
 import numpy as np
 import seaborn as sns
-import matplotlib as mpl
-import scipy.special as ss
+import scipy.special as sps
 import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
-from mpmath import mp
 from os.path import expanduser
+from mpl_toolkits.axes_grid1.inset_locator import inset_axes
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import model_misc as mm
@@ -36,11 +35,12 @@ if __name__ == "__main__":
 #	t_vals = [ 100. ]
 
 	#fitting parameters
-	alphamax = 1000 #maximum alpha for MLE fit
+	alpha_bounds=(1e-4, 1e3) #bounds for alpha search
 
 	#plot arrays
-	simpos = 0 #model realization to analyze
-	gamma_vals = np.logspace( -2, 2, num=100 ) #range of estimated relative alpha to plot
+	sim_vals = range(params['ntimes']) #range of simulations to consider
+	# sim_vals = range(50)
+	gamma_vals = np.logspace( -1, 2, num=100 ) #range of estimated relative alpha to plot
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -66,7 +66,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (12, 5),
 	'aspect_ratio' : (1, 3),
-	'grid_params' : dict( left=0.065, bottom=0.2, right=0.985, top=0.95, wspace=0.1 ),
+	'grid_params' : dict( left=0.05, bottom=0.19, right=0.985, top=0.94, wspace=0.1 ),
 	'dpi' : 300,
 	'savename' : 'figure_MLEfit' }
 
@@ -75,8 +75,10 @@ if __name__ == "__main__":
 
 	## MLE ##
 
-	#MLE equations
-	MLE_eq = lambda activity, gamma : float( mp.fsum([ mp.digamma( arel + gamma ) - mp.digamma( gamma ) for arel in activity - min(activity) ]) / len( activity ) )
+	#MLE functions
+	digamma_avg = lambda alpha, activity, a0 : sps.digamma( alpha+activity ).mean() - sps.digamma( alpha+a0 )
+	beta = lambda alpha, a0, t : ( t - a0 ) / ( alpha + a0 )
+	alpha_func = lambda alpha, activity, a0, t : digamma_avg(alpha, activity, a0) - np.log( 1 + beta(alpha, a0, t) )
 
 
 	## PLOTTING ##
@@ -99,49 +101,55 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ alphapos ] )
 		sns.despine( ax=ax ) #take out spines
-		plt.xlabel( r'$\alpha_r$', size=plot_props['xylabel'] )
+		ax.set_xlabel( r'$\alpha_r$', size=plot_props['xylabel'] )
 		if alphapos == 0:
-			plt.ylabel( r'$ | f_{ \alpha } - \ln ( 1 + \beta ) | $', size=plot_props['xylabel'] )
+			ax.set_ylabel( r'$ \langle f_{ \alpha } - \ln ( 1 + \beta ) \rangle $', size=plot_props['xylabel'] )
 
-		line_sims = [] #initialise list of plot handles / labels
-		labels_t, labels_alpha = [], []
+		#initialise inset
+		loc=3 if alphapos == 2 else 1 #inset location and pad
+		borderpad=4 if alphapos == 2 else 0
+		inax = inset_axes(ax, width="30%", height="30%", borderpad=borderpad, loc=loc)
+		sns.despine( ax=inax ) #take out spines
+		inax.set_xlabel( r'$\hat{\alpha}_r$', size=plot_props['xylabel'], labelpad=0 )
+		inax.set_ylabel( r'$P[ \hat{\alpha}_r ]$', size=plot_props['xylabel'], labelpad=2 )
+
+		line_sims, labels_t = [], [] #initialise list of plot handles / labels
 
 		for post in range(len( t_vals )): #loop through target times
 			params['t'] = t_vals[ post ] #mean alter activity (max time in dynamics)
 			print( '\tt = {}'.format( params['t'] ) )
 
-			#load model of alter activity, according to parameters (only selected realization!)
-			activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )[ simpos ]
+			yplot = np.zeros(len(gamma_vals)) #initialise average MLE results
+			gammahat_vals = np.zeros(len(sim_vals))
+			for simpos in sim_vals: #loop through model realizations
 
-			#measure a0 and t (according to activity array!)
-			a0 = min( activity ) #minimum alter activity
-			t = np.mean( activity ) #mean alter activity
+				#load model of alter activity, according to parameters (only selected realization!)
+				activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )[ simpos ]
+				#measure a0 and t (according to activity array!)
+				a0 = min( activity ) #minimum alter activity
+				t = np.mean( activity ) #mean alter activity
 
-			#estimated alpha value
-			bounds = ( -a0, alphamax ) #bounds for alpha search
-			alphahat = mm.alpha_MLE_fit( activity, bounds )
-			gammahat = alphahat + a0
-			print( '\t\testimated alpha_r = {:.2f}'.format( gammahat ) )
-#			print( '\t\t{}'.format( mm.gamma_KSstat( activity ) ) )
+				#estimated alpha value
+				bracket = ( -a0+alpha_bounds[0], alpha_bounds[1] ) #bounds for alpha search
+				alphahat = mm.alpha_MLE_fit( activity, bracket )
 
-			#measure extra parameters/arrays
-			trel = t - a0 #relative mean alter activity
-			beta_vals = trel / gamma_vals #range of estimated scale factors
+				#accumulate MLE results
+				gammahat_vals[simpos] = alphahat + a0
+				yplot += np.array([ alpha_func( gamma-a0, activity, a0, t ) for gamma in gamma_vals ])
+			yplot /= len(sim_vals)
 
-			#MLE equations
-			digamma_func = np.array([ MLE_eq( activity, gamma ) for gamma in gamma_vals ])
-			log_func = np.log( 1 + beta_vals )
-
-			#plot arrays
+			#plot plot!
 			xplot = gamma_vals
-			yplot = np.abs( digamma_func - log_func )
+			curve, = ax.semilogx( xplot, yplot, '-', c=colors[post], lw=plot_props['linewidth'], ms=plot_props['marker_size'], label=None, zorder=0 )
 
-			#digamma function
-			curve, = plt.loglog( xplot, yplot, 'o', c=colors[post], lw=plot_props['linewidth'], ms=plot_props['marker_size'], label=None, zorder=1 )
-
-			#line at target relative alpha (to be recovered by MLE)
+			#line at target relative alpha (to be recovered by MLE as a root)
 			if post == 0:
-				plt.axvline( x=params['gamma'], ls='--', c='0.5', lw=plot_props['linewidth'], label=None, zorder=0 )
+				ax.axvline( x=params['gamma'], ls='--', c='0.5', lw=plot_props['linewidth'], zorder=1 )
+				ax.axhline( y=0, ls='--', c='0.5', lw=plot_props['linewidth'], zorder=1 )
+
+			#plot plot inset!
+			sns.kdeplot( gammahat_vals, ax=inax, log_scale=[True, False], color=colors[post], lw=plot_props['linewidth'], zorder=0 )
+			inax.axvline( x=params['gamma'], ls='--', c='0.5', lw=plot_props['linewidth']-1, zorder=1 )
 
 			#legend stuff
 			line_sims.append( curve ) #append handle
@@ -149,25 +157,32 @@ if __name__ == "__main__":
 				labels_t.append( r'$t=$ {:.0f}'.format( params['t'] ) )
 			else:
 				labels_t.append( r'{:.0f}'.format( params['t'] ) )
-			labels_alpha.append( r'{:.2f}'.format( gammahat ) )
 
 		#text
-		plt.text( 0.5, 1.05, r'$\alpha^*_r=$ {:.1f}'.format( params['gamma'] ), va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+		ax.text( params['gamma'], 2, r'$\alpha^*_r=$ {:.1f}'.format( params['gamma'] ), va='bottom', ha='center', fontsize=plot_props['xylabel'] )
 
 		#legends
 
 		if alphapos == 1:
-			leg1 = plt.legend( line_sims, labels_t, loc='upper center', bbox_to_anchor=(0.5, -0.15), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=len(t_vals) )
-			ax.add_artist(leg1)
-
-		leg2 = plt.legend( line_sims, labels_alpha, title=r'$\hat{ \alpha }_r =$', loc='lower left', bbox_to_anchor=(0, 0), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
+			leg1 = ax.legend( line_sims, labels_t, loc='upper center', bbox_to_anchor=(0.5, -0.14), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ], ncol=len(t_vals) )
+			# ax.add_artist(leg1)
 
 		#finalise subplot
-		plt.axis([ 1e-2, 1e2, 1e-6, 1e2 ])
+		ax.axis([ gamma_vals[0], gamma_vals[-1], -2, 2 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
-		ax.locator_params( numticks=6 )
+		ax.locator_params( axis='x', numticks=4 )
+		ax.locator_params( axis='y', nbins=4 )
 		if alphapos > 0:
-			plt.yticks([])
+			ax.set_yticks([])
+
+		#finalise inset
+		if alphapos == 0:
+			inax.set_xlim(1e-2, 1e0)
+		elif alphapos == 1:
+			inax.set_xlim(1e-1, 1e1)
+		else:
+			inax.set_xlim(1e0, 1e2)
+		inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
 	#finalise plot
@@ -177,78 +192,22 @@ if __name__ == "__main__":
 
 #DEBUGGIN'
 
-	# ntimes = 10000 #number of realizations for averages
-	# #parameter dict
-	# params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
+	#MLE equations
+	# MLE_eq = lambda activity, gamma : float( mp.fsum([ mp.digamma( arel + gamma ) - mp.digamma( gamma ) for arel in activity - min(activity) ]) / len( activity ) )
 
-	# alphamax = 100000 #maximum alpha for MLE fit
-	# bounds = ( -a0, alphamax ) #bounds for alpha search
+			# #MLE equations
+			# digamma_func = np.array([ MLE_eq( activity, gamma ) for gamma in gamma_vals ])
+			# log_func = np.log( 1 + beta_vals )
 
-			# params['alpha'] = alpha #PA parameter
-			# params['t'] = t #mean alter activity (max time in dynamics)
+				# #measure extra parameters/arrays
+				# trel = t - a0 #relative mean alter activity
+				# beta_vals = trel / gamma_vals #range of estimated scale factors
 
-			# #load model of alter activity, according to parameters (1 realization only!)
-			# activity = mm.model_activity( params, loadflag='y', saveloc=saveloc_model )[0]
+				# yplot += np.abs( np.array([ alpha_func( gamma-a0, activity, a0, t ) for gamma in gamma_vals ]) )
 
-			# #find MLE optimal alpha for given activity
-			# alphahat = mm.alpha_MLE_fit( activity, bounds )
-			# print( '\t{}, {}'.format( alpha, alphahat ) )
+				# print( '\t\testimated alpha_r = {:.2f}'.format( gammahat ) )
 
-			# #plot arrays
-			# xplot = betahat_vals #range of estimated beta
-			# yplot_MLE = MLE_eq #MLE equation
+			# gammahat = gamma_vals.mean()
+			# labels_alpha.append( r'{:.2f}'.format( gammahat ) )
 
-#	beta_vals = [ 100., 1., 0.01 ] #crossover parameter
-#	beta_vals = [ 100. ]
-#	trel_vals = [ 0.1, 1., 10., 100., 1000. ] #relative mean alter activity
-#	trel_vals = [ 10. ] #relative mean alter activity
-
-#	amax = 10000 #maximum activity for theoretical activity distribution
-#	betahat_vals = np.logspace( -3, 3, num=100 ) #range of estimated beta to plot
-
-#	rng = np.random.default_rng() #initialise random number generator
-#
-#	# MLE_eq = lambda activity, gammahat : float( mp.exp( mp.fsum([ mp.digamma( arel + gammahat ) - mp.digamma( gammahat ) for arel in activity - a0 ]) / len( activity ) ) ) - 1
-
-#	for betapos, beta in enumerate( beta_vals ): #loop through beta values
-#		print( 'beta = '+str( beta ) )
-
-#		for post, trel in enumerate( trel_vals ): #loop through relative times
-
-			# t = trel + a0 #get mean alter activity
-			# gamma = trel / beta #gamma parameter (relative alpha)
-			# alpha = gamma - a0 #get alpha
-			# gammahat_vals = trel / betahat_vals #range of estimated gammas
-
-			# params['alpha'] = alpha #PA parameter
-			# params['t'] = t #mean alter activity (max time in dynamics)
-
-			# #theo activity dist in range a=[0, amax] (i.e. inclusive)
-			# act_dist_theo = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in range(amax+1) ])
-			# act_dist_theo = act_dist_theo / act_dist_theo.sum() #normalise if needed
-			# activity = rng.choice( amax+1, k, p=act_dist_theo ) #simulations of alter activity from data fit
-
-			# act_tile = np.tile( activity, ( len(gammahat_vals), 1 ) )
-			# gamma_tile = np.tile( gammahat_vals, ( len(activity), 1 ) ).transpose()
-			# digamma_func = ( ss.digamma( act_tile + gamma_tile ) - ss.digamma( gamma_tile ) ).mean( axis=1 )
-
-			# #estimated beta value
-			# betahat = betahat_vals[ np.abs( digamma_func - log_func ).argmin() ]
-			# print( 'estimated beta = {}'.format( betahat ) )
-
-#			gammahat = alphahat + a0 #rescaled parameter
-
-			# #log function
-			# if post == 0:
-			# 	line_log, = plt.loglog( betahat_vals, log_func, '--', c='0.5', lw=plot_props['linewidth'], label=None, zorder=0 )
-
-		# if betapos == 0:
-		# 	reg_str = 'heterogeneous regime\n'
-		# if betapos == 1:
-		# 	reg_str = 'crossover\n'
-		# if betapos == 2:
-		# 	reg_str = 'homogeneous regime\n'
-		# plt.text( 0.5, 1, reg_str+r'($\beta=$ {}'.format(beta)+')', va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
-
-	# #parameter dict
-	# params = { 'a0' : a0, 'k' : k, 'ntimes' : ntimes }
+		# leg2 = plt.legend( line_sims, labels_alpha, title=r'$\hat{ \alpha }_r =$', loc='lower left', bbox_to_anchor=(0, 0), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )

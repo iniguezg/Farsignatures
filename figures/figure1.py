@@ -239,7 +239,7 @@ if __name__ == "__main__":
 	#lines and notation
 	plt.annotate( text='$a_0$', xy=( activity.min(), 2.8 ), ha='center', va='bottom' )
 	plt.axvline( x=activity.min(), ls='--', c='0.5', lw=1, zorder=0 )
-	plt.annotate( text='$\mu$', xy=( activity.mean(), 2.8 ), ha='center', va='bottom' )
+	plt.annotate( text='$t$', xy=( activity.mean(), 2.8 ), ha='center', va='bottom' )
 	plt.axvline( x=activity.mean(), ls='--', c='0.5', lw=1, zorder=0 )
 	pm.draw_brace( ax, ( activity.mean(), activity.mean() + activity.std() ), 2.3, '$\sigma$' )
 
@@ -414,7 +414,7 @@ if __name__ == "__main__":
 	plt.text( 1.8, act_disps.mean(), r'$\langle d \rangle$', va='bottom', ha='center', fontsize=plot_props['ticklabel'] )
 
 	#plot dispersion equation
-	eq_str = r'$d = \frac{ \sigma^2 - \mu + a_0 }{ \sigma^2 + \mu - a_0 }$'
+	eq_str = r'$d = \frac{ \sigma^2 - t + a_0 }{ \sigma^2 + t - a_0 }$'
 	plt.text( 0.95, 0.95, eq_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 	#finalise plot
