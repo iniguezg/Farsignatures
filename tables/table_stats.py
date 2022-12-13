@@ -54,8 +54,8 @@ if __name__ == "__main__":
 	params_stats = pd.DataFrame( np.zeros( ( len(datasets), len(columns) ) ), index=pd.Series( [ dset[0] for dset in datasets ], name='dataset') , columns=pd.Series( columns, name='parameter' ) )
 
 	#loop through considered datasets
-	# for eventname, textname in datasets:
-	for eventname, textname in datasets[2:]:
+	for eventname, textname in datasets:
+	# for eventname, textname in datasets[2:]:
 		print( 'dataset name: ' + eventname ) #print output
 
 		#prepare ego network properties
@@ -94,16 +94,16 @@ r"""
 \small
 \noindent\makebox[\textwidth]{ \begin{tabular}{l r | r r r r}
 \toprule
-Dataset & $N$ & $n_{KS}$ & $n_{W^2}$ & $n_{U^2}$ & $n_{A^2}$ \\
+Dataset & $N$ & $n_{D}$ & $n_{W^2}$ & $n_{U^2}$ & $n_{A^2}$ \\
 \midrule"""+'\n'
-# +
-# r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[0][1], *params_stats.loc[ 'call' ] )+'\n'
-# +
-# r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[1][1], *params_stats.loc[ 'text' ] )+'\n'
 +
-r'{} & - & - & - & - & - \\'.format( datasets[0][1], *params_stats.loc[ 'call' ] )+'\n'
+r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[0][1], *params_stats.loc[ 'call' ] )+'\n'
 +
-r'{} & - & - & - & - & - \\'.format( datasets[1][1], *params_stats.loc[ 'text' ] )+'\n'
+r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[1][1], *params_stats.loc[ 'text' ] )+'\n'
+# +
+# r'{} & - & - & - & - & - \\'.format( datasets[0][1], *params_stats.loc[ 'call' ] )+'\n'
+# +
+# r'{} & - & - & - & - & - \\'.format( datasets[1][1], *params_stats.loc[ 'text' ] )+'\n'
 +
 r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[2][1], *params_stats.loc[ 'MPC_Wu_SD01' ] )+'\n'
 +
@@ -136,8 +136,7 @@ r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.2f} \\'.format( datasets[15][1], *
 \bottomrule
 \end{tabular}}
 \caption{
-\small {\bf }.
-.
+\small {\bf Statistical significance of maximum likelihood estimation}. Fraction $n_{\bullet}$ of ego networks satisfying the condition $p_{\bullet} > 0.1$ on the $p$-value $p_{\bullet}$ associated to the test statistics of Kolmogorov-Smirnov, Cramér-von Mises, Watson, and Anderson-Darling [$\bullet = D, W^2, U^2, A^2$, respectively; see \esref{eq:KSstat}{eq:A2stat}]. Fractions $n_{\bullet}$ are calculated relative to the number $N$ of egos in each dataset under the condition $t > a_0$ (i.e. with any level of heterogeneity on their communication signatures). The model is able to reproduce observed data for most egos, at least according to some statistic. For large datasets, statistical significance is robust to the choice of statistic.
 }
 \label{tab:filterStats}
 \end{table}
