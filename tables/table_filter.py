@@ -119,7 +119,7 @@ r'{} & {:.0f} & {:.2f} & {:.2f} & {:.2f} & {:.0f} & {:.2f} & {:.2f} \\'.format( 
 \end{tabular}}
 \caption{
 \small {\bf Ego classes based on maximum likelihood estimation}.
-We classify the $N$ ego networks (with $t > a_0$) in each studied dataset into a fraction $n_{\alpha} = N_{\alpha} / N$ with statistically significant MLE $\hat{\alpha}$ (relative mean activity $t_r > 0$, p-value $p > 0.1$, and $\hat{\alpha} < \alpha_b$ with $\alpha_b = 10^3$), a fraction $n_{\infty} = N_{\infty} / N$ with infinite $\hat{\alpha}$ [\eref{eq:logDeriv} does not converge to zero below $\alpha_b$], and the remaining fraction $n_{\emptyset} = N_{\emptyset} / N$ with undefined $\hat{\alpha}$. The $N_{\alpha}$ egos with statistically significant $\hat{\alpha}$ are separated into a fraction $n_{RN} = N_{RN} / N_{\alpha}$ in the homogenous regime ($\beta < 1$), and a fraction $n_{CA} = N_{CA} / N_{\alpha}$ in the heterogeneous regime ($\beta > 1$).
+We classify the $N$ ego networks (with $t > a_0$) in each studied dataset into a fraction $n_{\alpha} = N_{\alpha} / N$ with statistically significant MLE $\hat{\alpha}$ (relative mean activity $t_r > 0$, p-value $p > 0.1$ according to statistic $D$, and $\hat{\alpha} < \alpha_b$ with $\alpha_b = 10^3$), a fraction $n_{\infty} = N_{\infty} / N$ with infinite $\hat{\alpha}$ [\eref{eq:logDeriv} does not converge to zero below $\alpha_b$], and the remaining fraction $n_{\emptyset} = N_{\emptyset} / N$ with undefined $\hat{\alpha}$. The $N_{\alpha}$ egos with statistically significant $\hat{\alpha}$ are separated into a fraction $n_{RN} = N_{RN} / N_{\alpha}$ in the homogenous regime ($\beta < 1$), and a fraction $n_{CA} = N_{CA} / N_{\alpha}$ in the heterogeneous regime ($\beta > 1$).
 }
 \label{tab:filterClasses}
 \end{table}

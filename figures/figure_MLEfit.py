@@ -70,7 +70,7 @@ if __name__ == "__main__":
 	'dpi' : 300,
 	'savename' : 'figure_MLEfit' }
 
-	colors = sns.color_palette( 'Set2', n_colors=len(t_vals) ) #colors to plot
+	colors = sns.color_palette( 'GnBu', n_colors=len(t_vals) ) #colors to plot
 
 
 	## MLE ##
@@ -103,7 +103,7 @@ if __name__ == "__main__":
 		sns.despine( ax=ax ) #take out spines
 		ax.set_xlabel( r'$\alpha_r$', size=plot_props['xylabel'] )
 		if alphapos == 0:
-			ax.set_ylabel( r'$ \langle f_{ \alpha } - \ln ( 1 + \beta ) \rangle $', size=plot_props['xylabel'] )
+			ax.set_ylabel( r'$ \langle F_{ \alpha } - \ln ( 1 + \beta ) \rangle $', size=plot_props['xylabel'] )
 
 		#initialise inset
 		loc=3 if alphapos == 2 else 1 #inset location and pad

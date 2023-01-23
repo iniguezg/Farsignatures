@@ -22,17 +22,13 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#property to plot
-	# prop_names = [ 'gamma' ]
-	# prop_labels = [ r'\hat{\alpha}_r' ]
 	prop_names = [ 'beta' ]
-	prop_labels = [ r'1 / \hat{\beta}' ]
+	prop_labels = [ r'1 / \beta' ]
 
+	stat = 'KS' #chosen test statistic
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
-	# max_iter = 1000 #max number of iteration for centrality calculations
-	# nsims = 1000 #number of syntethic datasets used to calculate p-value
-	# amax = 10000 #maximum activity for theoretical activity distribution
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -40,20 +36,20 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
-	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
-				 ( 'email', 'Email 1'),
-				 ( 'eml2', 'Email 2'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
-				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
 				 ( 'CNS_calls', 'CNS (call)'),
 				 ( 'CNS_sms', 'CNS (sms)') ]
 
@@ -79,7 +75,7 @@ if __name__ == "__main__":
 	'dpi' : 300,
 	'savename' : 'figure_alphas_CCDF' }
 
-	colors = sns.color_palette( 'Set2', n_colors=len(prop_names) ) #colors to plot
+	colors = sns.color_palette( 'Paired', n_colors=len(prop_names) ) #colors to plot
 
 	#initialise plot
 	sns.set( style='ticks' ) #set fancy fancy plot
@@ -96,24 +92,31 @@ if __name__ == "__main__":
 
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+		#filter egos by t > a0 condition
+		egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 		#fit activity model to all ego networks in dataset
 		egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
 		#filter egos according to fitting results
-		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, alphamax=alphamax, pval_thres=pval_thres, alph_thres=alph_thres )
+		egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, stat=stat, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
 
 		#some measures
-		num_egos = len( egonet_props ) #all egos
-		num_egos_filter = len( egonet_filter ) #filtered egos
-#		frac_egos_random = ( egonet_filter.gamma > 1 ).sum() / float( num_egos_filter )
+
+		num_egos = len( egonet_props_filter ) #all (filtered) egos
+
+		num_egos_filter = len( egonet_filter ) #statistically significant alpha
+		frac_egos_filter = num_egos_filter / float( num_egos )
+		frac_egos_inf = len( egonet_inf ) / float( num_egos ) #infinite alpha
+		frac_egos_null = len( egonet_null ) / float( num_egos ) #undefined alpha
+
 		frac_egos_random = ( egonet_filter.beta < 1 ).sum() / float( num_egos_filter ) #fraction of egos in random regime (beta < 1, i.e. t_r < alpha_r)
 
 
 		## PRINTING ##
 
-		print( 'fraction filtered egos = {:.2f}'.format( num_egos_filter / float(num_egos) ) )
-		print( 'fraction inf egos = {:.2f}'.format( len(egonet_inf) / float(num_egos) ) )
-		print( 'fraction null egos = {:.2f}'.format( len(egonet_null) / float(num_egos) ) )
+		print( 'fraction filtered egos = {:.2f}'.format( frac_egos_filter ) )
+		print( 'fraction inf egos = {:.2f}'.format( frac_egos_inf ) )
+		print( 'fraction null egos = {:.2f}'.format( frac_egos_null ) )
 		print( '\n' )
 
 
@@ -127,7 +130,7 @@ if __name__ == "__main__":
 		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
 
 			#initialise subplot
-			if grid_pos in [11, 12, 13, 14]:
+			if grid_pos in [12, 13, 14, 15]:
 				plt.xlabel( '${}$'.format( prop_label ), size=plot_props['xylabel'] )
 			if grid_pos in [0, 4, 8, 12]:
 				plt.ylabel( r"$P[ {}' \geq {} ]$".format( prop_label, prop_label ), size=plot_props['xylabel'] )
@@ -154,7 +157,7 @@ if __name__ == "__main__":
 		plt.axis([ 1e-4, 1e3, 1e-4, 2e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
-		if grid_pos not in [11, 12, 13, 14]:
+		if grid_pos not in [12, 13, 14, 15]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)
@@ -166,4 +169,11 @@ if __name__ == "__main__":
 
 #DEBUGGIN'
 
+	# prop_names = [ 'gamma' ]
+	# prop_labels = [ r'\hat{\alpha}_r' ]
+
 #			plt.loglog( xplot, yplot, '-', label=prop_label, mec=colors[prop_pos], mfc='w', mew=plot_props['linewidth'], ms=plot_props['marker_size'] )
+
+	# max_iter = 1000 #max number of iteration for centrality calculations
+	# nsims = 1000 #number of syntethic datasets used to calculate p-value
+	# amax = 10000 #maximum activity for theoretical activity distribution

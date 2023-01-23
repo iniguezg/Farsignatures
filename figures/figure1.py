@@ -95,7 +95,7 @@ if __name__ == "__main__":
 	dataname, eventname, textname = 'Copenhagen_nets', 'CNS_calls', 'CNS (call)' #selected dataset
 	nodei = 578 #selected ego
 	linelen = 0.4 #(half-)length of event line to plot
-	int_strs = [ 0.25, 0.75 ] #locations of interval strings
+	int_strs = [ 0.28, 0.78 ] #locations of interval strings
 	edgewid = 5 #edge width
 
 	print('DIAGRAM', flush=True)
@@ -149,12 +149,13 @@ if __name__ == "__main__":
 		plt.vlines( event_tuple.tstamp_norm, y-linelen, y+linelen, color=colors[posj], lw=plot_props['linewidth']-1 ) #plot events
 
 	#interval strings
-	plt.axvline( x=0.5, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	midpoint = events_nodei.iloc[int(np.ceil(len(events_nodei)/2))].tstamp_norm #same # events on both sides
+	plt.axvline( x=midpoint, ls='--', c='0.5', lw=plot_props['linewidth'] )
 	for pos, int_str in enumerate(int_strs): #loop through interval strings
 		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 	#plot time arrow
-	arrow_str = r'event time $\tau$'
+	arrow_str = r'time'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
@@ -168,33 +169,41 @@ if __name__ == "__main__":
 	#initialise subplot
 	ax = plt.subplot( subgrid[ 1 ] )
 	sns.despine( ax=ax ) #take out spines
-	plt.xlabel( r'$\tau/T$', size=plot_props['xylabel'], labelpad=0 )
+	# plt.xlabel( r'time', size=plot_props['xylabel'], labelpad=0 )
 	plt.ylabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
 
 	for posj, nodej in enumerate( alters_nodei ): #loop through alters, ranked by activity
 		xplot = events_nodei[ events_nodei.nodej==nodej ].tstamp_norm #get normalised event times
 		yplot = range( 1, len(xplot)+1 ) #and cumulative sum of number of events
 
-		xplot = [0.] + list(xplot) + [1.] #add endpoints
-		yplot = [0.] + list(yplot) + [yplot[-1]]
+		xplot = list(xplot) + [1.] #add endpoints
+		yplot = list(yplot) + [yplot[-1]]
 
 		plt.plot( xplot, yplot, '-', color=colors[posj], lw=plot_props['linewidth'] ) #plot plot!
 
 	#interval strings
-	plt.axvline( x=0.5, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	midpoint = events_nodei.iloc[int(np.ceil(len(events_nodei)/2))].tstamp_norm #same # events on both sides
+	plt.axvline( x=midpoint, ls='--', c='0.5', lw=plot_props['linewidth'] )
 	for pos, int_str in enumerate(int_strs): #loop through interval strings
 		plt.text( int_str, 1.03, '$I_'+str(pos+1)+'$', va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
-	#plot time arrow
-	arrow_str = r'$\tau=T$'
+	#plot time arrows
+
+	arrow_str = r'time'
+	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
+	plt.text( 0.5, -0.1, arrow_str, ha='center', va='center', transform=ax.transAxes,
+    size=plot_props['text_size'], bbox=bbox_props )
+
+	arrow_str = 'end'
 	bbox_props = dict( boxstyle="rarrow,pad=0.2", fc='None', ec='0.7', lw=1 )
 	plt.text( 1.2, 0.5, arrow_str, ha='center', va='center', transform=ax.transAxes,
     size=plot_props['text_size'], bbox=bbox_props )
 
 	#finalise subplot
-	plt.axis([ -0.02, 1.02, 0.8e0, 1.5e2 ])
+	plt.axis([ -0.02, 1.02, 1e0, 1.5e2 ])
 	ax.set_yscale('log')
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+	plt.xticks([])
 
 
 	#A3: Final ego network
@@ -202,7 +211,8 @@ if __name__ == "__main__":
 	#set up ego network
 	graph = nx.generators.classic.star_graph( k ) #ego net as star graph
 	graph = nx.relabel_nodes( graph, {0:'ego'} ) #rename ego
-	positions = nx.spring_layout( graph, seed=2 ) #seed layout for reproducibility
+	positions = nx.circular_layout( range(1, len(graph.nodes)), center=(0,0) )
+	positions['ego'] = np.zeros(2) #ego at center
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ 2 ] )
@@ -606,3 +616,8 @@ if __name__ == "__main__":
 		# data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
 		# data_avg = data_grp.mean() #average probs over egos
 		# print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
+
+	# positions = nx.spring_layout( graph, seed=2 ) #seed layout for reproducibility
+
+		# xplot = [0.] + list(xplot) + [1.] #add endpoints
+		# yplot = [0.] + list(yplot) + [yplot[-1]]

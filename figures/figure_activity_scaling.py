@@ -62,7 +62,7 @@ if __name__ == "__main__":
 	'dpi' : 300,
 	'savename' : 'figure_activity_scaling' }
 
-	colors = sns.color_palette( 'Set2', n_colors=len(t_vals) ) #colors to plot
+	colors = sns.color_palette( 'GnBu', n_colors=len(t_vals) ) #colors to plot
 
 
 	## PLOTTING ##
