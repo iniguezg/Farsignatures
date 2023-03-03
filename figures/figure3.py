@@ -355,7 +355,7 @@ if __name__ == "__main__":
 	egonet_filt_piece_1.beta.rename('beta_piece_1')
 	], axis=1, join='inner' )
 
-	## PLOTTINMG ##
+	## PLOTTING ##
 
 	plot_data = pd.concat( [
 	( ( props_filt.beta_piece_0 - props_filt.beta_piece_1 ) / props_filt.beta ).rename('beta_diff'),
