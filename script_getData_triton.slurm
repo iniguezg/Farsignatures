@@ -33,7 +33,9 @@ module load anaconda
 # sbatch -J egonet_piece_1_call -o egonet_piece_1_call_%a.out --array=721,741,742,745,750,771 script_getData_triton.sh call 1 400
 
 #analysis 13
-sbatch -J join_files -o join_files.out script_getData_triton.sh
+#sbatch -J join_files -o join_files.out script_getData_triton.sh
 
-#plot figure 1
+#plot figures
+sbatch -J figure_kernel_degree -o figure_kernel_degree.out script_getData_triton.sh
+# sbatch -J figure_kernel_dispersion -o figure_kernel_dispersion.out script_getData_triton.sh
 # sbatch -J figure1 -o figure1.out script_getData_triton.sh

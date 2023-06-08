@@ -1,7 +1,8 @@
 #!/bin/bash
-#SBATCH --time=01-00
-#SBATCH --mem-per-cpu=2G
+#SBATCH --time=05-00
+#SBATCH --mem-per-cpu=20G
 #--time=05-00
+#--mem-per-cpu=2G
 
 ## analysis 2: get ego network properties for all datasets ##
 
@@ -84,14 +85,16 @@
 
 #--time=01-00
 
-srun python script_getData.py
+# srun python script_getData.py
 
 
-## plot figure 1 ##
+## plot figures ##
 
 #--time=05-00
 #--mem-per-cpu=20G
 
+srun python figures/figure_kernel_degree.py
+# srun python figures/figure_kernel_dispersion.py
 # srun python figures/figure1.py
 
 

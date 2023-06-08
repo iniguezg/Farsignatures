@@ -23,6 +23,7 @@ def plot_compcum_dist( yplot_data ):
 
 	return xplot, yplot
 
+
 #function to plot complementary cumulative distribution P[X >= x]
 def plot_CCDF_cont( yplot_data ):
 	"""Plot complementary cumulative distribution P[X >= x]"""
@@ -32,6 +33,7 @@ def plot_CCDF_cont( yplot_data ):
 	yplot = 1 - np.linspace( 0, 1, len( yplot_data ), endpoint=False )
 
 	return xplot, yplot
+
 
 #function to plot logbinned distribution
 def plot_logbinned_dist( yplot_data, num=30 ):
@@ -45,11 +47,16 @@ def plot_logbinned_dist( yplot_data, num=30 ):
 
 	return xplot, yplot
 
+
 #function to plot kernel curve according to filter
 def plot_kernel_filter( eventname, filt_rule='', filt_obj=None, filt_params={}, load=False, saveloc='', saveloc_fig='' ):
 	"""Plot kernel curve according to filter"""
 
-	savename = saveloc_fig+'kernel_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+str(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
+	savename = saveloc_fig+'kernel_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+'{:.2f}'.format(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
+
+	#set filter condition
+	cond = (filt_params['min_val'] <= filt_obj) & (filt_obj < filt_params['max_val']) #filter condition
+	filt_ind = filt_obj[cond].index #filtered indices
 
 	if load:
 		data_avg = pd.read_pickle(savename) #load file
@@ -58,23 +65,18 @@ def plot_kernel_filter( eventname, filt_rule='', filt_obj=None, filt_params={}, 
 		egonet_kernel = pd.read_pickle( saveloc+'egonet_kernel_'+eventname+'.pkl' )
 
 		#filter egos by selected filter property
-		if filt_rule == 'large_disp': #large dispersion
-			filter = egonet_kernel[ filt_obj[ filt_obj > filt_obj.mean() ].index ]
-		elif filt_rule == 'small_disp': #small dispersion
-			filter = egonet_kernel[ filt_obj[ filt_obj < filt_obj.mean() ].index ]
-		elif filt_rule == 'degree': #large enough degree
-			filter = egonet_kernel[ filt_obj[ filt_obj.degree >= filt_params['min_degree'] ].index ]
-		else: #no filter
-			filter = egonet_kernel
+		filter = egonet_kernel[filt_ind]
 
 		#get filtered activity groups
 		filt_negos = filter.groupby( level=1 ).filter( lambda x : len(x) >= filt_params['min_negos'] )
 		data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
 		data_avg = data_grp.mean() #average probs over egos
 
-		data_avg.to_pickle(savename) #save file
+		if saveloc_fig:
+			data_avg.to_pickle(savename) #save file
 
-	return data_avg
+	return data_avg, filt_ind
+
 
 def draw_brace(ax, xspan, yy, text):
     """Draws an annotated brace on the axes"""
@@ -100,3 +102,22 @@ def draw_brace(ax, xspan, yy, text):
     ax.plot(x, y, color='black', lw=1)
 
     ax.text((xmax+xmin)/2., yy+.07*yspan, text, ha='center', va='bottom')
+
+
+#DEBUGGIN'
+
+# 		#filter egos by selected filter property
+# 		if filt_rule == 'large_disp': #large dispersion
+# 			filter = egonet_kernel[ filt_obj[ filt_obj > filt_obj.mean() ].index ]
+# 		elif filt_rule == 'small_disp': #small dispersion
+# 			filter = egonet_kernel[ filt_obj[ filt_obj < filt_obj.mean() ].index ]
+# 		elif filt_rule == 'degree': #large enough degree
+# 			filter = egonet_kernel[ filt_obj[ filt_obj.degree >= filt_params['min_degree'] ].index ]
+# 		else: #no filter
+# 			filter = egonet_kernel
+
+		# #filter egos by selected filter property
+		# if filt_rule == 'dispersion': #dispersion within bounds
+		# 	cond = (filt_params['min_val'] <= filt_obj) & (filt_obj <= filt_params['max_val'])
+		# elif filt_rule == 'degree': #degree within bounds
+		# 	cond = (filt_params['min_val'] <= filt_obj.degree) & (filt_obj.degree <= filt_params['max_val'])

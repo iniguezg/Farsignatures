@@ -515,6 +515,27 @@ def egonet_jaccard_parallel( dataname, eventname, root_data, saveloc ):
 	egonet_jaccard_joined.to_pickle( saveloc + 'egonet_jaccard_' + eventname + '.pkl' ) #save file
 
 
+#function to get activity dispersion for egos in dataset
+def egonet_dispersion( egonet_props, filter_prop, filter_thres ):
+	"""Get activity dispersion for egos in dataset"""
+
+	#get activity means/variances/minimums per ego
+	act_avgs = egonet_props.act_avg
+	act_vars = egonet_props.act_var
+	act_mins = egonet_props.act_min
+
+	#filter by selected property
+	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
+	act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
+	act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
+	
+	#get dispersion index measure per ego (use relative mean!)
+	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
+	act_disps = act_disps.dropna() #drop faulty egos
+
+	return act_disps
+
+
 #function to build weighted graph from event list in dataset
 def graph_weights( dataname, eventname, root_data, loadflag, saveloc ):
 	"""Build weighted graph from event list in dataset"""

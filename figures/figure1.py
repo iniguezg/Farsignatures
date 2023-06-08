@@ -384,17 +384,8 @@ if __name__ == "__main__":
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
-	#get activity means/variances/minimums per ego
-	act_avgs = egonet_props.act_avg
-	act_vars = egonet_props.act_var
-	act_mins = egonet_props.act_min
-	#filter by selected property
-	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
-	act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
-	act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
-	#get dispersion index measure per ego (use relative mean!)
-	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
-	act_disps = act_disps.dropna() #drop faulty egos
+	#get activity dispersion for egos in dataset
+	act_disps = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
 
 	## PLOTTING ##
 
