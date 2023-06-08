@@ -65,22 +65,23 @@ if __name__ == "__main__":
 	load = False
 
 	#dataset list: eventname, textname
-	datasets = [ #( 'call', 'Mobile (call)'),
-				 #( 'text', 'Mobile (sms)'),
-				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'Enron', 'Email (Enron)'),
-				 ( 'email', 'Email (Kiel)'),
-				 ( 'eml2', 'Email (Uni)'),
-				 ( 'email_Eu_core', 'Email (EU)'),
-				 ( 'fb', 'Facebook'),
-				 ( 'messages', 'Messages'),
-				 ( 'pok', 'Dating'),
-				 ( 'forum', 'Forum'),
-				 ( 'CollegeMsg', 'College'),
-				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)') ]
+	datasets = [ ( 'call', 'Mobile (call)'),
+				 ( 'text', 'Mobile (sms)'),
+				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 # ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 # ( 'Enron', 'Email (Enron)'),
+				 # ( 'email', 'Email (Kiel)'),
+				 # ( 'eml2', 'Email (Uni)'),
+				 # ( 'email_Eu_core', 'Email (EU)'),
+				 # ( 'fb', 'Facebook'),
+				 # ( 'messages', 'Messages'),
+				 # ( 'pok', 'Dating'),
+				 # ( 'forum', 'Forum'),
+				 # ( 'CollegeMsg', 'College'),
+				 # ( 'CNS_calls', 'CNS (call)'),
+				 # ( 'CNS_sms', 'CNS (sms)')
+				]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -111,12 +112,12 @@ if __name__ == "__main__":
 	grid = gridspec.GridSpec( *fig_props['aspect_ratio'] )
 	grid.update( **fig_props['grid_params'] )
 
-	print('\t\tfilter rule: {}'.format(filt_rule)) #filter rule
+	print('\t\tfilter rule: {}'.format(filt_rule), flush=True) #filter rule
 
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
 	# for grid_pos, (eventname, textname) in enumerate([ ( 'fb', 'Facebook') ]):
-		print( 'dataset name: ' + eventname ) #print output
+		print( 'dataset name: ' + eventname, flush=True ) #print output
 
 		## PLOTTING ##
 
@@ -150,7 +151,7 @@ if __name__ == "__main__":
 
 		#loop through quantiles of filter parameter (inclusive!)
 		for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
-			print('\tmin_val = {:.2f}, max_val = {:.2f}'.format(min_val, max_val)) #filter range
+			print('\tmin_val = {:.2f}, max_val = {:.2f}'.format(min_val, max_val), flush=True) #filter range
 
 			#prepare kernel: apply degree / negos filters, group and average
 			data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule=filt_rule, filt_obj=filt_obj, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
@@ -158,7 +159,7 @@ if __name__ == "__main__":
 			#prepare baseline: prob = <1/k> for random case
 			bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
 
-			print('\t\tno. filtered egos: {}'.format(len(filt_ind))) #filter set
+			print('\t\tno. filtered egos: {}'.format(len(filt_ind)), flush=True) #filter set
 
 
 			## PLOTTING ##
