@@ -24,17 +24,9 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#root locations of data/code
-	#LOCAL
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/'
 	saveloc = expanduser('~') + '/prg/xocial/Farsignatures/files/data/'
 	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
-	#TRITON
-	# root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
-	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	# saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
-
-	#flags
-	load = True
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
@@ -206,7 +198,9 @@ if __name__ == "__main__":
 	plt.xticks([])
 
 
-	#A3: Final ego network
+# B: Example of final ego network and activity distribution
+
+	#B1: Final ego network
 
 	#set up ego network
 	graph = nx.generators.classic.star_graph( k ) #ego net as star graph
@@ -235,7 +229,7 @@ if __name__ == "__main__":
 	nx.draw_networkx_edges( graph, positions, edgelist=edgelist, width=width, edge_color=edge_color )
 
 
-	#A4: Final activity distribution
+	#B2: Final activity distribution
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ 3 ] )
@@ -259,24 +253,34 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=3 )
 
 
-# B: Activity distribution and social signatures of heterogeneous/homogeneous egos
+# C: Activity distribution and social signatures of heterogeneous/homogeneous egos
+
+	#subplot variables
+	eventname, textname = ( 'call', 'Mobile (call)')
+
+	#filter variables
+	filt_rule = 'dispersion' #chosen filter parameter
+	min_negos = 30 #minimum number of egos in filtered activity group
+
+	#dset-specific params: minimum degree / number of quantiles (+1) of filtered egos
+	dset_params = { 'call': {'min_degree':10, 'num_quants':5} }
 
 	#dispersion variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
-	filter_thres = 5
+	filter_thres = 0
 
-	#alpha fit variables
-	alphamax = 1000 #maximum alpha for MLE fit
-	pval_thres = 0.1 #threshold above which alpha MLEs are considered
-	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+	# #alpha fit variables
+	# alphamax = 1000 #maximum alpha for MLE fit
+	# pval_thres = 0.1 #threshold above which alpha MLEs are considered
+	# alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
-	#subplot variables
-	dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected dataset
-	labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
-	nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
+	# #subplot variables
+	# dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected dataset
+	# labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
+	# nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
 
-	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
-	symbols = ['o', 's'] #symbols to plot
+	colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
+	# symbols = ['o', 's'] #symbols to plot
 
 	print('ACTIVITY REGIMES', flush=True)
 	print( 'dataset name: ' + eventname, flush=True ) #print output
@@ -284,96 +288,93 @@ if __name__ == "__main__":
 	## DATA ##
 
 	#load ego network properties, alter activities, alpha fits, and connection kernel
-	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
-	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
+	# egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
+	# egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
+	# egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
-	#get activity means/variances/minimums per ego
-	act_avgs = egonet_props.act_avg
-	act_vars = egonet_props.act_var
-	act_mins = egonet_props.act_min
-	#filter by selected property
-	act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
-	act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
-	act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
-	#get dispersion index measure per ego (use relative mean!)
-	act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
-	act_disps = act_disps.dropna() #drop faulty egos
+	#prepare filter object (ego dispersions)
+	#only consider egos with large enough degree!
+	# egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
+	# filt_obj = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
 
-	disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
-	print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
-
-	#filter egos according to fitting results
-	egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
-
-	print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ), flush=True ) #print ego properties
-	print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ), flush=True )
-	print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ), flush=True )
-	print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ), flush=True )
+	# disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
+	# print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
+	#
+	# #filter egos according to fitting results
+	# egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
+	#
+	# print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ), flush=True ) #print ego properties
+	# print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ), flush=True )
+	# print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ), flush=True )
+	# print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ), flush=True )
 
 	## PLOTTING ##
 
-	# B1: Activity distribution
+	# C1: Activity distribution
 
 	#initialise subplot
 	subgrid = grid[ 1,: ].subgridspec( 2, 3, wspace=0.4, hspace=0.4 )
-	ax = plt.subplot( subgrid[ 0,0 ] )
-	sns.despine( ax=ax ) #take out spines
-	plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
-	plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
-
-	plt.text( -0.34, 1.25, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
-
-	for posi, nodei in enumerate(nodei_vals): #loop through selected egos
-		activity = egonet_acts[nodei] #alter activities for selected ego
-
-		#plot plot activity distribution!
-		xplot, yplot = pm.plot_compcum_dist( activity ) #get alter activity CCDF: P[X >= x]
-		plt.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
-
-	#legend
-	plt.legend( loc='lower left', bbox_to_anchor=(-0.31, 1.05), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
-
-	#finalise subplot
-	plt.axis([ 0.8e0, 2e2, 1e-2, 1.2e0 ])
-	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
-
-
-	#B2: Social signatures
-
-	inax = plt.subplot( subgrid[ 1,0 ] )
-	sns.despine( ax=inax ) #take out spines
-	inax.set_xlabel( r'$r$', size=plot_props['xylabel'] )
-	inax.set_ylabel( r'$f_a$', size=plot_props['xylabel'] )
-
-	for posi, nodei in enumerate(nodei_vals): #loop through selected egos
-		activity = egonet_acts[nodei] #alter activities for selected ego
-
-		#plot plot social signature!
-		xplot = np.arange( 1, len(activity)+1, dtype=int )
-		yplot = activity.sort_values( ascending=False ) / activity.sum()
-		inax.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'] )
-
-	#finalise inset
-	inax.set_xlim( 0.8e0, 1e2)
-	inax.set_ylim( 0.7e-3, 2.5e-1 )
-	inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+	# ax = plt.subplot( subgrid[ 0,0 ] )
+	# sns.despine( ax=ax ) #take out spines
+	# plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
+	# plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
+	#
+	# plt.text( -0.34, 1.25, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	#
+	# for posi, nodei in enumerate(nodei_vals): #loop through selected egos
+	# 	activity = egonet_acts[nodei] #alter activities for selected ego
+	#
+	# 	#plot plot activity distribution!
+	# 	xplot, yplot = pm.plot_compcum_dist( activity ) #get alter activity CCDF: P[X >= x]
+	# 	plt.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
+	#
+	# #legend
+	# plt.legend( loc='lower left', bbox_to_anchor=(-0.31, 1.05), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
+	#
+	# #finalise subplot
+	# plt.axis([ 0.8e0, 2e2, 1e-2, 1.2e0 ])
+	# ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
-# C: Dispersion distribution and connection kernel of heterogeneous/homogeneous egos
+	#C2: Social signatures
+
+	# inax = plt.subplot( subgrid[ 1,0 ] )
+	# sns.despine( ax=inax ) #take out spines
+	# inax.set_xlabel( r'$r$', size=plot_props['xylabel'] )
+	# inax.set_ylabel( r'$f_a$', size=plot_props['xylabel'] )
+	#
+	# for posi, nodei in enumerate(nodei_vals): #loop through selected egos
+	# 	activity = egonet_acts[nodei] #alter activities for selected ego
+	#
+	# 	#plot plot social signature!
+	# 	xplot = np.arange( 1, len(activity)+1, dtype=int )
+	# 	yplot = activity.sort_values( ascending=False ) / activity.sum()
+	# 	inax.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'] )
+	#
+	# #finalise inset
+	# inax.set_xlim( 0.8e0, 1e2)
+	# inax.set_ylim( 0.7e-3, 2.5e-1 )
+	# inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+
+
+# D-E: Dispersion distribution and connection kernel of heterogeneous/homogeneous egos
+
+	#subplot variables
+	eventname, textname = ( 'call', 'Mobile (call)')
+
+	#filter variables
+	filt_rule = 'dispersion' #chosen filter parameter: activity dispersion
+	min_negos = 30 #minimum number of egos in filtered activity group
+
+	#dset-specific params: minimum degree / number of quantiles (+1) of filtered egos
+	dset_params = { 'call': {'min_degree':10, 'num_quants':5} }
 
 	#dispersion variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
-	filter_thres = 5
+	filter_thres = 0
 
-	#kernel variables
-	min_negos = 50 #minimum number of egos in filtered activity group
 
-	#subplot variables
-	eventname, textname = 'forum', 'Forum'
-	# eventname, textname = 'call', 'Mobile (call)' #selected dataset
-
-	colors = sns.color_palette( 'Paired', n_colors=2 ) #colors to plot
+	colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
 
 	print('DISPERSION/KERNEL REGIMES', flush=True)
 	print( 'dataset name: ' + eventname, flush=True ) #print output
@@ -382,14 +383,19 @@ if __name__ == "__main__":
 
 	#load ego network properties, alter activities, alpha fits, and connection kernel
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-	egonet_kernel = pd.read_pickle( saveloc + 'egonet_kernel_' + eventname + '.pkl' )
 
-	#get activity dispersion for egos in dataset
+	#prepare filter object (ego dispersions)
+	#only consider egos with large enough degree!
+	egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
 	act_disps = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
+
+	#get quantiles of filter parameter (dispersion)
+	quantile_arr = np.linspace(0, 1, dset_params[eventname]['num_quants'])
+	quantile_vals = np.quantile( act_disps, quantile_arr )
 
 	## PLOTTING ##
 
-	# C1: Dispersion distribution
+	# D: Dispersion distribution
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ :,1 ] )
@@ -402,7 +408,10 @@ if __name__ == "__main__":
 
 	#plot plot!
 	cnts, vals, bars = plt.hist( act_disps, bins=30, density=True, orientation='horizontal' )
-	plt.axhline( act_disps.mean(), ls='--', c='0.5', lw=plot_props['linewidth'] )
+
+	#loop through quantiles of filter parameter (inclusive!)
+	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
+		plt.axhline( min_val, ls='--', c='0.5', lw=plot_props['linewidth'] )
 
 	#color histogram!
 	for patch in range( len(bars) ):
@@ -411,63 +420,52 @@ if __name__ == "__main__":
 		else:
 			bars[patch].set_facecolor( colors[0] )
 
-	#texts
-	plt.text( 1.8, act_disps.mean(), r'$\langle d \rangle$', va='bottom', ha='center', fontsize=plot_props['ticklabel'] )
-
 	#plot dispersion equation
 	eq_str = r'$d = \frac{ \sigma^2 - t + a_0 }{ \sigma^2 + t - a_0 }$'
 	plt.text( 0.95, 0.95, eq_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 	#finalise plot
-	plt.axis([ 0, 2, -0.4, 1 ])
+	# plt.axis([ 0, 2, -0.4, 1 ])
 	ax.invert_yaxis()
 	ax.tick_params( labelbottom=False,labeltop=True )
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
-	# C2: Connection kernel
+	# E: Connection kernel
+
+	#prepare filter object (ego dispersions)
+	filt_obj = act_disps #naming from kernel plot files
 
 	#initialise subplot
 	ax = plt.subplot( subgrid[ :,2 ] )
 	sns.despine( ax=ax ) #take out spines
 	plt.xlabel( r'$a / a_m$', size=plot_props['xylabel'] )
-	plt.ylabel( r'$\pi_a$', size=plot_props['xylabel'] )
+	plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
 	plt.text( -0.3, 1.1, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
-	for posd in range(2): #loop through regimes
-		#prepare data: apply dispersion / negos filters, group and average
-		if posd == 0: #heterogeneous
-			data_avg = pm.plot_kernel_filter( eventname, filt_rule='large_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
-			label=r'$d > \langle d \rangle$'
-		else: #homogeneous
-			data_avg = pm.plot_kernel_filter( eventname, filt_rule='small_disp', filt_obj=act_disps, filt_params={ 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
-			label=r'$d < \langle d \rangle$'
-		print('\t{}:'.format(label), flush=True) #print regime
+	#loop through quantiles of filter parameter (inclusive!)
+	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
 
-		#prepare baseline: prob = 1/k for random case
-		if posd == 0: #heterogeneous
-			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps > act_disps.mean() ].index ].degree ).mean()
-		else: #homogeneous
-			bline_avg = ( 1 / egonet_props.loc[ act_disps[ act_disps < act_disps.mean() ].index ].degree ).mean()
+		#prepare kernel: apply degree / negos filters, group and average
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule=filt_rule, filt_obj=filt_obj, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
-		#plot plot!
+		#prepare baseline: prob = <1/k> for random case
+		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
+
+		#label by filter property range
+		label = '{:.2f} '.format(min_val)+'$\leq d <$'+' {:.2f}'.format(max_val)
+
+		#plot plot kernel mean (minus baseline)!
 		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
-		line_data, = plt.plot( xplot, data_avg, '-', c=colors[1-posd], label=label, lw=plot_props['linewidth'], zorder=1 )
-		line_base = plt.hlines( y=bline_avg, xmin=0, xmax=1, ls='--', colors=[colors[1-posd]], label=None, lw=plot_props['linewidth'], zorder=0 )
-
-	#legend
-	leg1 = plt.legend( loc='lower left', bbox_to_anchor=(0,1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
-	ax.add_artist(leg1)
-	leg2 = plt.legend( (line_data, line_base), ('data', r'$\langle 1/k \rangle$'), loc='upper left', bbox_to_anchor=(0, 1), prop=plot_props['legend_prop'], handlelength=1.7, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
-	ax.add_artist(leg2)
+		line_data, = plt.plot( xplot, data_avg - bline_avg, '-', c=colors[posval], label=label, lw=plot_props['linewidth'], zorder=1 )
 
 	#finalise subplot
 	plt.axis([ -0.05, 1, 0, 0.6 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
-# D: Dispersion index for all datasets
+# F: Dispersion index for all datasets
 
 	#subplot variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
@@ -496,17 +494,8 @@ if __name__ == "__main__":
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
-		#get activity means/variances/minimums per ego
-		act_avgs = egonet_props.act_avg
-		act_vars = egonet_props.act_var
-		act_mins = egonet_props.act_min
-		#filter by selected property
-		act_avgs = act_avgs[ egonet_props[filter_prop] > filter_thres ]
-		act_vars = act_vars[ egonet_props[filter_prop] > filter_thres ]
-		act_mins = act_mins[ egonet_props[filter_prop] > filter_thres ]
-		#get dispersion index measure per ego (use relative mean!)
-		act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
-		act_disps = act_disps.dropna() #drop faulty egos
+		#get activity dispersion for egos in dataset
+		act_disps = dm.egonet_dispersion( egonet_props, filter_prop, filter_thres )
 
 		#print output
 		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
@@ -530,7 +519,25 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=6 )
 
 
-# E: Connection kernel for all datasets
+# G: Connection kernel for all datasets
+
+	#NOTE: temporary!
+	datasets = [ # ( 'call', 'Mobile (call)'),
+				 # ( 'text', 'Mobile (sms)'),
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'pok', 'Dating'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#subplot variables
 	min_degree = 2 #minimum degree of filtered egos
@@ -558,11 +565,18 @@ if __name__ == "__main__":
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
-		#prepare data: apply degree / negos filters, group and average
-		data_avg = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		#only consider egos with large enough degree!
+		egonet_props_filt = egonet_props[ egonet_props.degree >= min_degree ]
 
-		#prepare baseline: prob = 1/k for random case
-		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
+		#use single quantile range, i.e. all degrees!
+		quantile_arr = np.linspace(0, 1, 2)
+		min_val, max_val = np.quantile( egonet_props_filt.degree, quantile_arr )
+
+		#prepare kernel: apply degree / negos filters, group and average
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props.degree, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
+
+		#prepare baseline: prob = <1/k> for random case
+		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
 
 
 		## PLOTTING ##
@@ -588,27 +602,3 @@ if __name__ == "__main__":
 
 
 #DEBUGGIN'
-
-	# plt.hlines( y=2.2, xmin=activity.mean(), xmax=activity.mean() + activity.std(), ls='--', colors=['0.5'], lw=1, zorder=0 )
-	# plt.annotate( text='$\sigma$', xy=( activity.mean() + activity.std() / 2, 2.1 ), ha='center', va='top' )
-
-	# plt.annotate( text='', xy=( 0, disp_vals[0] ), xytext=( -0.7, disp_vals[0] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[1], alpha=0.5 ) ) #heterogeneous
-	# plt.annotate( text='', xy=( 0, disp_vals[1] ), xytext=( -2.1, disp_vals[1] ), arrowprops=dict( headlength=12, headwidth=10, width=5, color=colors[0], alpha=0.5 ) ) #homogeneous
-
-			# filt_disp = egonet_kernel[ act_disps[ act_disps > act_disps.mean() ].index ]
-			# filt_disp = egonet_kernel[ act_disps[ act_disps < act_disps.mean() ].index ]
-		# filt_negos = filt_disp.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
-		# data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
-		# data_avg = data_grp.mean() #average probs over egos
-		# print( '\t{:.2f}% egos after dispersion filter'.format( 100.*filt_disp.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
-
-		# filt_degree = egonet_kernel[ egonet_props[ egonet_props.degree >= min_degree ].index ]
-		# filt_negos = filt_degree.groupby( level=1 ).filter( lambda x : len(x) >= min_negos )
-		# data_grp = filt_negos.groupby( level=1 ) #group ego probs for each activity value
-		# data_avg = data_grp.mean() #average probs over egos
-		# print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output
-
-	# positions = nx.spring_layout( graph, seed=2 ) #seed layout for reproducibility
-
-		# xplot = [0.] + list(xplot) + [1.] #add endpoints
-		# yplot = [0.] + list(yplot) + [yplot[-1]]

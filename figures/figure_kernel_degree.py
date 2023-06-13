@@ -50,37 +50,37 @@ if __name__ == "__main__":
 	filter_thres = 0
 
 	#root locations of data/code
-	# #LOCAL
-	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	# saveloc = root_code+'files/data/' #location of output files
-	# saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
-	# # saveloc_fig = ''
-	#TRITON
-	root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
+	#LOCAL
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	saveloc = root_code+'files/data/' #location of output files
+	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
+	# saveloc_fig = ''
+	# #TRITON
+	# root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
+	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	# saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#flags
-	load = False
+	load = True
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
-				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 # ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 # ( 'Enron', 'Email (Enron)'),
-				 # ( 'email', 'Email (Kiel)'),
-				 # ( 'eml2', 'Email (Uni)'),
-				 # ( 'email_Eu_core', 'Email (EU)'),
-				 # ( 'fb', 'Facebook'),
-				 # ( 'messages', 'Messages'),
-				 # ( 'pok', 'Dating'),
-				 # ( 'forum', 'Forum'),
-				 # ( 'CollegeMsg', 'College'),
-				 # ( 'CNS_calls', 'CNS (call)'),
-				 # ( 'CNS_sms', 'CNS (sms)')
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'pok', 'Dating'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)')
 				]
 
 	#sizes/widths/coords
@@ -127,7 +127,7 @@ if __name__ == "__main__":
 		if grid_pos in [12, 13, 14, 15]:
 			plt.xlabel( r'$a$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
+			plt.ylabel( r'$\langle \pi_a \rangle - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
 		colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
 

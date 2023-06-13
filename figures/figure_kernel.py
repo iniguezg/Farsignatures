@@ -28,31 +28,38 @@ if __name__ == "__main__":
 	min_negos = 50 #minimum number of egos in filtered activity group
 
 	#locations
-	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	saveloc = root_code+'files/data/' #location of output files
-	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
+	# #LOCAL
+	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	# saveloc = root_code+'files/data/' #location of output files
+	# saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
+	# # saveloc_fig = ''
+	#TRITON
+	root_data = '/m/cs/scratch/networks/inigueg1/prg/xocial/datasets/temporal_networks/'
+	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#flags
-	load = True
+	load = False
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
-				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'Enron', 'Email (Enron)'),
-				 ( 'email', 'Email (Kiel)'),
-				 ( 'eml2', 'Email (Uni)'),
-				 ( 'email_Eu_core', 'Email (EU)'),
-				 ( 'fb', 'Facebook'),
-				 ( 'messages', 'Messages'),
-				 ( 'pok', 'Dating'),
-				 ( 'forum', 'Forum'),
-				 ( 'CollegeMsg', 'College'),
-				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)') ]
+				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 # ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 # ( 'Enron', 'Email (Enron)'),
+				 # ( 'email', 'Email (Kiel)'),
+				 # ( 'eml2', 'Email (Uni)'),
+				 # ( 'email_Eu_core', 'Email (EU)'),
+				 # ( 'fb', 'Facebook'),
+				 # ( 'messages', 'Messages'),
+				 # ( 'pok', 'Dating'),
+				 # ( 'forum', 'Forum'),
+				 # ( 'CollegeMsg', 'College'),
+				 # ( 'CNS_calls', 'CNS (call)'),
+				 # ( 'CNS_sms', 'CNS (sms)')
+				]
 
 	#sizes/widths/coords
 	plot_props = { 'xylabel' : 15,
@@ -95,11 +102,18 @@ if __name__ == "__main__":
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
-		#prepare data: apply degree / negos filters, group and average
-		data_avg = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props, filt_params={ 'min_degree':min_degree, 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		#only consider egos with large enough degree!
+		egonet_props_filt = egonet_props[ egonet_props.degree >= min_degree ]
 
-		#prepare baseline: prob = 1/k for random case
-		bline_avg = ( 1 / egonet_props[ egonet_props.degree >= min_degree ].degree ).mean()
+		#use single quantile range, i.e. all degrees!
+		quantile_arr = np.linspace(0, 1, 2)
+		min_val, max_val = np.quantile( egonet_props_filt.degree, quantile_arr )
+
+		#prepare kernel: apply degree / negos filters, group and average
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props.degree, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
+
+		#prepare baseline: prob = <1/k> for random case
+		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
 
 
 		## PLOTTING ##
