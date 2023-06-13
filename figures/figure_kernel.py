@@ -110,7 +110,7 @@ if __name__ == "__main__":
 		min_val, max_val = np.quantile( egonet_props_filt.degree, quantile_arr )
 
 		#prepare kernel: apply degree / negos filters, group and average
-		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props.degree, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule='degree', filt_obj=egonet_props.degree, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=load, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
 		#prepare baseline: prob = <1/k> for random case
 		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
