@@ -96,7 +96,8 @@
 # srun python figures/figure_kernel.py
 # srun python figures/figure_kernel_degree.py
 # srun python figures/figure_kernel_dispersion.py
-srun python figures/figure_activity_dispersion.py
+# srun python figures/figure_activity_dispersion.py
+srun python figures/figure_activity_beta.py
 
 
 #DEBUGGIN'
