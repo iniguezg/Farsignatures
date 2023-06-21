@@ -36,6 +36,7 @@ module load anaconda
 #sbatch -J join_files -o join_files.out script_getData_triton.sh
 
 #plot figures
-sbatch -J figure_kernel -o figure_kernel.out script_getData_triton.sh
+# sbatch -J figure_kernel -o figure_kernel.out script_getData_triton.sh
 # sbatch -J figure_kernel_degree -o figure_kernel_degree.out script_getData_triton.sh
 # sbatch -J figure_kernel_dispersion -o figure_kernel_dispersion.out script_getData_triton.sh
+sbatch -J figure_activity_dispersion -o figure_activity_dispersion.out script_getData_triton.sh

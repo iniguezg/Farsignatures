@@ -93,9 +93,10 @@
 #--time=05-00
 #--mem-per-cpu=20G
 
-srun python figures/figure_kernel.py
+# srun python figures/figure_kernel.py
 # srun python figures/figure_kernel_degree.py
 # srun python figures/figure_kernel_dispersion.py
+srun python figures/figure_activity_dispersion.py
 
 
 #DEBUGGIN'

@@ -95,7 +95,7 @@ if __name__ == "__main__":
 	#loop through considered datasets
 	for grid_pos, (eventname, textname) in enumerate(datasets):
 	# for grid_pos, (eventname, textname) in enumerate([ ( 'MPC_UEu', 'Mobile (call)') ]):
-		print( 'dataset name: ' + eventname ) #print output
+		print( 'dataset name: ' + eventname, flush=True ) #print output
 
 		## DATA ##
 

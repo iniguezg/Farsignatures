@@ -78,6 +78,71 @@ def plot_kernel_filter( eventname, filt_rule='', filt_obj=None, filt_params={}, 
 	return data_avg, filt_ind
 
 
+#function to plot alter activity CCDF and average social signature according to filter
+def plot_activity_filter( dataname, eventname, filt_rule='', filt_obj=None, filt_params={}, is_parallel=False, load=False, root_data='', saveloc='', saveloc_fig='' ):
+	"""Plot alter activity CCDF and average social signature according to filter"""
+
+	savename = '_{}_filter_rule_{}_params_{}.pkl'.format( eventname, filt_rule, ''.join([ k+'_'+'{:.2f}'.format(v)+'_' for k, v in filt_params.items() ]) ) #filename to load/save
+
+	if load: #load aggregated activity files
+		ccdf = pd.read_pickle(saveloc_fig+'ccdf'+savename)
+		sign = pd.read_pickle(saveloc_fig+'sign'+savename)
+	else: #or compute them from scratch
+
+		#set filter condition
+		cond = (filt_params['min_val'] <= filt_obj) & (filt_obj < filt_params['max_val']) #filter condition
+		filt_ind = filt_obj[cond].index #filtered indices
+
+		#load and filter alter activities
+		if is_parallel == False: #for small datasets
+			egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
+
+			#filter egos by selected filter property
+			acts_filter = egonet_acts[ egonet_acts.index.isin(filt_ind, level=0) ]
+
+		else: #for large datasets (separated into several files)
+			fileloc = root_data + dataname +'/'+ eventname + '/'
+			filelist = os.listdir( fileloc )
+
+			for filepos, filename in enumerate( filelist ): #loop through files in data directory
+				if filepos % 100 == 0: #to know where we stand
+					print( '\t\tfile {} out of {}'.format( filepos, len(filelist) ), flush=True )
+
+				#load alter activities (for piece of large dataset!)
+				not_used, egonet_acts_piece = dm.egonet_props_acts_parallel( filename, fileloc, eventname, 'y', saveloc )
+
+				#filter egos by selected filter property
+				acts_filter_piece = egonet_acts_piece[ egonet_acts_piece.index.isin(filt_ind, level=0) ]
+
+				if filepos: #accumulate pieces of large dataset
+					acts_filter = pd.concat([ acts_filter, acts_filter_piece ])
+				else: #and initialise dataframe
+					acts_filter = acts_filter_piece
+
+		#get average social signature and alter activity CCDF
+
+		#sort alter activities (across all egos) and normalise (by max activity for each ego)
+		acts_filter_sorted = acts_filter.sort_values(ascending=False) / egonet_acts.groupby(level=0).sum()
+		#reset inner index (alter, nodej) as activity rank, for ego aggregation
+		acts_filter_sorted.index = pd.MultiIndex.from_arrays( [acts_filter_sorted.index.get_level_values(0), acts_filter_sorted.groupby(level=0).cumcount()], names=['nodei', 'arank'] )
+
+		#get filtered activity rank groups
+		acts_filter_sorted_negos = acts_filter_sorted[ acts_filter_sorted.groupby(level=1).transform('count') >= filt_params['min_negos'] ]
+		#group ego probs for each activity rank and average probs over egos
+		sign = acts_filter_sorted_negos.groupby(level=1).mean()
+
+		#get alter activity CCDF: P[X >= x]
+		ccdf_x, ccdf_y = plot_compcum_dist( acts_filter )
+
+		#save alter activity CCDF and average social signature
+		ccdf = pd.DataFrame(data={ 'x':ccdf_x, 'y':ccdf_y })
+		if saveloc_fig:
+			ccdf.to_pickle(saveloc_fig+'ccdf'+savename)
+			sign.to_pickle(saveloc_fig+'sign'+savename)
+
+	return ccdf, sign
+
+
 def draw_brace(ax, xspan, yy, text):
     """Draws an annotated brace on the axes"""
 
@@ -121,3 +186,5 @@ def draw_brace(ax, xspan, yy, text):
 		# 	cond = (filt_params['min_val'] <= filt_obj) & (filt_obj <= filt_params['max_val'])
 		# elif filt_rule == 'degree': #degree within bounds
 		# 	cond = (filt_params['min_val'] <= filt_obj.degree) & (filt_obj.degree <= filt_params['max_val'])
+
+		# acts_filter_sorted_negos = acts_filter_sorted.groupby(level=1).filter( lambda x : len(x) >= filt_params['min_negos'] )

@@ -253,7 +253,7 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=3 )
 
 
-# C: Activity distribution and social signatures of heterogeneous/homogeneous egos
+# C-E: Activity distribution and social signatures, dispersion distribution, and connection kernel of heterogeneous/homogeneous egos
 
 	#subplot variables
 	eventname, textname = ( 'call', 'Mobile (call)')
@@ -269,51 +269,38 @@ if __name__ == "__main__":
 	filter_prop = 'strength' #selected property and threshold to filter egos
 	filter_thres = 0
 
-	# #alpha fit variables
-	# alphamax = 1000 #maximum alpha for MLE fit
-	# pval_thres = 0.1 #threshold above which alpha MLEs are considered
-	# alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
-
 	# #subplot variables
-	# dataname, eventname, textname = 'greedy_walk_nets', 'forum', 'Forum' #selected dataset
-	# labels = ['heterogeneous ego', 'homogeneous ego'] #regime labels
-	# nodei_vals = [ 26, 1910 ] #selected egos (heterogeneous/homogeneous)
+	labels = ['homogeneous egos', 'heterogeneous egos'] #regime labels
 
 	colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
 	# symbols = ['o', 's'] #symbols to plot
 
-	print('ACTIVITY REGIMES', flush=True)
-	print( 'dataset name: ' + eventname, flush=True ) #print output
-
 	## DATA ##
 
 	#load ego network properties, alter activities, alpha fits, and connection kernel
-	# egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-	# egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
-	# egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
+	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
 
 	#prepare filter object (ego dispersions)
 	#only consider egos with large enough degree!
-	# egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
-	# filt_obj = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
+	egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
+	act_disps = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
 
-	# disp_vals = [ act_disps[nodei] for nodei in nodei_vals ] #dispersion values
-	# print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
-	#
-	# #filter egos according to fitting results
-	# egonet_filter, egonet_inf, egonet_null = dm.egonet_filter( egonet_props, egonet_fits, pval_thres=pval_thres, alphamax=alphamax, alph_thres=alph_thres )
-	#
-	# print( '\theterogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[0]] ), flush=True ) #print ego properties
-	# print( '\t\tdispersion: {:.2f}'.format( disp_vals[0] ), flush=True )
-	# print( '\thomogeneous ego:\n{}'.format( egonet_filter.loc[nodei_vals[1]] ), flush=True )
-	# print( '\t\tdispersion: {:.2f}'.format( disp_vals[1] ), flush=True )
+	#get quantiles of filter parameter (dispersion)
+	quantile_arr = np.linspace(0, 1, dset_params[eventname]['num_quants'])
+	quantile_vals = np.quantile( act_disps, quantile_arr )
+
+
+	# C: Activity distribution and social signatures of heterogeneous/homogeneous egos
+
+	print('ACTIVITY REGIMES', flush=True)
+	print( 'dataset name: ' + eventname, flush=True ) #print output
 
 	## PLOTTING ##
 
 	# C1: Activity distribution
 
 	#initialise subplot
-	subgrid = grid[ 1,: ].subgridspec( 2, 3, wspace=0.4, hspace=0.4 )
+	subgrid = grid[ 1,: ].subgridspec( 3, 3, wspace=0.4, hspace=0.4, height_ratios=[0.1, 1, 1] )
 	# ax = plt.subplot( subgrid[ 0,0 ] )
 	# sns.despine( ax=ax ) #take out spines
 	# plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
@@ -357,75 +344,42 @@ if __name__ == "__main__":
 	# inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
-# D-E: Dispersion distribution and connection kernel of heterogeneous/homogeneous egos
-
-	#subplot variables
-	eventname, textname = ( 'call', 'Mobile (call)')
-
-	#filter variables
-	filt_rule = 'dispersion' #chosen filter parameter: activity dispersion
-	min_negos = 30 #minimum number of egos in filtered activity group
-
-	#dset-specific params: minimum degree / number of quantiles (+1) of filtered egos
-	dset_params = { 'call': {'min_degree':10, 'num_quants':5} }
-
-	#dispersion variables
-	filter_prop = 'strength' #selected property and threshold to filter egos
-	filter_thres = 0
-
-
-	colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
+	# D: Dispersion distribution
 
 	print('DISPERSION/KERNEL REGIMES', flush=True)
 	print( 'dataset name: ' + eventname, flush=True ) #print output
 
-	## DATA ##
-
-	#load ego network properties, alter activities, alpha fits, and connection kernel
-	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-
-	#prepare filter object (ego dispersions)
-	#only consider egos with large enough degree!
-	egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
-	act_disps = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
-
-	#get quantiles of filter parameter (dispersion)
-	quantile_arr = np.linspace(0, 1, dset_params[eventname]['num_quants'])
-	quantile_vals = np.quantile( act_disps, quantile_arr )
-
-	## PLOTTING ##
-
-	# D: Dispersion distribution
+	#subplot variables
+	bins_disp = np.linspace(0, 1, 40) #bins to plot dispersion
 
 	#initialise subplot
-	ax = plt.subplot( subgrid[ :,1 ] )
+	ax = plt.subplot( subgrid[ 1:,1 ] )
 	sns.despine( ax=ax, top=False, bottom=True ) #take out spines
 	plt.xlabel( r'$p_d$', size=plot_props['xylabel'] )
 	plt.ylabel( r'$d$', size=plot_props['xylabel'], labelpad=0 )
 	ax.xaxis.set_label_position('top')
 
-	plt.text( -0.32, 1.1, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.32, 1.35, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#plot plot!
-	cnts, vals, bars = plt.hist( act_disps, bins=30, density=True, orientation='horizontal' )
+	cnts, vals, bars = plt.hist( act_disps, bins=bins_disp, density=True, orientation='horizontal', log=True )
 
 	#loop through quantiles of filter parameter (inclusive!)
-	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
-		plt.axhline( min_val, ls='--', c='0.5', lw=plot_props['linewidth'] )
+	for min_val, max_val in zip(quantile_vals[:-1], quantile_vals[1:]):
+		plt.axhline( min_val, ls='--', c='0.7', lw=plot_props['linewidth'] )
 
-	#color histogram!
+	#color histogram according to quantile ranges!
 	for patch in range( len(bars) ):
-		if vals[patch] > act_disps.mean():
-			bars[patch].set_facecolor( colors[1] )
-		else:
-			bars[patch].set_facecolor( colors[0] )
+		for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
+			if vals[patch] > min_val:
+				bars[patch].set_facecolor( colors[posval] )
 
 	#plot dispersion equation
 	eq_str = r'$d = \frac{ \sigma^2 - t + a_0 }{ \sigma^2 + t - a_0 }$'
 	plt.text( 0.95, 0.95, eq_str, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 	#finalise plot
-	# plt.axis([ 0, 2, -0.4, 1 ])
+	plt.axis([ 5e-2, 1e1, bins_disp[0]-0.01, bins_disp[-1]+0.01 ])
 	ax.invert_yaxis()
 	ax.tick_params( labelbottom=False,labeltop=True )
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
@@ -433,22 +387,19 @@ if __name__ == "__main__":
 
 	# E: Connection kernel
 
-	#prepare filter object (ego dispersions)
-	filt_obj = act_disps #naming from kernel plot files
-
 	#initialise subplot
-	ax = plt.subplot( subgrid[ :,2 ] )
+	ax = plt.subplot( subgrid[ 1:,2 ] )
 	sns.despine( ax=ax ) #take out spines
 	plt.xlabel( r'$a / a_m$', size=plot_props['xylabel'] )
 	plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
-	plt.text( -0.3, 1.1, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.3, 1.35, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through quantiles of filter parameter (inclusive!)
 	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
 
 		#prepare kernel: apply degree / negos filters, group and average
-		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule=filt_rule, filt_obj=filt_obj, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule=filt_rule, filt_obj=act_disps, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
 		#prepare baseline: prob = <1/k> for random case
 		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
@@ -460,8 +411,11 @@ if __name__ == "__main__":
 		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
 		line_data, = plt.plot( xplot, data_avg - bline_avg, '-', c=colors[posval], label=label, lw=plot_props['linewidth'], zorder=1 )
 
+	#legend
+	plt.legend( loc='lower right', bbox_to_anchor=(1.1, 1.2), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=dset_params[eventname]['num_quants']-1 )
+
 	#finalise subplot
-	plt.axis([ -0.05, 1, 0, 0.6 ])
+	plt.axis([ -0.02, 1.02, -0.05, 1.02 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
@@ -520,24 +474,6 @@ if __name__ == "__main__":
 
 
 # G: Connection kernel for all datasets
-
-	#NOTE: temporary!
-	datasets = [ # ( 'call', 'Mobile (call)'),
-				 # ( 'text', 'Mobile (sms)'),
-				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'Enron', 'Email (Enron)'),
-				 ( 'email', 'Email (Kiel)'),
-				 ( 'eml2', 'Email (Uni)'),
-				 ( 'email_Eu_core', 'Email (EU)'),
-				 ( 'fb', 'Facebook'),
-				 ( 'messages', 'Messages'),
-				 ( 'pok', 'Dating'),
-				 ( 'forum', 'Forum'),
-				 ( 'CollegeMsg', 'College'),
-				 ( 'CNS_calls', 'CNS (call)'),
-				 ( 'CNS_sms', 'CNS (sms)') ]
 
 	#subplot variables
 	min_degree = 2 #minimum degree of filtered egos
