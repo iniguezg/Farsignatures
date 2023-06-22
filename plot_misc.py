@@ -106,7 +106,8 @@ def plot_activity_filter( dataname, eventname, filt_rule='', filt_obj=None, filt
 
 		else: #for large datasets (separated into several files)
 			fileloc = root_data + dataname +'/'+ eventname + '/'
-			filelist = os.listdir( fileloc )
+			# filelist = os.listdir( fileloc )
+			filelist = [ '1020407_1039726.txt' ]
 
 			for filepos, filename in enumerate( filelist ): #loop through files in data directory
 				if filepos % 100 == 0: #to know where we stand
@@ -126,7 +127,7 @@ def plot_activity_filter( dataname, eventname, filt_rule='', filt_obj=None, filt
 		#get average social signature and alter activity CCDF
 
 		#sort alter activities (across all egos) and normalise (by max activity for each ego)
-		acts_filter_sorted = acts_filter.sort_values(ascending=False) / egonet_acts.groupby(level=0).sum()
+		acts_filter_sorted = acts_filter.sort_values(ascending=False) / acts_filter.groupby(level=0).sum()
 		#reset inner index (alter, nodej) as activity rank, for ego aggregation
 		acts_filter_sorted.index = pd.MultiIndex.from_arrays( [acts_filter_sorted.index.get_level_values(0), acts_filter_sorted.groupby(level=0).cumcount()], names=['nodei', 'arank'] )
 
