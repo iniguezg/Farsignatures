@@ -106,8 +106,8 @@ def plot_activity_filter( dataname, eventname, filt_rule='', filt_obj=None, filt
 
 		else: #for large datasets (separated into several files)
 			fileloc = root_data + dataname +'/'+ eventname + '/'
-			# filelist = os.listdir( fileloc )
-			filelist = [ '1020407_1039726.txt' ]
+			filelist = os.listdir( fileloc )
+			# filelist = [ '1020407_1039726.txt' ] #for text dataset only
 
 			for filepos, filename in enumerate( filelist ): #loop through files in data directory
 				if filepos % 100 == 0: #to know where we stand
