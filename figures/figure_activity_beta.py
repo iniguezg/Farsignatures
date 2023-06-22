@@ -50,7 +50,7 @@ if __name__ == "__main__":
 	load = False
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'call', 'Mobile (call)'),
+	datasets = [ # ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
 				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
