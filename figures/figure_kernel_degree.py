@@ -127,7 +127,7 @@ if __name__ == "__main__":
 		if grid_pos in [12, 13, 14, 15]:
 			plt.xlabel( r'$a$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
-			plt.ylabel( r'$\langle \pi_a \rangle - \langle 1/k \rangle$', size=plot_props['xylabel'] )
+			plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
 		colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
 

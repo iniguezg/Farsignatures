@@ -26,7 +26,7 @@ if __name__ == "__main__":
 	num_quants = 5 #number of quantiles (+1) of filtered egos
 	min_negos = 30 #minimum number of egos in filtered activity group (only for social signature)
 
-	#dset-specific params: minimum degree / number of quantiles (+1) of filtered egos
+	#dset-specific params: minimum degree of filtered egos
 	min_degree = { 'call':10, 'text':10, 'MPC_Wu_SD01':10, 'MPC_Wu_SD02':10, 'MPC_Wu_SD03':10, 'Enron':10, 'email':10, 'eml2':10, 'email_Eu_core':10, 'fb':10, 'messages':10, 'pok':10, 'forum':10, 'CollegeMsg':10, 'CNS_calls':2, 'CNS_sms':2}
 
 	#dispersion variables
@@ -34,37 +34,37 @@ if __name__ == "__main__":
 	filter_thres = 0
 
 	#root locations of data/code
-	# #LOCAL
-	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	# saveloc = root_code+'files/data/' #location of output files
-	# saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
-	# # saveloc_fig = ''
-	#TRITON
-	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
+	#LOCAL
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	saveloc = root_code+'files/data/' #location of output files
+	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
+	# saveloc_fig = ''
+	# #TRITON
+	# root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	# saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#flags
-	load = False
+	load = True
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
-				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 # ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 # ( 'Enron', 'Email (Enron)'),
-				 # ( 'email', 'Email (Kiel)'),
-				 # ( 'eml2', 'Email (Uni)'),
-				 # ( 'email_Eu_core', 'Email (EU)'),
-				 # ( 'fb', 'Facebook'),
-				 # ( 'messages', 'Messages'),
-				 # ( 'pok', 'Dating'),
-				 # ( 'forum', 'Forum'),
-				 # ( 'CollegeMsg', 'College'),
-				 # ( 'CNS_calls', 'CNS (call)'),
-				 # ( 'CNS_sms', 'CNS (sms)')
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'pok', 'Dating'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)')
 				]
 
 	#sizes/widths/coords
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 	'ticklabel' : 15,
 	'text_size' : 15,
 	'marker_size' : 3,
-	'linewidth' : 2,
+	'linewidth' : 3,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
 	'legend_prop' : { 'size':7 },
@@ -106,7 +106,7 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		if grid_pos in [10, 11, 12, 13]:
+		if grid_pos in [12, 13, 14, 15]:
 			plt.xlabel( '$a$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"CCDF $P[a' \geq a]$", size=plot_props['xylabel'] )
@@ -146,7 +146,7 @@ if __name__ == "__main__":
 			label = '{:.2f} '.format(min_val)+'$\leq d <$'+' {:.2f}'.format(max_val)
 
 			#plot plot alter activity CCDF!
-			plt.loglog( ccdf.x, ccdf.y, 'o', c=colors[posval], label=label, ms=plot_props['marker_size'], zorder=0 )
+			plt.loglog( ccdf.x, ccdf.y, '-', c=colors[posval], label=label, lw=plot_props['linewidth'], zorder=0 )
 
 		#texts
 		plt.text( 1, 1.1, textname, va='bottom', ha='right', transform=ax.transAxes, fontsize=plot_props['text_size'] )
@@ -155,10 +155,10 @@ if __name__ == "__main__":
 		plt.legend( loc='upper left', bbox_to_anchor=(0, 1.1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
 
 		#finalise subplot
-		plt.axis([ 1e0, 1e4, 5e-6, 1e1 ])
+		plt.axis([ 1e0, 5e4, 1e-6, 1e1 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
-		if grid_pos not in [10, 11, 12, 13]:
+		if grid_pos not in [12, 13, 14, 15]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)

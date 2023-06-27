@@ -64,7 +64,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (10, 10),
 	'aspect_ratio' : (3, 2),
-	'grid_params' : dict( left=0.085, bottom=0.05, right=0.98, top=0.975, wspace=0.3, hspace=0.45 ),
+	'grid_params' : dict( left=0.085, bottom=0.05, right=0.98, top=0.975, wspace=0.3, hspace=0.48 ),
 	'dpi' : 300,
 	'savename' : 'figure1' }
 
@@ -77,7 +77,7 @@ if __name__ == "__main__":
 	sns.set( style='ticks' ) #set fancy fancy plot
 	fig = plt.figure( fig_props['fig_num'], figsize=fig_props['fig_size'] )
 	plt.clf()
-	grid = gridspec.GridSpec( *fig_props['aspect_ratio'], height_ratios=[0.5, 1, 1] )
+	grid = gridspec.GridSpec( *fig_props['aspect_ratio'], height_ratios=[0.5, 0.9, 1] )
 	grid.update( **fig_props['grid_params'] )
 
 
@@ -253,27 +253,21 @@ if __name__ == "__main__":
 	ax.locator_params( nbins=3 )
 
 
-# C-E: Activity distribution and social signatures, dispersion distribution, and connection kernel of heterogeneous/homogeneous egos
+# C-E: Activity distribution (CCDF), dispersion distribution, and connection kernel of heterogeneous/homogeneous egos
 
 	#subplot variables
 	eventname, textname = ( 'call', 'Mobile (call)')
 
 	#filter variables
-	filt_rule = 'dispersion' #chosen filter parameter
+	min_degree = 10 #minimum degree of filtered egos
 	min_negos = 30 #minimum number of egos in filtered activity group
-
-	#dset-specific params: minimum degree / number of quantiles (+1) of filtered egos
-	dset_params = { 'call': {'min_degree':10, 'num_quants':5} }
+	num_quants = 5 #number of quantiles (+1) of filtered egos
 
 	#dispersion variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
 	filter_thres = 0
 
-	# #subplot variables
-	labels = ['homogeneous egos', 'heterogeneous egos'] #regime labels
-
-	colors = sns.color_palette( 'GnBu', n_colors=dset_params[eventname]['num_quants']-1 ) #colors to plot
-	# symbols = ['o', 's'] #symbols to plot
+	colors = sns.color_palette( 'GnBu', n_colors=num_quants-1 ) #colors to plot
 
 	## DATA ##
 
@@ -282,66 +276,49 @@ if __name__ == "__main__":
 
 	#prepare filter object (ego dispersions)
 	#only consider egos with large enough degree!
-	egonet_props_filt = egonet_props[ egonet_props.degree >= dset_params[eventname]['min_degree'] ]
+	egonet_props_filt = egonet_props[ egonet_props.degree >= min_degree ]
 	act_disps = dm.egonet_dispersion( egonet_props_filt, filter_prop, filter_thres )
 
 	#get quantiles of filter parameter (dispersion)
-	quantile_arr = np.linspace(0, 1, dset_params[eventname]['num_quants'])
+	quantile_arr = np.linspace(0, 1, num_quants)
 	quantile_vals = np.quantile( act_disps, quantile_arr )
 
 
-	# C: Activity distribution and social signatures of heterogeneous/homogeneous egos
+	# C: Activity distribution (CCDF)
 
 	print('ACTIVITY REGIMES', flush=True)
 	print( 'dataset name: ' + eventname, flush=True ) #print output
 
 	## PLOTTING ##
 
-	# C1: Activity distribution
+	# C: Activity distribution
 
 	#initialise subplot
-	subgrid = grid[ 1,: ].subgridspec( 3, 3, wspace=0.4, hspace=0.4, height_ratios=[0.1, 1, 1] )
-	# ax = plt.subplot( subgrid[ 0,0 ] )
-	# sns.despine( ax=ax ) #take out spines
-	# plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
-	# plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
-	#
-	# plt.text( -0.34, 1.25, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
-	#
-	# for posi, nodei in enumerate(nodei_vals): #loop through selected egos
-	# 	activity = egonet_acts[nodei] #alter activities for selected ego
-	#
-	# 	#plot plot activity distribution!
-	# 	xplot, yplot = pm.plot_compcum_dist( activity ) #get alter activity CCDF: P[X >= x]
-	# 	plt.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'], label=labels[posi] )
-	#
-	# #legend
-	# plt.legend( loc='lower left', bbox_to_anchor=(-0.31, 1.05), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=len(labels) )
-	#
-	# #finalise subplot
-	# plt.axis([ 0.8e0, 2e2, 1e-2, 1.2e0 ])
-	# ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+	subgrid = grid[ 1,: ].subgridspec( 1, 3, wspace=0.4, hspace=0.4 )
+	ax = plt.subplot( subgrid[0] )
+	sns.despine( ax=ax ) #take out spines
+	plt.xlabel( r'$a$', size=plot_props['xylabel'], labelpad=0 )
+	plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
 
+	plt.text( -0.34, 1.15, 'c', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
-	#C2: Social signatures
+	#loop through quantiles of filter parameter (inclusive!)
+	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
+		#load alter activity CCDF and average social signature (not used!) according to filter
+		ccdf, sign = pm.plot_activity_filter( 'divided_to_roughly_40_mb_files_30_march', eventname, filt_rule='dispersion', filt_obj=act_disps, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, is_parallel=True, load=True, root_data=root_data, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
-	# inax = plt.subplot( subgrid[ 1,0 ] )
-	# sns.despine( ax=inax ) #take out spines
-	# inax.set_xlabel( r'$r$', size=plot_props['xylabel'] )
-	# inax.set_ylabel( r'$f_a$', size=plot_props['xylabel'] )
-	#
-	# for posi, nodei in enumerate(nodei_vals): #loop through selected egos
-	# 	activity = egonet_acts[nodei] #alter activities for selected ego
-	#
-	# 	#plot plot social signature!
-	# 	xplot = np.arange( 1, len(activity)+1, dtype=int )
-	# 	yplot = activity.sort_values( ascending=False ) / activity.sum()
-	# 	inax.loglog( xplot, yplot, symbols[posi], c=colors[1-posi], ms=plot_props['marker_size'] )
-	#
-	# #finalise inset
-	# inax.set_xlim( 0.8e0, 1e2)
-	# inax.set_ylim( 0.7e-3, 2.5e-1 )
-	# inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
+		#label by filter property range
+		label = '{:.2f} '.format(min_val)+'$\leq d <$'+' {:.2f}'.format(max_val)
+
+		#plot plot alter activity CCDF!
+		plt.loglog( ccdf.x, ccdf.y, '-', c=colors[posval], label=label, lw=plot_props['linewidth'] )
+
+	#legend
+	plt.legend( loc='lower right', bbox_to_anchor=(1.1, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
+
+	#finalise subplot
+	plt.axis([ 1e0, 2e4, 1e-8, 2e0 ])
+	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 
 	# D: Dispersion distribution
@@ -353,13 +330,13 @@ if __name__ == "__main__":
 	bins_disp = np.linspace(0, 1, 40) #bins to plot dispersion
 
 	#initialise subplot
-	ax = plt.subplot( subgrid[ 1:,1 ] )
+	ax = plt.subplot( subgrid[1] )
 	sns.despine( ax=ax, top=False, bottom=True ) #take out spines
 	plt.xlabel( r'$p_d$', size=plot_props['xylabel'] )
 	plt.ylabel( r'$d$', size=plot_props['xylabel'], labelpad=0 )
 	ax.xaxis.set_label_position('top')
 
-	plt.text( -0.32, 1.35, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.28, 1.15, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#plot plot!
 	cnts, vals, bars = plt.hist( act_disps, bins=bins_disp, density=True, orientation='horizontal', log=True )
@@ -388,18 +365,18 @@ if __name__ == "__main__":
 	# E: Connection kernel
 
 	#initialise subplot
-	ax = plt.subplot( subgrid[ 1:,2 ] )
+	ax = plt.subplot( subgrid[2] )
 	sns.despine( ax=ax ) #take out spines
 	plt.xlabel( r'$a / a_m$', size=plot_props['xylabel'] )
 	plt.ylabel( r'$\pi_a - \langle 1/k \rangle$', size=plot_props['xylabel'] )
 
-	plt.text( -0.3, 1.35, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
+	plt.text( -0.3, 1.15, 'e', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#loop through quantiles of filter parameter (inclusive!)
 	for posval, (min_val, max_val) in enumerate( zip(quantile_vals[:-1], quantile_vals[1:]) ):
 
 		#prepare kernel: apply degree / negos filters, group and average
-		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule=filt_rule, filt_obj=act_disps, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
+		data_avg, filt_ind = pm.plot_kernel_filter( eventname, filt_rule='dispersion', filt_obj=act_disps, filt_params={ 'min_val':min_val, 'max_val':max_val, 'min_negos':min_negos }, load=True, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
 		#prepare baseline: prob = <1/k> for random case
 		bline_avg = ( 1 / egonet_props_filt.degree[filt_ind] ).mean()
@@ -411,8 +388,14 @@ if __name__ == "__main__":
 		xplot = data_avg.index / data_avg.index.max() #normalise by max activity
 		line_data, = plt.plot( xplot, data_avg - bline_avg, '-', c=colors[posval], label=label, lw=plot_props['linewidth'], zorder=1 )
 
-	#legend
-	plt.legend( loc='lower right', bbox_to_anchor=(1.1, 1.2), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=dset_params[eventname]['num_quants']-1 )
+		#plot plot baseline!
+		line_base = plt.axhline( 0, ls='--', c='0.7', label=None, lw=plot_props['linewidth'], zorder=0 )
+
+	#legends
+	leg1 = plt.legend( loc='lower right', bbox_to_anchor=(1.1, 1), prop=plot_props['legend_prop'], handlelength=plot_props['legend_hlen'], numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
+	ax.add_artist(leg1)
+	leg2 = plt.legend( (line_data, line_base), ('data', 'random choice'), loc='lower right', bbox_to_anchor=(1.1, 0.05), prop=plot_props['legend_prop'], handlelength=1.7, numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'], ncol=2 )
+	ax.add_artist(leg2)
 
 	#finalise subplot
 	plt.axis([ -0.02, 1.02, -0.05, 1.02 ])
@@ -535,6 +518,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'

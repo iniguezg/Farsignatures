@@ -35,37 +35,37 @@ if __name__ == "__main__":
 	min_negos = 30 #minimum number of egos in filtered activity group (only for social signature)
 
 	#root locations of data/code
-	# #LOCAL
-	# root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	# root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	# saveloc = root_code+'files/data/' #location of output files
-	# saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
-	# # saveloc_fig = ''
-	#TRITON
-	root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
-	saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
-	saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
+	#LOCAL
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
+	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
+	saveloc = root_code+'files/data/' #location of output files
+	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
+	# saveloc_fig = ''
+	# #TRITON
+	# root_data = '/m/cs/scratch/networks-mobile/heydars1/set5_divided_to_small_files_for_gerardo_29_march_2021/'
+	# saveloc = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/files/data/'
+	# saveloc_fig = '/m/cs/scratch/networks/inigueg1/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#flags
-	load = False
+	load = True
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
 				 ( 'text', 'Mobile (sms)'),
-				 # ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
-				 # ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
-				 # ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 # ( 'Enron', 'Email (Enron)'),
-				 # ( 'email', 'Email (Kiel)'),
-				 # ( 'eml2', 'Email (Uni)'),
-				 # ( 'email_Eu_core', 'Email (EU)'),
-				 # ( 'fb', 'Facebook'),
-				 # ( 'messages', 'Messages'),
-				 # ( 'pok', 'Dating'),
-				 # ( 'forum', 'Forum'),
-				 # ( 'CollegeMsg', 'College'),
-				 # ( 'CNS_calls', 'CNS (call)'),
-				 # ( 'CNS_sms', 'CNS (sms)')
+				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
+				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
+				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
+				 ( 'Enron', 'Email (Enron)'),
+				 ( 'email', 'Email (Kiel)'),
+				 ( 'eml2', 'Email (Uni)'),
+				 ( 'email_Eu_core', 'Email (EU)'),
+				 ( 'fb', 'Facebook'),
+				 ( 'messages', 'Messages'),
+				 ( 'pok', 'Dating'),
+				 ( 'forum', 'Forum'),
+				 ( 'CollegeMsg', 'College'),
+				 ( 'CNS_calls', 'CNS (call)'),
+				 ( 'CNS_sms', 'CNS (sms)')
 				]
 
 	#sizes/widths/coords
@@ -107,7 +107,7 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
-		if grid_pos in [10, 11, 12, 13]:
+		if grid_pos in [12, 13, 14, 15]:
 			plt.xlabel( '$a$', size=plot_props['xylabel'] )
 		if grid_pos in [0, 4, 8, 12]:
 			plt.ylabel( r"CCDF $P[a' \geq a]$", size=plot_props['xylabel'] )
@@ -136,7 +136,7 @@ if __name__ == "__main__":
 		for beta_pos, (beta_min, beta_max) in enumerate(beta_lims):
 			print('\tbeta_min = {:.2f}, beta_max = {:.2f}'.format(beta_min, beta_max), flush=True) #filter range
 
-			#plot alter activity CCDF and average social signature according to filter
+			#load alter activity CCDF and average social signature (not used!) according to filter
 			ccdf, sign = pm.plot_activity_filter( dataname, eventname, filt_rule='beta', filt_obj=egonet_filter.beta, filt_params={ 'min_val':beta_min, 'max_val':beta_max, 'min_negos':min_negos }, is_parallel=is_parallel, load=load, root_data=root_data, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
 
@@ -158,7 +158,7 @@ if __name__ == "__main__":
 		plt.axis([ 1e0, 1e4, 1e-6, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
-		if grid_pos not in [10, 11, 12, 13]:
+		if grid_pos not in [12, 13, 14, 15]:
 			ax.tick_params(labelbottom=False)
 		if grid_pos not in [0, 4, 8, 12]:
 			ax.tick_params(labelleft=False)

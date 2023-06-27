@@ -1,9 +1,10 @@
 #! /usr/bin/env python
 
-### SCRIPT FOR PLOTTING FIGURE (ALPHAS CCDF) IN FARSIGNATURES PROJECT ###
+### SCRIPT FOR PLOTTING FIGURE (ALPHAS DIST) IN FARSIGNATURES PROJECT ###
 
 #import modules
 import os, sys
+import numpy as np
 import pandas as pd
 import seaborn as sns
 import matplotlib.pyplot as plt
@@ -12,7 +13,6 @@ from os.path import expanduser
 
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 import data_misc as dm
-import plot_misc as pm
 
 
 ## RUNNING FIGURE SCRIPT ##
@@ -22,13 +22,16 @@ if __name__ == "__main__":
 	## CONF ##
 
 	#property to plot
-	prop_names = [ 'beta' ]
-	prop_labels = [ r'1 / \beta' ]
+	prop_name = 'beta'
+	prop_label = r'\beta'
+	# prop_label = r'1 / \beta'
 
 	stat = 'KS' #chosen test statistic
 	alphamax = 1000 #maximum alpha for MLE fit
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
+
+	nbins = 30 #number of bins to (log-)plot raw property distribution
 
 	#locations
 	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
@@ -57,9 +60,9 @@ if __name__ == "__main__":
 	plot_props = { 'xylabel' : 15,
 	'figlabel' : 26,
 	'ticklabel' : 15,
-	'text_size' : 11,
-	'marker_size' : 5,
-	'linewidth' : 3,
+	'text_size' : 10,
+	'marker_size' : 3,
+	'linewidth' : 2,
 	'tickwidth' : 1,
 	'barwidth' : 0.8,
 	'legend_prop' : { 'size':15 },
@@ -71,11 +74,11 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 1,
 	'fig_size' : (10, 8),
 	'aspect_ratio' : (4, 4),
-	'grid_params' : dict( left=0.085, bottom=0.085, right=0.98, top=0.965, wspace=0.3, hspace=0.5 ),
+	'grid_params' : dict( left=0.08, bottom=0.08, right=0.99, top=0.965, wspace=0.3, hspace=0.5 ),
 	'dpi' : 300,
-	'savename' : 'figure_alphas_CCDF' }
+	'savename' : 'figure_alphas_dist' }
 
-	colors = sns.color_palette( 'Paired', n_colors=len(prop_names) ) #colors to plot
+	colors = sns.color_palette( 'Paired', n_colors=1 ) #colors to plot
 
 	#initialise plot
 	sns.set( style='ticks' ) #set fancy fancy plot
@@ -125,36 +128,29 @@ if __name__ == "__main__":
 		#initialise subplot
 		ax = plt.subplot( grid[ grid_pos] )
 		sns.despine( ax=ax ) #take out spines
+		if grid_pos in [12, 13, 14, 15]:
+			plt.xlabel( '${}$'.format( prop_label ), size=plot_props['xylabel'] )
+		if grid_pos in [0, 4, 8, 12]:
+			plt.ylabel( r"$P[ {} ]$".format( prop_label ), size=plot_props['xylabel'] )
 
-		#loop through considered properties
-		for prop_pos, (prop_name, prop_label) in enumerate(zip( prop_names, prop_labels )):
+		#prepare data
+		yplot_data = egonet_filter[ prop_name ] #filtered data!
+		# yplot_data = 1 / egonet_filter[ prop_name ]
+		bins = np.logspace( np.log10( yplot_data.min() ), np.log10( yplot_data.max() ), num=nbins+1 ) #log bins
+		yplot, bin_edges = np.histogram( yplot_data, bins=bins, density=True )
+		xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]
 
-			#initialise subplot
-			if grid_pos in [12, 13, 14, 15]:
-				plt.xlabel( '${}$'.format( prop_label ), size=plot_props['xylabel'] )
-			if grid_pos in [0, 4, 8, 12]:
-				plt.ylabel( r"$P[ {}' \geq {} ]$".format( prop_label, prop_label ), size=plot_props['xylabel'] )
-
-			#prepare data
-			yplot_data = 1 / egonet_filter[ prop_name ] #filtered data!
-			xplot, yplot = pm.plot_CCDF_cont( yplot_data ) #complementary cumulative dist
-
-			#plot plot!
-			plt.loglog( xplot, yplot, '-', label=prop_label, c=colors[prop_pos], lw=plot_props['linewidth'] )
+		#plot plot!
+		ax.loglog( xplot, yplot, 'o', label=prop_label, c=colors[0], ms=plot_props['marker_size'], zorder=1 )
 
 		#lines
-		plt.vlines( x=1, ymin = 1e-5, ymax=frac_egos_random, linestyles='--', colors='0.6', lw=plot_props['linewidth']-1 )
-		plt.hlines( y=frac_egos_random, xmin = 1e-4, xmax=1, linestyles='--', colors='0.6', lw=plot_props['linewidth']-1 )
+		plt.axvline( x=1, ls='--', c='0.6', lw=plot_props['linewidth'], zorder=0 )
 
 		#texts
-
-		plt.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
-
-		txt_str = r'$N_{\alpha}=$ '+'{}'.format(num_egos_filter)+'\n'+r'$n_{RN} =$'+'{:.2f}'.format(frac_egos_random)
-		plt.text( 0.05, 0.05, txt_str, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+		ax.text( 1, 1.15, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 		#finalise subplot
-		plt.axis([ 1e-4, 1e3, 1e-4, 2e0 ])
+		ax.axis([ 1e-3, 2e4, 8e-9, 1e0 ])
 		ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 		ax.locator_params( numticks=5 )
 		if grid_pos not in [12, 13, 14, 15]:
@@ -165,15 +161,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-	# prop_names = [ 'gamma' ]
-	# prop_labels = [ r'\hat{\alpha}_r' ]
-
-#			plt.loglog( xplot, yplot, '-', label=prop_label, mec=colors[prop_pos], mfc='w', mew=plot_props['linewidth'], ms=plot_props['marker_size'] )
-
-	# max_iter = 1000 #max number of iteration for centrality calculations
-	# nsims = 1000 #number of syntethic datasets used to calculate p-value
-	# amax = 10000 #maximum activity for theoretical activity distribution

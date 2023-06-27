@@ -29,10 +29,10 @@ if __name__ == "__main__":
 	pval_thres = 0.1 #threshold above which alpha MLEs are considered
 	alph_thres = 1 #threshold below alphamax to define alpha MLE -> inf
 
-	#locations
-	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/' #root location of data/code
-	root_code = expanduser('~') + '/prg/xocial/Farsignatures/'
-	saveloc = root_code+'files/data/' #location of output files
+	#root locations of data/code
+	root_data = expanduser('~') + '/prg/xocial/datasets/temporal_networks/'
+	saveloc = expanduser('~') + '/prg/xocial/Farsignatures/files/data/'
+	saveloc_fig = expanduser('~') + '/prg/xocial/Farsignatures/figures/figure1_data/'
 
 	#dataset list: eventname, textname
 	datasets = [ ( 'call', 'Mobile (call)'),
@@ -70,7 +70,7 @@ if __name__ == "__main__":
 	fig_props = { 'fig_num' : 3,
 	'fig_size' : (11, 8),
 	'aspect_ratio' : (2, 3),
-	'grid_params' : dict( left=0.07, bottom=0.07, right=0.99, top=0.96, wspace=0.5, hspace=0.4 ),
+	'grid_params' : dict( left=0.07, bottom=0.07, right=0.985, top=0.96, wspace=0.5, hspace=0.4 ),
 	'dpi' : 300,
 	'savename' : 'figure3' }
 
@@ -88,7 +88,7 @@ if __name__ == "__main__":
 # A: Phase diagram of selected dataset
 
 	#subplot variables
-	eventname, textname = ( 'text', 'Mobile (sms)') #selected dset
+	eventname, textname = ( 'call', 'Mobile (call)') #selected dataset
 	propx = ('gamma', r'\alpha_r')
 	propy = ('act_avg_rel', 't_r')
 	gridsize = 40 #grid size for hex bins
@@ -97,13 +97,12 @@ if __name__ == "__main__":
 	print('PHASE DIAGRAM')
 
 	#initialise subplot
-	ax = plt.subplot( grid[ 0,0 ] )
+	ax = plt.subplot( grid[0,0] )
 	sns.despine( ax=ax )
 	plt.xlabel( '$'+propx[1]+'$', size=plot_props['xylabel'] )
 	plt.ylabel( '$'+propy[1]+'$', size=plot_props['xylabel'] )
 
-	plt.text( -0.3, 0.98, 'a', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
-	plt.text( 0, 1.03, textname, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+	plt.text( -0.28, 0.98, 'a', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	## DATA ##
 
@@ -139,43 +138,43 @@ if __name__ == "__main__":
 	plt.plot( [1e-3, 1e4], [1e-3, 1e4], '--', c='0.6', lw=plot_props['linewidth'], zorder=1 )
 
 	#texts
-	plt.text( 0.8, 0.7, r'crossover ($\beta = 1$)', va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'], rotation=50 )
+	plt.text( 0.8, 0.75, r'crossover ($\beta = 1$)', va='center', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'], rotation=50 )
 	het_str = 'heterogeneous\n'+r'($\beta > 1$)'
-	plt.text( 0.3, 0.98, het_str, va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
+	plt.text( 0.3, 1, het_str, va='top', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 	hom_str = 'homogeneous\n'+r'($\beta < 1$)'
 	plt.text( 0.7, 0.05, hom_str, va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 	#finalise subplot
-	plt.axis([ 1e-3, 1e3, 1e-2, 1e4 ])
+	plt.axis([ 2e-4, 1e3, 1e-3, 5e3 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 	ax.locator_params( numticks=5 )
 
 
-# B: Aggregated activity distribution in regimes
+# B: Aggregated activity distribution in regimes of selected dataset
 
 	#subplot variables
-	eventname, textname = ( 'fb', 'Facebook') #selected dset
+	eventname, textname = ( 'call', 'Mobile (call)') #selected dset
 	beta_thres = 1 #beta threshold for activity regimes
+
+	#filter variables
+	min_negos = 30 #minimum number of egos in filtered activity group (only for social signature; not used!)
 
 	colors = sns.color_palette( 'Set2', n_colors=2 ) #colors to plot
 
 	print('ACT DIST PER REGIME')
 
 	#initialise subplot
-	subgrid = grid[ 0,1 ].subgridspec( 2, 1, hspace=0.45 )
-	ax = plt.subplot( subgrid[ 0 ] )
+	ax = plt.subplot( grid[0, 1] )
 	sns.despine( ax=ax )
 	plt.xlabel( '$a$', size=plot_props['xylabel'] )
 	plt.ylabel( r"$P[a' \geq a]$", size=plot_props['xylabel'] )
 
 	plt.text( -0.32, 0.98, 'b', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
-	plt.text( 0, 1.05, textname, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
 
 	## DATA ##
 
 	#load ego network properties, alter activities, and alpha fits
 	egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-	egonet_acts = pd.read_pickle( saveloc + 'egonet_acts_' + eventname + '.pkl' )
 	egonet_fits = pd.read_pickle( saveloc + 'egonet_fits_' + eventname + '.pkl' )
 
 	#filter egos according to fitting results
@@ -187,55 +186,25 @@ if __name__ == "__main__":
 	beta_lims = ( [ beta_thres, egonet_filter.beta.max() ],
 				  [ egonet_filter.beta.min(), beta_thres ] )
 
-
-	# B1: Activity distributions
-
 	#loop through regimes
 	for beta_pos, (beta_min, beta_max) in enumerate(beta_lims):
 
-		#betas between extreme values in selected interval
-		egonet_filter_beta = egonet_filter[ egonet_filter.beta.between( beta_min, beta_max ) ]
-		acts_filter = egonet_acts.loc[ egonet_filter_beta.index ] #alter activities (only filtered egos with beta in interval)
+		#load alter activity CCDF and average social signature (not used!) according to filter
+		ccdf, sign = pm.plot_activity_filter( 'divided_to_roughly_40_mb_files_30_march', eventname, filt_rule='beta', filt_obj=egonet_filter.beta, filt_params={ 'min_val':beta_min, 'max_val':beta_max, 'min_negos':min_negos }, is_parallel=True, load=True, root_data=root_data, saveloc=saveloc, saveloc_fig=saveloc_fig )
 
-		xplot, yplot_data = pm.plot_compcum_dist( acts_filter ) #get alter activity CCDF: P[X >= x]
-
-		symbol = '-' if beta_pos == 0 else '--'
+		symbol = '-' if beta_pos == 0 else '--' #symbols and labels
 		label = r'$\beta > 1$' if beta_pos == 0 else r'$\beta < 1$'
-		plt.loglog( xplot, yplot_data, symbol, c=colors[beta_pos], label=label, lw=plot_props['linewidth']+1 )
+
+		#plot plot alter activity CCDF!
+		plt.loglog( ccdf.x, ccdf.y, symbol, c=colors[beta_pos], label=label, lw=plot_props['linewidth']+1, zorder=0 )
 
 	#legend
 	plt.legend( loc='upper right', bbox_to_anchor=(1,1), prop=plot_props['legend_prop'], handlelength=2.5, numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )
 
 	#finalise subplot
-	plt.axis([ 1e0, 1e4, 1e-6, 1e0 ])
+	plt.axis([ 1e0, 1e4, 5e-9, 1.1e0 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 	ax.locator_params( numticks=5 )
-
-
-	#B2: Social signatures
-
-	inax = plt.subplot( subgrid[ 1 ] )
-	sns.despine( ax=inax ) #take out spines
-	inax.set_xlabel( r'$r$', size=plot_props['xylabel'], labelpad=0 )
-	inax.set_ylabel( r'$f_a$', size=plot_props['xylabel'], labelpad=0 )
-
-	#loop through regimes
-	for beta_pos, (beta_min, beta_max) in enumerate(beta_lims):
-
-		#betas between extreme values in selected interval
-		egonet_filter_beta = egonet_filter[ egonet_filter.beta.between( beta_min, beta_max ) ]
-		acts_filter = egonet_acts.loc[ egonet_filter_beta.index ] #alter activities (only filtered egos with beta in interval)
-
-		xplot = np.arange( 1, len(acts_filter)+1, dtype=int )
-		yplot = acts_filter.sort_values( ascending=False ) / acts_filter.sum()
-
-		symbol = '-' if beta_pos == 0 else '--'
-		inax.loglog( xplot, yplot, symbol, c=colors[beta_pos], lw=plot_props['linewidth']+1 )
-
-	#finalise inset
-	inax.set_xlim( 1e0, 1e6)
-	inax.set_ylim( 5e-7, 2e-3 )
-	inax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=3 )
 
 
 # C: CCDF of estimated model parameter for all datasets
@@ -249,7 +218,7 @@ if __name__ == "__main__":
 	print('PARAMETER CCDF')
 
 	#initialise subplot
-	ax = plt.subplot( grid[ 0, 2 ] )
+	ax = plt.subplot( grid[0, 2] )
 	sns.despine( ax=ax ) #take out spines
 	plt.xlabel( '${}$'.format( prop_label ), size=plot_props['xylabel'] )
 	plt.ylabel( "$P[{}' \geq {}]$".format( prop_label,prop_label ), size=plot_props['xylabel'] )
@@ -302,18 +271,18 @@ if __name__ == "__main__":
 	plt.legend( loc='upper left', bbox_to_anchor=(0.4, -0.25), prop=plot_props['legend_prop'], handlelength=1, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )
 
 	#finalise subplot
-	plt.axis([ 1e-5, 1e4, 3e-5, 5e0 ])
+	plt.axis([ 1e-5, 1e3, 5e-5, 2e0 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 	ax.locator_params( numticks=6 )
 
 
-# D: Beta persistence and alter turnover
+# D-E: Beta persistence and alter turnover
 
 	#initialise subplot
-	subgrid = grid[ 1,: ].subgridspec( 1, 3, wspace=0.4, width_ratios=[1.2,1,0.1] )
+	subgrid = grid[1,:].subgridspec( 1, 3, wspace=0.5, width_ratios=[1.2,1,0.1] )
 
 
-# D1: Correlation between persistence and turnover
+# D: Correlation between persistence and turnover in selected dataset
 
 	#subplot variables
 	eventname, textname = ( 'call', 'Mobile (call)')
@@ -329,7 +298,7 @@ if __name__ == "__main__":
 	print('CORRELATION')
 
 	#initialise subplot
-	plotgrid = subgrid[0].subgridspec( 2, 3, wspace=0.3, hspace=0.15, height_ratios=(0.3, 1), width_ratios=(1, 0.3,0.1) )
+	plotgrid = subgrid[0].subgridspec( 2, 3, wspace=0.3, hspace=0.15, height_ratios=(0.3, 1), width_ratios=(1, 0.3,0.05) )
 
 	## DATA ##
 
@@ -364,7 +333,7 @@ if __name__ == "__main__":
 
 	print('\tfiltered N = {}'.format(len(plot_data.index)))
 
-	# D1 main plot: correlation between turnover (x) and persistence (y)
+	# D main plot: correlation between turnover (x) and persistence (y)
 
 	#initialise subplot
 	ax = plt.subplot( plotgrid[1,0] )
@@ -380,20 +349,18 @@ if __name__ == "__main__":
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 
 	#colorbar
-	ax=plt.subplot( plotgrid[1,2] ).set_axis_off()
-	cbar = plt.colorbar( hexbin, ax=ax, fraction=1 )
+	cbar = plt.colorbar( hexbin, cax=plt.subplot( plotgrid[1,2] ) )
 	cbar.ax.set_title( r'$N_{J, \Delta \beta}$' )
 	cbar.ax.minorticks_off()
 
-	# D1 x marginal: turnover histogram
+	# D x-marginal: turnover histogram
 
 	#initialise subplot
 	ax = plt.subplot( plotgrid[0,0] )
 	sns.despine( ax=ax )
 	plt.ylabel( r'$N_J$', size=plot_props['text_size'] )
 
-	plt.text( -0.31, 1.18, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
-	plt.text( 0, 1.1, textname, va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['ticklabel'] )
+	plt.text( -0.28, 1.18, 'd', va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['figlabel'], fontweight='bold' )
 
 	#plot plot!
 	plt.hist( plot_data.jaccard, bins=bins, range=range_jaccard, log=True, histtype='stepfilled', color=colors[0] )
@@ -403,7 +370,7 @@ if __name__ == "__main__":
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['text_size'], length=2, pad=4 )
 	plt.xticks([])
 
-	# D1 y marginal: persistence histogram
+	# D y-marginal: persistence histogram
 
 	#initialise subplot
 	ax = plt.subplot( plotgrid[1,1] )
@@ -419,7 +386,7 @@ if __name__ == "__main__":
 	plt.yticks([])
 
 
-# D2: Beta persistence in time
+# E: Beta persistence in time for all datasets
 
 	#subplot variables
 	binrange = (-4, 4) #for histogram
@@ -473,11 +440,10 @@ if __name__ == "__main__":
 	#finalise subplot
 	plt.xlabel( r'$\Delta \beta / \beta$', size=plot_props['xylabel'] )
 	plt.ylabel( r'$p_{\Delta \beta}$', size=plot_props['xylabel'] )
-	plt.xlim( binrange )
-	plt.ylim([ 0, 2 ])
+	plt.axis([ binrange[0], binrange[1], -0.05, 1.5 ])
 	ax.tick_params( axis='both', which='both', direction='in', labelsize=plot_props['ticklabel'], length=2, pad=4 )
 	ax.locator_params( axis='x', nbins=4 )
-	ax.locator_params( axis='y', nbins=3 )
+	ax.locator_params( axis='y', nbins=4 )
 
 
 	#finalise plot

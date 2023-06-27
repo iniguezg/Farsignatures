@@ -23,7 +23,10 @@ if __name__ == "__main__":
 
 	## CONF ##
 
-	#subplot variables
+	#filter variables
+	num_quants = 5 #number of quantiles (+1) of filtered egos
+
+	#dispersion variables
 	filter_prop = 'strength' #selected property and threshold to filter egos
 	filter_thres = 10
 
@@ -91,25 +94,17 @@ if __name__ == "__main__":
 
 		#prepare ego network properties
 		egonet_props = pd.read_pickle( saveloc + 'egonet_props_' + eventname + '.pkl' )
-		#filter egos by t > a0 condition
-		egonet_props_filter = egonet_props[ egonet_props.degree * egonet_props.act_min < egonet_props.strength ]
 
-		#get activity means/variances/minimums per ego
-		act_avgs = egonet_props_filter.act_avg
-		act_vars = egonet_props_filter.act_var
-		act_mins = egonet_props_filter.act_min
-		#filter by selected property
-		act_avgs = act_avgs[ egonet_props_filter[filter_prop] > filter_thres ]
-		act_vars = act_vars[ egonet_props_filter[filter_prop] > filter_thres ]
-		act_mins = act_mins[ egonet_props_filter[filter_prop] > filter_thres ]
-		#get dispersion index measure per ego (use relative mean!)
-		act_disps = ( act_vars - act_avgs + act_mins ) / ( act_vars + act_avgs - act_mins )
-		act_disps = act_disps.dropna() #drop faulty egos
+		#get activity dispersion for egos in dataset
+		act_disps = dm.egonet_dispersion( egonet_props, filter_prop, filter_thres )
+
+		#get quantiles of filter parameter
+		quantile_arr = np.linspace(0, 1, num_quants)
+		quantile_vals = np.quantile( act_disps, quantile_arr )
 
 		#print output
 		print( '\tshown egos: {:.2f}%'.format( 100.*len(act_disps)/len(egonet_props) ), flush=True ) #filtered egos
 		total_egos_filter += len(act_disps) #filtered egos
-		print( '\tavg disp: {:.2f}'.format( act_disps.mean() ), flush=True ) #mean dispersion
 		if grid_pos == len(datasets)-1:
 			print( '\t\ttotal number of filtered egos: {}'.format( total_egos_filter ), flush=True )
 
@@ -127,12 +122,14 @@ if __name__ == "__main__":
 		#plot plot activity dispersion!
 		xplot, yplot = pm.plot_CCDF_cont( act_disps ) #get dispersion CCDF: P[X >= x]
 		plt.plot( xplot, yplot, '-', c=colors[0], lw=plot_props['linewidth'], zorder=1 )
-		#plot plot average dispersion!
-		plt.axvline( act_disps.mean(), ls='--', c='0.5', lw=plot_props['linewidth']-1, zorder=0 )
+
+		#plot plot quantile values!
+		for q_val in quantile_vals[1:-1]:
+			print('\t\t\tq_vall = {:.2f}'.format(q_val), flush=True) #filter range
+			plt.axvline( q_val, ls='--', c='0.7', lw=plot_props['linewidth']-1, zorder=0 )
 
 		#texts
 		plt.text( 1, 1.1, textname, va='top', ha='right', transform=ax.transAxes, fontsize=plot_props['text_size'] )
-		plt.text( act_disps.mean()-0.05, 0.05, r'$\langle d \rangle$', va='bottom', ha='right', fontsize=plot_props['ticklabel'] )
 
 		#finalise subplot
 		plt.axis([ -0.05, 1, 0, 1.05 ])
