@@ -208,6 +208,7 @@ if __name__ == "__main__":
 
 		#plot regime alpha
 		plt.text( 0.5, titley[grid_pos], labels[grid_pos], va='bottom', ha='center', transform=ax.transAxes, fontsize=plot_props['xylabel'] )
+		plt.text( 0.03, 0.06, r'$\alpha = $'+'{}'.format(alpha), va='bottom', ha='left', transform=ax.transAxes, fontsize=plot_props['text_size'] )
 
 		for post, t in enumerate( t_vals ): #loop through times
 
