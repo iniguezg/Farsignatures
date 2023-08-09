@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (MLE FITTING FOR MODEL) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -188,26 +191,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-	#MLE equations
-	# MLE_eq = lambda activity, gamma : float( mp.fsum([ mp.digamma( arel + gamma ) - mp.digamma( gamma ) for arel in activity - min(activity) ]) / len( activity ) )
-
-			# #MLE equations
-			# digamma_func = np.array([ MLE_eq( activity, gamma ) for gamma in gamma_vals ])
-			# log_func = np.log( 1 + beta_vals )
-
-				# #measure extra parameters/arrays
-				# trel = t - a0 #relative mean alter activity
-				# beta_vals = trel / gamma_vals #range of estimated scale factors
-
-				# yplot += np.abs( np.array([ alpha_func( gamma-a0, activity, a0, t ) for gamma in gamma_vals ]) )
-
-				# print( '\t\testimated alpha_r = {:.2f}'.format( gammahat ) )
-
-			# gammahat = gamma_vals.mean()
-			# labels_alpha.append( r'{:.2f}'.format( gammahat ) )
-
-		# leg2 = plt.legend( line_sims, labels_alpha, title=r'$\hat{ \alpha }_r =$', loc='lower left', bbox_to_anchor=(0, 0), prop=plot_props['legend_prop'], handlelength=1.6, numpoints=plot_props['legend_np'], columnspacing=plot_props[ 'legend_colsp' ] )

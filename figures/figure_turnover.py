@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (ALTER TURNOVER) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -37,20 +40,20 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
+	datasets = [ #( 'MPC_UEu', 'Mobile (call)'),
 	# datasets = [ ( 'call', 'Mobile (call)'),
 	# 			 ( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
-				 ( 'sexcontact_events', 'Contact'),
+				 #( 'sexcontact_events', 'Contact'),
 				 ( 'email', 'Email 1'),
 				 ( 'eml2', 'Email 2'),
 				 ( 'fb', 'Facebook'),
 				 ( 'messages', 'Messages'),
 				 ( 'forum', 'Forum'),
 				 ( 'pok', 'Dating'),
-				 ( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
+				 #( 'CNS_bt_symmetric', 'CNS (bluetooth)'),
 				 ( 'CNS_calls', 'CNS (call)'),
 				 ( 'CNS_sms', 'CNS (sms)') ]
 

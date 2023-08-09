@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (FIT RANKINGS) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -59,18 +62,18 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: dataname, eventname, textname
-	datasets = [ ('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
+	datasets = [ #('MPC_UEu_net', 'MPC_UEu.evt', 'Mobile (call)'),
 				 ('SMS_net', 'MPC_Wu_SD01.evt', 'Mobile (Wu 1)'),
 				 ('SMS_net', 'MPC_Wu_SD02.evt', 'Mobile (Wu 2)'),
 				 ('SMS_net', 'MPC_Wu_SD03.evt', 'Mobile (Wu 3)'),
-				 ('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
+				 #('sex_contacts_net', 'sexcontact_events.evt', 'Contact'),
 				 ('greedy_walk_nets', 'email.evt', 'Email 1'),
 				 ('greedy_walk_nets', 'eml2.evt', 'Email 2'),
 				 ('greedy_walk_nets', 'fb.evt', 'Facebook'),
 				 ('greedy_walk_nets', 'messages.evt', 'Messages'),
 				 ('greedy_walk_nets', 'forum.evt', 'Forum'),
 				 ('greedy_walk_nets', 'pok.evt', 'Dating'),
-				 ('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
+				 #('Copenhagen_nets', 'CNS_bt_symmetric.evt', 'CNS (bluetooth)'),
 				 ('Copenhagen_nets', 'CNS_calls.evt', 'CNS (call)'),
 				 ('Copenhagen_nets', 'CNS_sms.evt', 'CNS (sms)') ]
 

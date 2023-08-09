@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (ACTIVITY CCDF) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -199,6 +202,3 @@ if __name__ == "__main__":
 			#finalise plot
 			pdf.savefig( dpi=fig_props['dpi'] )
 			plt.close()
-
-
-#DEBUGGIN'

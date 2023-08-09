@@ -22,9 +22,12 @@ egonet_ranks_*
 egonet_jaccard_*
 egonet_fits_*
 graph_*.pkl
+figures/figure_multichannel.py
 
 #specific dirs to ignore
 __pycache__/
 _old/
 figures/_old/
 figures/old/
+figures/abstracts/
+figures/rankings/old/

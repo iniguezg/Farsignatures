@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (BETA PERSISTENCE BY PROPERTY) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -157,17 +160,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-#DEBUGGIN'
-
-		# props_filt_CA = props_filt[ props_filt.beta > 1 ]
-		# plot_data_CA = ( props_filt_CA.beta_piece_0 - props_filt_CA.beta_piece_1 ) / props_filt_CA.beta
-		# props_filt_RN = props_filt[ props_filt.beta < 1 ]
-		# plot_data_RN = ( props_filt_RN.beta_piece_0 - props_filt_RN.beta_piece_1 ) / props_filt_RN.beta
-
-		# sns.histplot( x=plot_data_CA, binrange=binrange, bins=bins, stat='density', element='step', color=colors[1], label='CA', zorder=0 )
-		# sns.histplot( x=plot_data_RN, binrange=binrange, bins=bins, stat='density', element='step', color=colors[2], label='RN', zorder=0 )
-
-		# #legend
-		# if grid_pos == 0:
-		# 	leg = plt.legend( loc='upper left', bbox_to_anchor=(0,1), prop=plot_props['legend_prop'], handlelength=1.7, numpoints=plot_props['legend_np'], columnspacing=plot_props['legend_colsp'] )

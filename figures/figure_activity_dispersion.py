@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (ACTIVITY DIST AGG BY DISPERSION) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -49,8 +52,8 @@ if __name__ == "__main__":
 	load = True
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -166,7 +169,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-#DEBUGGIN'
-
-			# plt.loglog( sign.index+1, sign, 'o', c=colors[posval], label=label, ms=plot_props['marker_size'], zorder=0 )

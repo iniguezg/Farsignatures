@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (DATA CCDF) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -31,8 +34,8 @@ if __name__ == "__main__":
 	saveloc = root_code+'files/data/' #location of output files
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),

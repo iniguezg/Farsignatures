@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (GINI COEFFICIENT AND BETA) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -147,11 +150,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-# import scipy.special as ss
-
-		# gamma_vals = trel / beta_vals #gamma parameter (relative alpha)
-		# gini_approx = ss.gamma( gamma_vals + 1/2 ) / ( np.sqrt(np.pi) * ss.gamma( gamma_vals + 1 ) ) #Gini coefficient (gamma approx)

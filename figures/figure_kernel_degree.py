@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (CONNECTION KERNEL BY DEGREE) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -65,8 +68,8 @@ if __name__ == "__main__":
 	load = True
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -186,12 +189,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-		# plt.text( 80, bline_avg, r'$\langle 1/k \rangle$', va='center', ha='left', fontsize=plot_props['ticklabel'] )
-
-			# plt.plot( data_avg, '-', c=colors[posval], lw=plot_props['linewidth'], zorder=1 )
-			#plot plot baseline! prob = <1/k> for random case
-			# plt.axhline( bline_avg, ls='--', c=colors[posval], lw=plot_props['linewidth']-1, zorder=0 )

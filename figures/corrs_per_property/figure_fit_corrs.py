@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (FIT CORRS) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -56,8 +59,8 @@ if __name__ == "__main__":
 
 	#dataset list: eventname, textname
 	# datasets = [ ( 'MPC_UEu', 'Mobile (call)'),
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -188,9 +191,3 @@ if __name__ == "__main__":
 		#finalise plot
 		if fig_props['savename'] != '':
 			plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-#DEBUGGIN'
-
-	# max_iter = 1000 #max number of iteration for centrality calculations
-	# nsims = 1000 #number of syntethic datasets used to calculate p-value
-	# amax = 10000 #maximum activity for theoretical activity distribution

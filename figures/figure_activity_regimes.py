@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (APROXs & SIMS FOR ACT DIST) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -178,12 +181,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-#DEBUGGIN'
-
-			# #PGF expression
-			#
-			# xplot = a_vals - a0 #relative activity
-			# yplot_model = np.array([ mm.activity_dist( a, t, alpha, a0 ) for a in a_vals ])
-			#
-			# line_theo, = plt.loglog( xplot, yplot_model, '-', label=label, c=colors[post], lw=plot_props['linewidth'], zorder=0 )

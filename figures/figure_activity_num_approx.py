@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (APROXs & SIMS FOR ACT DIST) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -150,39 +153,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-		# #low alpha: power-law limit
-		# if alphapos == 0:
-		# 	label = 'Power law'
-		# 	act_dist = lambda a1, alpha1: mp.power( a1, -( 1 - alpha1 ) ) / mp.gamma( alpha1 )
-		#
-		# 	yplot = [ float( act_dist( a, alpha ) ) for a in a_vals ]
-		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S11)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
-		#
-		# #intermediate alpha: power law with exponential cutoff
-		# if alphapos == 1:
-		# 	label = 'Power law with exponential cutoff'
-		# 	t = t_vals[-1] #consider only large t
-		#
-		# 	lt = lambda alpha1: mp.ln( 1 + alpha1 / t )
-		# 	exp_decay = lambda a1, alpha1: mp.exp( -lt(alpha1) * ( a1 + alpha1 ) + alpha1 * mp.ln( alpha1 / t ) )
-		# 	act_dist = lambda a1, alpha1: mp.power( a1, -( 1 - alpha1 ) ) * exp_decay( a1, alpha1 ) / mp.gamma( alpha1 )
-		#
-		# 	yplot = [ float( act_dist( a, alpha ) ) for a in a_vals ]
-		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S12)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
-		#
-		# #high alpha: Poisson limit
-		# if alphapos == 2:
-		# 	label = 'Poisson'
-		# 	mu = float( t_vals[-1] ) #Poisson mean is time
-		#
-		# 	xplot = np.arange( ss.poisson.ppf( ppf, mu ), ss.poisson.ppf( 1 - ppf, mu ) )
-		# 	yplot = ss.poisson.pmf( xplot, mu )
-		# 	plt.loglog( xplot, yplot, '--', label='Eq. (S10)', c='0.5', lw=plot_props['linewidth'], zorder=2 )
-
-			# bins = np.logspace( 0, np.log10( activity.max() ), num=25 )
-			# yplot, bin_edges = np.histogram( activity, bins=bins, density=True )
-			# xplot = [ ( bin_edges[i+1] + bin_edges[i] ) / 2 for i in range(len( bin_edges[:-1] )) ]

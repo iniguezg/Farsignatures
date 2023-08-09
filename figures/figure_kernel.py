@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE (CONNECTION KERNEL) IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -43,8 +46,8 @@ if __name__ == "__main__":
 	load = True
 
 	#dataset list: eventname, textname
-	datasets = [ ( 'call', 'Mobile (call)'),
-				 ( 'text', 'Mobile (sms)'),
+	datasets = [ #( 'call', 'Mobile (call)'),
+				 #( 'text', 'Mobile (sms)'),
 				 ( 'MPC_Wu_SD01', 'Mobile (Wu 1)'),
 				 ( 'MPC_Wu_SD02', 'Mobile (Wu 2)'),
 				 ( 'MPC_Wu_SD03', 'Mobile (Wu 3)'),
@@ -147,17 +150,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-		# data_CI = 0.99 * data_grp.std() / np.sqrt( data_grp.size() ) #(Gaussian) confidence interval
-		# plt.fill_between( data_avg.index, data_avg - data_CI, data_avg + data_CI, color=colors[0], alpha=0.5, zorder=1 )
-
-	# gridsize = 40 #grid size for hex bins
-	# vmax = 8e4 #max value in colorbar (larger than N in any dataset!)
-	# 	data_sct = filt_negos[ filt_negos.index.get_level_values(1) != 0 ]
-	# 	#plot plot scatterplot of probabilities!
-	# 	plt.hexbin( data_sct.index.get_level_values(1), data_sct.values, xscale='log', norm=LogNorm(vmin=1e0, vmax=vmax), mincnt=10, gridsize=gridsize, cmap='copper_r', zorder=1 )
-
-		# print( '\t{:.2f}% egos after degree filter'.format( 100.*filt_degree.index.get_level_values(0).nunique() / len(egonet_props) ) ) #print filtering output

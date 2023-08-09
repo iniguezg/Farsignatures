@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### SCRIPT FOR PLOTTING FIGURE 2 IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -438,20 +441,3 @@ if __name__ == "__main__":
 	#finalise plot
 	if fig_props['savename'] != '':
 		plt.savefig( fig_props['savename']+'.pdf', format='pdf', dpi=fig_props['dpi'] )
-
-
-#DEBUGGIN'
-
-		# width = [ edgewid * ( activity[ 0, nodej-1 ] - activity.min() ) / ( activity.max() - activity.min() ) for nodej in graph['ego'] ]
-
-# import cairosvg as cs
-# from PIL import Image
-# from io import BytesIO
-	# ax.set_axis_off()
-	#
-	# #plot plot!
-	# img = cs.svg2png( url='diagrams/phase_diagram.svg' )
-	# img = Image.open( BytesIO(img) )
-	# plt.imshow(img)
-
-	# norm = LogNorm( vmin=disp_vals.min(), vmax=disp_vals.max() )
