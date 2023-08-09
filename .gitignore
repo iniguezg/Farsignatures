@@ -5,10 +5,11 @@
 #things to track
 !.gitignore
 !*.py
-!*.sh
-!*.slurm
-!filenames*.txt
+#!*.sh
+#!*.slurm
+#!filenames*.txt
 !files/data/*.pkl
+!LICENSE
 
 #specific files to ignore
 *.out
