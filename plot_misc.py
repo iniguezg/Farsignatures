@@ -1,5 +1,8 @@
 #! /usr/bin/env python
 
+#Farsignatures - Exploring dynamics of egocentric communication networks
+#Copyright (C) 2023 Gerardo Iñiguez
+
 ### MODULE FOR MISCELLANEOUS FUNCTIONS FOR PLOTTING IN FARSIGNATURES PROJECT ###
 
 #import modules
@@ -172,24 +175,3 @@ def draw_brace(ax, xspan, yy, text):
     ax.plot(x, y, color='black', lw=1)
 
     ax.text((xmax+xmin)/2., yy+.07*yspan, text, ha='center', va='bottom')
-
-
-#DEBUGGIN'
-
-# 		#filter egos by selected filter property
-# 		if filt_rule == 'large_disp': #large dispersion
-# 			filter = egonet_kernel[ filt_obj[ filt_obj > filt_obj.mean() ].index ]
-# 		elif filt_rule == 'small_disp': #small dispersion
-# 			filter = egonet_kernel[ filt_obj[ filt_obj < filt_obj.mean() ].index ]
-# 		elif filt_rule == 'degree': #large enough degree
-# 			filter = egonet_kernel[ filt_obj[ filt_obj.degree >= filt_params['min_degree'] ].index ]
-# 		else: #no filter
-# 			filter = egonet_kernel
-
-		# #filter egos by selected filter property
-		# if filt_rule == 'dispersion': #dispersion within bounds
-		# 	cond = (filt_params['min_val'] <= filt_obj) & (filt_obj <= filt_params['max_val'])
-		# elif filt_rule == 'degree': #degree within bounds
-		# 	cond = (filt_params['min_val'] <= filt_obj.degree) & (filt_obj.degree <= filt_params['max_val'])
-
-		# acts_filter_sorted_negos = acts_filter_sorted.groupby(level=1).filter( lambda x : len(x) >= filt_params['min_negos'] )
