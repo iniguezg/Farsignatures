@@ -46,7 +46,7 @@ if __name__ == "__main__":
 				 ('SMS_net', 'MPC_Wu_SD03.evt'),
 				 ('SNAP', 'email_Eu_core.evt'),
 				 ('SNAP', 'CollegeMsg.evt'),
-				 ('sex_contacts_net', 'sexcontact_events.evt'),
+				 # ('sex_contacts_net', 'sexcontact_events.evt'),
 				 # ('QA_nets', 'QA_askubuntu.evt'),
 				 # ('QA_nets', 'QA_mathoverflow.evt'),
 				 # ('QA_nets', 'QA_superuser.evt')
