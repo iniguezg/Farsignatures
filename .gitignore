@@ -5,24 +5,29 @@
 #things to track
 !.gitignore
 !*.py
+!files/data/*.pkl
+!LICENSE
 #!*.sh
 #!*.slurm
 #!filenames*.txt
-!files/data/*.pkl
-!LICENSE
 
 #specific files to ignore
 *.out
-*call.pkl
-*text.pkl
-*_call_*
-*_text_*
 egonet_kernel_*
 egonet_ranks_*
 egonet_jaccard_*
 egonet_fits_*
 graph_*.pkl
 figures/figure_multichannel.py
+*call.pkl
+*text.pkl
+*_call_*
+*_text_*
+*email.pkl
+*eml2.pkl
+*forum.pkl
+*messages.pkl
+*pok.pkl
 
 #specific dirs to ignore
 __pycache__/
