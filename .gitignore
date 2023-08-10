@@ -19,15 +19,23 @@ egonet_jaccard_*
 egonet_fits_*
 graph_*.pkl
 figures/figure_multichannel.py
+
+#large/private private datasets
 *call.pkl
 *text.pkl
 *_call_*
 *_text_*
+*MPC_UEu.pkl
 *email.pkl
 *eml2.pkl
 *forum.pkl
 *messages.pkl
 *pok.pkl
+
+#not used datasets
+*bt_symmetric.pkl
+*_QA_*
+*sexcontact_events.pkl
 
 #specific dirs to ignore
 __pycache__/
