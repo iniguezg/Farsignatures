@@ -1,4 +1,5 @@
 # Farsignatures
+[![DOI](https://zenodo.org/badge/297413241.svg)](https://zenodo.org/badge/latestdoi/297413241)
 
 ## Farsignatures - Exploring dynamics of egocentric communication networks
 
